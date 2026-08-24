@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { isDemo } from '../lib/isDemo'
+import { mockProfessionals } from '../lib/mockData'
 import type { Professional } from '../types'
 
 interface RawProfessional {
@@ -26,6 +28,12 @@ export function useProfessionals(establishmentId: string | undefined) {
   const [error, setError] = useState<string | null>(null)
 
   const fetchProfessionals = useCallback(async () => {
+    if (isDemo) {
+      setProfessionals(mockProfessionals)
+      setLoading(false)
+      return
+    }
+
     if (!establishmentId) {
       setLoading(false)
       return
@@ -48,10 +56,21 @@ export function useProfessionals(establishmentId: string | undefined) {
     void fetchProfessionals()
   }, [fetchProfessionals])
 
-  const createProfessional = async (name: string, serviceIds: string[], establishmentId: string) => {
+  const createProfessional = async (name: string, serviceIds: string[], estId: string) => {
+    if (isDemo) {
+      const newPro: Professional = {
+        id: crypto.randomUUID(),
+        establishment_id: estId,
+        name,
+        services: serviceIds,
+      }
+      setProfessionals((prev) => [...prev, newPro])
+      return { error: null }
+    }
+
     const { data, error } = await supabase
       .from('professionals')
-      .insert({ name, establishment_id: establishmentId })
+      .insert({ name, establishment_id: estId })
       .select()
       .single()
     if (error || !data) return { error: error?.message ?? 'Erro ao criar' }
@@ -66,6 +85,13 @@ export function useProfessionals(establishmentId: string | undefined) {
   }
 
   const updateProfessional = async (id: string, name: string, serviceIds: string[]) => {
+    if (isDemo) {
+      setProfessionals((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, name, services: serviceIds } : p))
+      )
+      return { error: null }
+    }
+
     const { error } = await supabase.from('professionals').update({ name }).eq('id', id)
     if (error) return { error: error.message }
 
@@ -80,6 +106,10 @@ export function useProfessionals(establishmentId: string | undefined) {
   }
 
   const deleteProfessional = async (id: string) => {
+    if (isDemo) {
+      setProfessionals((prev) => prev.filter((p) => p.id !== id))
+      return { error: null }
+    }
     const { error } = await supabase.from('professionals').delete().eq('id', id)
     if (!error) setProfessionals((prev) => prev.filter((p) => p.id !== id))
     return { error: error?.message ?? null }

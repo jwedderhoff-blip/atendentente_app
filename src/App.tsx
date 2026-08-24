@@ -1,10 +1,12 @@
 import { Navigate, Outlet, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import AdminLayout from './components/layout/AdminLayout'
+import DemoBanner from './components/ui/DemoBanner'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Home from './pages/Home'
 import Booking from './pages/Booking'
+import NotFound from './pages/NotFound'
 import Dashboard from './pages/admin/Dashboard'
 import Agenda from './pages/admin/Agenda'
 import Clientes from './pages/admin/Clientes'
@@ -43,6 +45,7 @@ function AppRoutes() {
           <Route path="configuracoes" element={<Configuracoes />} />
         </Route>
       </Route>
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }
@@ -50,6 +53,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
+      <DemoBanner />
       <Router>
         <AppRoutes />
       </Router>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { isDemo } from '../lib/isDemo'
+import { mockEstablishment } from '../lib/mockData'
 import type { Establishment } from '../types'
 
 export function useEstablishment(userId: string | undefined) {
@@ -8,6 +10,12 @@ export function useEstablishment(userId: string | undefined) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (isDemo) {
+      setEstablishment(mockEstablishment)
+      setLoading(false)
+      return
+    }
+
     if (!userId) {
       setLoading(false)
       return
@@ -27,6 +35,10 @@ export function useEstablishment(userId: string | undefined) {
   }, [userId])
 
   const updateEstablishment = async (updates: Partial<Establishment>) => {
+    if (isDemo) {
+      setEstablishment((prev) => (prev ? { ...prev, ...updates } : prev))
+      return { error: null }
+    }
     if (!establishment) return { error: 'Sem estabelecimento' }
     const { data, error } = await supabase
       .from('establishments')
@@ -47,6 +59,13 @@ export function useEstablishmentBySlug(slug: string | undefined) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (isDemo) {
+      // Em modo demo qualquer slug retorna o estabelecimento demo
+      setEstablishment(mockEstablishment)
+      setLoading(false)
+      return
+    }
+
     if (!slug) {
       setLoading(false)
       return

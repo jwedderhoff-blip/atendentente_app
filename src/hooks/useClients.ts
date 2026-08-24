@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { isDemo } from '../lib/isDemo'
+import { mockClients } from '../lib/mockData'
 import type { Client } from '../types'
 
 export function useClients(establishmentId: string | undefined) {
@@ -8,6 +10,12 @@ export function useClients(establishmentId: string | undefined) {
   const [error, setError] = useState<string | null>(null)
 
   const fetchClients = useCallback(async () => {
+    if (isDemo) {
+      setClients(mockClients)
+      setLoading(false)
+      return
+    }
+
     if (!establishmentId) {
       setLoading(false)
       return
@@ -28,6 +36,22 @@ export function useClients(establishmentId: string | undefined) {
   }, [fetchClients])
 
   const createClient = async (payload: Omit<Client, 'id' | 'created_at'>) => {
+    if (isDemo) {
+      // Verifica se já existe pelo telefone
+      const existing = clients.find(
+        (c) => c.establishment_id === payload.establishment_id && c.phone === payload.phone
+      )
+      if (existing) return { client: existing, error: null }
+
+      const newClient: Client = {
+        ...payload,
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+      }
+      setClients((prev) => [...prev, newClient])
+      return { client: newClient, error: null }
+    }
+
     const existing = await supabase
       .from('clients')
       .select('id')

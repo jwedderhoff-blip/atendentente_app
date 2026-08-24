@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { isDemo } from '../lib/isDemo'
+import { mockAppointments } from '../lib/mockData'
 import type { Appointment } from '../types'
 
 export function useAppointments(establishmentId: string | undefined, date?: string) {
@@ -8,6 +10,16 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
   const [error, setError] = useState<string | null>(null)
 
   const fetchAppointments = useCallback(async () => {
+    if (isDemo) {
+      let filtered = mockAppointments
+      if (date) {
+        filtered = mockAppointments.filter((a) => a.starts_at.startsWith(date))
+      }
+      setAppointments(filtered)
+      setLoading(false)
+      return
+    }
+
     if (!establishmentId) {
       setLoading(false)
       return
@@ -42,6 +54,18 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
     starts_at: string
     ends_at: string
   }) => {
+    if (isDemo) {
+      const newApt: Appointment = {
+        ...payload,
+        id: crypto.randomUUID(),
+        status: 'pendente',
+        payment_status: 'pendente',
+        created_at: new Date().toISOString(),
+      }
+      setAppointments((prev) => [...prev, newApt])
+      return { appointment: newApt, error: null }
+    }
+
     const { data, error } = await supabase
       .from('appointments')
       .insert({ ...payload, status: 'pendente', payment_status: 'pendente' })
@@ -52,6 +76,10 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
   }
 
   const updateStatus = async (id: string, status: Appointment['status']) => {
+    if (isDemo) {
+      setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)))
+      return { error: null }
+    }
     const { error } = await supabase.from('appointments').update({ status }).eq('id', id)
     if (!error) {
       setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)))
