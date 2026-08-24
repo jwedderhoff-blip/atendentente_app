@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,10 +12,12 @@ import { useProfessionals } from '../hooks/useProfessionals'
 import { useAvailability } from '../hooks/useAvailability'
 import { useClients } from '../hooks/useClients'
 import { useAppointments } from '../hooks/useAppointments'
+import { usePixPayment } from '../hooks/usePixPayment'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Calendar } from '../components/ui/Calendar'
 import { TimeSlotGrid } from '../components/ui/TimeSlotGrid'
+import { PixPayment } from '../components/ui/PixPayment'
 import { formatCurrency, formatPhone } from '../lib/utils'
 import type { Service, Professional } from '../types'
 
@@ -57,6 +59,7 @@ export default function Booking() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [appointmentId, setAppointmentId] = useState<string | null>(null)
+  const [confirmedClientData, setConfirmedClientData] = useState<ClientData | null>(null)
 
   const eligibleProfessionals = selectedService
     ? professionals.filter((p) => p.services.includes(selectedService.id))
@@ -72,6 +75,7 @@ export default function Booking() {
 
   const { createClient } = useClients(establishment?.id)
   const { createAppointment } = useAppointments(establishment?.id)
+  const { pixData, loading: pixLoading, generatePix } = usePixPayment()
 
   const {
     register,
@@ -81,6 +85,28 @@ export default function Booking() {
     resolver: zodResolver(clientSchema),
     defaultValues: { marketing_opt_in: false },
   })
+
+  // Auto-generate PIX when arriving at step 5
+  useEffect(() => {
+    if (
+      step === 5 &&
+      appointmentId &&
+      selectedService &&
+      establishment &&
+      confirmedClientData &&
+      !pixData &&
+      !pixLoading
+    ) {
+      void generatePix({
+        appointment_id: appointmentId,
+        amount: selectedService.price,
+        description: `${selectedService.name} - ${establishment.name}`,
+        payer_email: confirmedClientData.email || 'cliente@atendente.app',
+        payer_name: confirmedClientData.name,
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step])
 
   const activeServices = services.filter((s) => s.active)
 
@@ -142,6 +168,7 @@ export default function Booking() {
 
     if (appointment) {
       setAppointmentId(appointment.id)
+      setConfirmedClientData(clientData)
       setStep(5)
     }
   }
@@ -338,15 +365,17 @@ export default function Booking() {
         )}
 
         {step === 5 && (
-          <div className="text-center py-8">
-            <CheckCircle size={64} className="text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Agendamento confirmado!</h2>
-            <p className="text-gray-500 mb-6">
-              Você receberá um lembrete por WhatsApp antes do horário.
-            </p>
+          <div className="py-4">
+            <div className="text-center mb-6">
+              <CheckCircle size={56} className="text-green-500 mx-auto mb-3" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Agendamento confirmado!</h2>
+              <p className="text-sm text-gray-500">
+                Você receberá um lembrete por WhatsApp antes do horário.
+              </p>
+            </div>
 
             {selectedService && selectedDate && selectedTime && (
-              <div className="bg-white rounded-2xl border border-gray-200 p-5 text-left mb-6">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-5">
                 <p className="font-semibold text-gray-900 mb-3">Resumo</p>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -377,18 +406,26 @@ export default function Booking() {
               </div>
             )}
 
-            {appointmentId && selectedService && selectedService.price > 0 && (
-              <a
-                href={`https://www.mercadopago.com.br/checkout?appointment=${appointmentId}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition text-sm"
-              >
-                Pagar online com Mercado Pago
-              </a>
+            {selectedService && selectedService.price > 0 && (
+              <div className="mb-4">
+                <p className="font-semibold text-gray-900 mb-3">Pagamento via PIX</p>
+                {pixData ? (
+                  <PixPayment
+                    pixData={pixData}
+                    amount={selectedService.price}
+                    loading={false}
+                  />
+                ) : (
+                  <PixPayment
+                    pixData={{ qr_code: '', qr_code_base64: '', ticket_url: '', payment_id: '', status: 'pending' }}
+                    amount={selectedService.price}
+                    loading={pixLoading}
+                  />
+                )}
+              </div>
             )}
 
-            <p className="text-xs text-gray-400 mt-4">
+            <p className="text-xs text-gray-400 text-center mt-2">
               {establishment.phone && `Dúvidas? Fale conosco: ${formatPhone(establishment.phone)}`}
             </p>
           </div>

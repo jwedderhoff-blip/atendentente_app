@@ -106,3 +106,8 @@ create policy "owner_all" on clients for all using (
 create policy "owner_all" on appointments for all using (
   establishment_id in (select id from establishments where owner_id = auth.uid())
 );
+
+-- PIX payment fields (added for PIX integration)
+alter table appointments
+  add column if not exists pix_payment_id text,
+  add column if not exists pix_expires_at timestamptz;
