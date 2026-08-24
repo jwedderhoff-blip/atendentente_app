@@ -1,5 +1,6 @@
 export interface Establishment {
   id: string
+  user_id: string
   name: string
   slug: string
   category: 'salao' | 'barbearia' | 'estetica' | 'pilates' | 'outro'
@@ -30,10 +31,11 @@ export interface Professional {
 
 export interface Client {
   id: string
+  establishment_id: string
   name: string
   phone: string
   email?: string
-  birth_date?: string
+  marketing_opt_in?: boolean
   notes?: string
   created_at: string
 }
@@ -50,6 +52,18 @@ export interface Appointment {
   payment_status: 'pendente' | 'pago' | 'reembolsado'
   notes?: string
   created_at: string
+  client?: Client
+  service?: Service
+  professional?: Professional
+}
+
+export interface WorkingHours {
+  id: string
+  establishment_id: string
+  day_of_week: 0 | 1 | 2 | 3 | 4 | 5 | 6
+  open_time: string
+  close_time: string
+  is_open: boolean
 }
 
 export interface TimeSlot {
