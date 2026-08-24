@@ -1,21 +1,15 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY
+declare const __SUPABASE_URL__: string
+declare const __SUPABASE_KEY__: string
 
 let supabase: SupabaseClient
 
 try {
-  if (
-    !supabaseUrl ||
-    !supabaseAnonKey ||
-    supabaseUrl === 'https://SEU_PROJETO.supabase.co'
-  ) {
-    // Modo demo — cria um cliente com URL inválida que nunca será chamado
-    // graças ao guard isDemo nos hooks.
+  if (!__SUPABASE_URL__ || __SUPABASE_URL__ === 'https://SEU_PROJETO.supabase.co') {
     supabase = createClient('https://demo.supabase.co', 'demo-key')
   } else {
-    supabase = createClient(supabaseUrl, supabaseAnonKey)
+    supabase = createClient(__SUPABASE_URL__, __SUPABASE_KEY__)
   }
 } catch {
   supabase = createClient('https://demo.supabase.co', 'demo-key')

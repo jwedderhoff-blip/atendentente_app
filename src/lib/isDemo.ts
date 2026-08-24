@@ -1,5 +1,5 @@
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL
+declare const __SUPABASE_URL__: string
 
 export const isDemo =
-  !supabaseUrl ||
-  supabaseUrl === 'https://SEU_PROJETO.supabase.co'
+  !__SUPABASE_URL__ ||
+  __SUPABASE_URL__ === 'https://SEU_PROJETO.supabase.co'
