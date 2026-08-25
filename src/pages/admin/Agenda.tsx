@@ -21,7 +21,7 @@ export default function Agenda() {
   const [updating, setUpdating] = useState(false)
 
   const { professionals } = useProfessionals(establishment?.id)
-  const { appointments, loading, updateStatus } = useAppointments(establishment?.id)
+  const { appointments, loading, updateStatus, updatePaymentStatus } = useAppointments(establishment?.id)
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -37,6 +37,14 @@ export default function Agenda() {
     setUpdating(true)
     await updateStatus(selectedAppt.id, status)
     setSelectedAppt((prev) => prev ? { ...prev, status } : prev)
+    setUpdating(false)
+  }
+
+  const handlePaymentStatus = async (payment_status: Appointment['payment_status']) => {
+    if (!selectedAppt) return
+    setUpdating(true)
+    await updatePaymentStatus(selectedAppt.id, payment_status)
+    setSelectedAppt((prev) => prev ? { ...prev, payment_status } : prev)
     setUpdating(false)
   }
 
@@ -197,7 +205,52 @@ export default function Agenda() {
                 <span className="text-gray-500">Status</span>
                 <Badge status={selectedAppt.status} />
               </div>
+              <div className="flex justify-between text-sm items-center">
+                <span className="text-gray-500">Pagamento</span>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  selectedAppt.payment_status === 'pago'
+                    ? 'bg-green-100 text-green-700'
+                    : selectedAppt.payment_status === 'reembolsado'
+                    ? 'bg-gray-100 text-gray-600'
+                    : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {selectedAppt.payment_status === 'pago' ? 'Pago' : selectedAppt.payment_status === 'reembolsado' ? 'Reembolsado' : 'Pendente'}
+                </span>
+              </div>
             </div>
+
+            {/* Pagamento */}
+            {selectedAppt.payment_status !== 'pago' && (
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handlePaymentStatus('pago')}
+                  loading={updating}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  Marcar como pago
+                </Button>
+                {selectedAppt.payment_status === 'pago' && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => handlePaymentStatus('reembolsado')}
+                    loading={updating}
+                    className="flex-1"
+                  >
+                    Reembolsado
+                  </Button>
+                )}
+              </div>
+            )}
+            {selectedAppt.payment_status === 'pago' && (
+              <Button
+                variant="ghost"
+                onClick={() => handlePaymentStatus('reembolsado')}
+                loading={updating}
+                className="w-full"
+              >
+                Marcar como reembolsado
+              </Button>
+            )}
 
             {/* Ações */}
             <div className="flex flex-col gap-2">

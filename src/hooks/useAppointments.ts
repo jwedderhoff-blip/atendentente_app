@@ -87,5 +87,17 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
     return { error: error?.message ?? null }
   }
 
-  return { appointments, loading, error, refetch: fetchAppointments, createAppointment, updateStatus }
+  const updatePaymentStatus = async (id: string, payment_status: Appointment['payment_status']) => {
+    if (isDemo) {
+      setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, payment_status } : a)))
+      return { error: null }
+    }
+    const { error } = await supabase.from('appointments').update({ payment_status }).eq('id', id)
+    if (!error) {
+      setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, payment_status } : a)))
+    }
+    return { error: error?.message ?? null }
+  }
+
+  return { appointments, loading, error, refetch: fetchAppointments, createAppointment, updateStatus, updatePaymentStatus }
 }
