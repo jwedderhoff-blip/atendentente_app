@@ -243,7 +243,7 @@ export default function Servicos() {
           </p>
 
           <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-50">
-            {DAY_NAMES.map((dayName, day) => {
+            {DAY_NAMES.map((_dayName, day) => {
               const daySlots = schedulesByDay(day)
               const isOpen = activeDay === day
 

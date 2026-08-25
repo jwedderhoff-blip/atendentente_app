@@ -60,6 +60,7 @@ export default function Booking() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [appointmentId, setAppointmentId] = useState<string | null>(null)
   const [confirmedClientData, setConfirmedClientData] = useState<ClientData | null>(null)
+  const [bookingError, setBookingError] = useState<string | null>(null)
 
   const eligibleProfessionals = selectedService
     ? professionals.filter((p) => p.services.includes(selectedService.id))
@@ -141,8 +142,9 @@ export default function Booking() {
 
   const submitBooking = async (clientData: ClientData) => {
     if (!establishment || !selectedService || !selectedDate || !selectedTime) return
+    setBookingError(null)
 
-    const { client } = await createClient({
+    const { client, error: clientError } = await createClient({
       establishment_id: establishment.id,
       name: clientData.name,
       phone: clientData.phone.replace(/\D/g, ''),
@@ -150,14 +152,17 @@ export default function Booking() {
       marketing_opt_in: clientData.marketing_opt_in,
     })
 
-    if (!client) return
+    if (!client) {
+      setBookingError(clientError ?? 'Erro ao salvar seus dados. Tente novamente.')
+      return
+    }
 
     const [h, m] = selectedTime.split(':').map(Number)
     const startsAt = new Date(selectedDate)
     startsAt.setHours(h, m, 0, 0)
     const endsAt = addMinutes(startsAt, selectedService.duration_minutes)
 
-    const { appointment } = await createAppointment({
+    const { appointment, error: apptError } = await createAppointment({
       establishment_id: establishment.id,
       client_id: client.id,
       ...(selectedProfessional ? { professional_id: selectedProfessional.id } : {}),
@@ -166,11 +171,14 @@ export default function Booking() {
       ends_at: endsAt.toISOString(),
     })
 
-    if (appointment) {
-      setAppointmentId(appointment.id)
-      setConfirmedClientData(clientData)
-      setStep(5)
+    if (!appointment) {
+      setBookingError(apptError ?? 'Erro ao confirmar agendamento. Tente novamente.')
+      return
     }
+
+    setAppointmentId(appointment.id)
+    setConfirmedClientData(clientData)
+    setStep(5)
   }
 
   if (estLoading) {
@@ -356,6 +364,10 @@ export default function Booking() {
                 <input type="checkbox" {...register('marketing_opt_in')} className="mt-0.5 rounded" />
                 Quero receber promoções e novidades por WhatsApp
               </label>
+
+              {bookingError && (
+                <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{bookingError}</p>
+              )}
 
               <Button type="submit" loading={isSubmitting} className="w-full" size="lg">
                 Confirmar agendamento
