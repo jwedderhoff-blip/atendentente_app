@@ -19,6 +19,7 @@ export interface Service {
   duration_minutes: number
   price: number
   active: boolean
+  schedule_type: 'fixed' | 'flexible'
 }
 
 export interface Professional {

@@ -113,12 +113,20 @@ export default function Booking() {
 
   const goBack = () => {
     if (step === 2) setStep(1)
-    else if (step === 3) setStep(eligibleProfessionals.length > 1 ? 2 : 1)
+    else if (step === 3) {
+      if (selectedService?.schedule_type === 'fixed') setStep(1)
+      else setStep(eligibleProfessionals.length > 1 ? 2 : 1)
+    }
     else if (step === 4) setStep(3)
   }
 
   const selectService = (s: Service) => {
     setSelectedService(s)
+    if (s.schedule_type === 'fixed') {
+      setSelectedProfessional(null)
+      setStep(3)
+      return
+    }
     const eligible = professionals.filter((p) => p.services.includes(s.id))
     if (eligible.length === 1) {
       setSelectedProfessional(eligible[0])

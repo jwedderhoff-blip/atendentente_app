@@ -35,6 +35,7 @@ const schema = z.object({
   duration_minutes: z.number().min(15, 'Mínimo 15 minutos'),
   price: z.number().min(0, 'Preço inválido'),
   active: z.boolean(),
+  schedule_type: z.enum(['fixed', 'flexible']),
 })
 
 type FormData = z.infer<typeof schema>
@@ -56,12 +57,15 @@ export default function Servicos() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { active: true } })
+  } = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { active: true, schedule_type: 'flexible' } })
+
+  const scheduleType = watch('schedule_type')
 
   const openCreate = () => {
     setEditing(null)
-    reset({ name: '', description: '', duration_minutes: 60, price: 0, active: true })
+    reset({ name: '', description: '', duration_minutes: 60, price: 0, active: true, schedule_type: 'flexible' })
     setModalOpen(true)
   }
 
@@ -219,6 +223,28 @@ export default function Servicos() {
               error={errors.price?.message}
               {...register('price', { valueAsNumber: true })}
             />
+          </div>
+          <div>
+            <p className="text-sm text-gray-700 mb-2 font-medium">Tipo de horário</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { value: 'flexible', label: 'Horário livre', desc: 'Cliente escolhe entre os disponíveis' },
+                { value: 'fixed', label: 'Horário fixo', desc: 'Turnos pré-definidos pela semana' },
+              ] as const).map(({ value, label, desc }) => (
+                <label
+                  key={value}
+                  className={`flex flex-col gap-0.5 border rounded-xl p-3 cursor-pointer transition ${
+                    scheduleType === value
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-purple-300'
+                  }`}
+                >
+                  <input type="radio" value={value} {...register('schedule_type')} className="sr-only" />
+                  <span className="text-sm font-semibold text-gray-800">{label}</span>
+                  <span className="text-xs text-gray-500">{desc}</span>
+                </label>
+              ))}
+            </div>
           </div>
           <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
             <input type="checkbox" {...register('active')} className="rounded" />
