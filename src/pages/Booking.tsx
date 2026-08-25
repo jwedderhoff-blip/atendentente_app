@@ -140,7 +140,7 @@ export default function Booking() {
   }
 
   const submitBooking = async (clientData: ClientData) => {
-    if (!establishment || !selectedService || !selectedProfessional || !selectedDate || !selectedTime) return
+    if (!establishment || !selectedService || !selectedDate || !selectedTime) return
 
     const { client } = await createClient({
       establishment_id: establishment.id,
@@ -160,7 +160,7 @@ export default function Booking() {
     const { appointment } = await createAppointment({
       establishment_id: establishment.id,
       client_id: client.id,
-      professional_id: selectedProfessional.id,
+      ...(selectedProfessional ? { professional_id: selectedProfessional.id } : {}),
       service_id: selectedService.id,
       starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),

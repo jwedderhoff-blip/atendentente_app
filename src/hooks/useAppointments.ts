@@ -49,7 +49,7 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
   const createAppointment = async (payload: {
     establishment_id: string
     client_id: string
-    professional_id: string
+    professional_id?: string
     service_id: string
     starts_at: string
     ends_at: string
