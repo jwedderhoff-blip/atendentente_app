@@ -50,6 +50,7 @@ export default function Servicos() {
   const [activeDay, setActiveDay] = useState<number | null>(null)
   const [dayEntry, setDayEntry] = useState<DayEntry>({ time: '08:00', spots: 1 })
   const [savingSchedule, setSavingSchedule] = useState(false)
+  const [scheduleError, setScheduleError] = useState<string | null>(null)
 
   const {
     register,
@@ -85,6 +86,7 @@ export default function Servicos() {
   const addSchedule = async () => {
     if (!schedulesModal || activeDay === null) return
     setSavingSchedule(true)
+    setScheduleError(null)
     const { data, error } = await supabase
       .from('service_schedules')
       .insert({
@@ -95,14 +97,16 @@ export default function Servicos() {
       })
       .select()
       .single()
-    if (!error && data) {
+    if (error) {
+      setScheduleError(error.message)
+    } else if (data) {
       setSchedules((prev) =>
         [...prev, data as ServiceSchedule].sort(
           (a, b) => a.day_of_week - b.day_of_week || a.time.localeCompare(b.time)
         )
       )
+      setActiveDay(null)
     }
-    setActiveDay(null)
     setSavingSchedule(false)
   }
 
@@ -234,13 +238,17 @@ export default function Servicos() {
       {/* Modal horários fixos — grade semanal */}
       <Modal
         open={!!schedulesModal}
-        onClose={() => setSchedulesModal(null)}
+        onClose={() => { setSchedulesModal(null); setScheduleError(null); setActiveDay(null) }}
         title={`Horários — ${schedulesModal?.name ?? ''}`}
       >
         <div className="space-y-3">
           <p className="text-sm text-gray-500">
             Clique em <strong>+</strong> ao lado do dia para adicionar um horário. Cada turma pode ter vários horários por semana.
           </p>
+
+          {scheduleError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{scheduleError}</p>
+          )}
 
           <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-50">
             {DAY_NAMES.map((_dayName, day) => {
