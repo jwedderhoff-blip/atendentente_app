@@ -221,25 +221,13 @@ export default function Agenda() {
 
             {/* Pagamento */}
             {selectedAppt.payment_status !== 'pago' && (
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handlePaymentStatus('pago')}
-                  loading={updating}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                >
-                  Marcar como pago
-                </Button>
-                {selectedAppt.payment_status === 'pago' && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => handlePaymentStatus('reembolsado')}
-                    loading={updating}
-                    className="flex-1"
-                  >
-                    Reembolsado
-                  </Button>
-                )}
-              </div>
+              <Button
+                onClick={() => handlePaymentStatus('pago')}
+                loading={updating}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                Marcar como pago
+              </Button>
             )}
             {selectedAppt.payment_status === 'pago' && (
               <Button
