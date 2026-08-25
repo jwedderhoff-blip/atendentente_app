@@ -24,12 +24,17 @@ export function useAvailability({
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!establishmentId || !professionalId || !serviceId || !date || durationMinutes <= 0) {
+    // professionalId is optional when service has fixed schedules
+    if (!establishmentId || !serviceId || !date || durationMinutes <= 0) {
       setSlots([])
       return
     }
 
     if (isDemo) {
+      if (!professionalId) {
+        setSlots([])
+        return
+      }
       const dayOfWeek = date.getDay() as WorkingHours['day_of_week']
       const wh = mockWorkingHours.find((h) => h.day_of_week === dayOfWeek)
       if (!wh || !wh.is_open) {
@@ -81,13 +86,61 @@ export function useAvailability({
       const dayOfWeek = date.getDay()
       const dateStr = format(date, 'yyyy-MM-dd')
 
-      const [schedulesRes, apptRes] = await Promise.all([
-        supabase
-          .from('service_schedules')
-          .select('*')
+      // Always fetch fixed schedules for the service
+      const schedulesRes = await supabase
+        .from('service_schedules')
+        .select('*')
+        .eq('service_id', serviceId)
+        .eq('day_of_week', dayOfWeek)
+        .order('time')
+
+      const fixedSchedules = schedulesRes.data ?? []
+
+      // Se há horários fixos, usa eles (independente de profissional)
+      if (fixedSchedules.length > 0) {
+        // Conta agendamentos já feitos para cada horário neste dia (por estabelecimento)
+        const apptRes = await supabase
+          .from('appointments')
+          .select('starts_at, service_id')
+          .eq('establishment_id', establishmentId)
           .eq('service_id', serviceId)
+          .neq('status', 'cancelado')
+          .gte('starts_at', `${dateStr}T00:00:00`)
+          .lte('starts_at', `${dateStr}T23:59:59`)
+
+        // Conta quantos agendamentos por horário
+        const bookedCounts = new Map<string, number>()
+        for (const a of (apptRes.data ?? []) as { starts_at: string }[]) {
+          const t = format(parseISO(a.starts_at), 'HH:mm')
+          bookedCounts.set(t, (bookedCounts.get(t) ?? 0) + 1)
+        }
+
+        const generatedSlots: TimeSlot[] = fixedSchedules.map(
+          (sch: { time: string; max_spots: number }) => {
+            const t = sch.time.slice(0, 5)
+            const booked = bookedCounts.get(t) ?? 0
+            return { time: t, available: booked < sch.max_spots }
+          }
+        )
+        setSlots(generatedSlots)
+        setLoading(false)
+        return
+      }
+
+      // Fallback: horários dinâmicos — requer profissional
+      if (!professionalId) {
+        setSlots([])
+        setLoading(false)
+        return
+      }
+
+      const [hoursRes, apptRes] = await Promise.all([
+        supabase
+          .from('working_hours')
+          .select('*')
+          .eq('establishment_id', establishmentId)
           .eq('day_of_week', dayOfWeek)
-          .order('time'),
+          .single(),
         supabase
           .from('appointments')
           .select('starts_at, ends_at')
@@ -97,32 +150,6 @@ export function useAvailability({
           .gte('starts_at', `${dateStr}T00:00:00`)
           .lte('starts_at', `${dateStr}T23:59:59`),
       ])
-
-      const fixedSchedules = schedulesRes.data ?? []
-
-      // Se há horários fixos, usa eles; senão usa horários de funcionamento
-      if (fixedSchedules.length > 0) {
-        const bookedTimes = new Set(
-          ((apptRes.data ?? []) as { starts_at: string }[]).map(
-            (a) => format(parseISO(a.starts_at), 'HH:mm')
-          )
-        )
-        const generatedSlots: TimeSlot[] = fixedSchedules.map((sch: { time: string }) => ({
-          time: sch.time.slice(0, 5),
-          available: !bookedTimes.has(sch.time.slice(0, 5)),
-        }))
-        setSlots(generatedSlots)
-        setLoading(false)
-        return
-      }
-
-      // Fallback: horários dinâmicos baseados em funcionamento
-      const hoursRes = await supabase
-        .from('working_hours')
-        .select('*')
-        .eq('establishment_id', establishmentId)
-        .eq('day_of_week', dayOfWeek)
-        .single()
 
       const wh = hoursRes.data as WorkingHours | null
       if (!wh || !wh.is_open) {
