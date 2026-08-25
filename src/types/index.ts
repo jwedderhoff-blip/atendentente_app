@@ -65,6 +65,8 @@ export interface WorkingHours {
   open_time: string
   close_time: string
   is_open: boolean
+  break_start?: string | null
+  break_end?: string | null
 }
 
 export interface TimeSlot {

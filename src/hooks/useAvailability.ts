@@ -164,6 +164,15 @@ export function useAvailability({
       const openMinutes = openH * 60 + openM
       const closeMinutes = closeH * 60 + closeM
 
+      let breakStart: number | null = null
+      let breakEnd: number | null = null
+      if (wh.break_start && wh.break_end) {
+        const [bsH, bsM] = wh.break_start.split(':').map(Number)
+        const [beH, beM] = wh.break_end.split(':').map(Number)
+        breakStart = bsH * 60 + bsM
+        breakEnd = beH * 60 + beM
+      }
+
       const bookedRanges = ((apptRes.data ?? []) as { starts_at: string; ends_at: string }[]).map(
         (a) => ({
           start: parseISO(a.starts_at).getHours() * 60 + parseISO(a.starts_at).getMinutes(),
@@ -176,13 +185,15 @@ export function useAvailability({
 
       while (cursor + durationMinutes <= closeMinutes) {
         const slotEnd = cursor + durationMinutes
+        const inBreak = breakStart !== null && breakEnd !== null && cursor < breakEnd && slotEnd > breakStart
         const isBooked = bookedRanges.some((r) => cursor < r.end && slotEnd > r.start)
-        const slotDate = addMinutes(new Date(date.setHours(0, 0, 0, 0)), cursor)
-
-        generatedSlots.push({
-          time: format(slotDate, 'HH:mm'),
-          available: !isBooked,
-        })
+        if (!inBreak) {
+          const slotDate = addMinutes(new Date(date.setHours(0, 0, 0, 0)), cursor)
+          generatedSlots.push({
+            time: format(slotDate, 'HH:mm'),
+            available: !isBooked,
+          })
+        }
         cursor += 30
       }
 

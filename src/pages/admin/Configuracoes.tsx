@@ -125,7 +125,7 @@ export default function Configuracoes() {
               </div>
 
               {h.is_open ? (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input
                     type="time"
                     value={h.open_time}
@@ -138,6 +138,23 @@ export default function Configuracoes() {
                     value={h.close_time}
                     onChange={(e) => updateDay(index, { close_time: e.target.value })}
                     className="rounded-lg border border-gray-200 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  />
+                  <span className="text-gray-300 text-sm hidden sm:block">|</span>
+                  <span className="text-xs text-gray-400">Intervalo:</span>
+                  <input
+                    type="time"
+                    value={h.break_start ?? ''}
+                    placeholder="--:--"
+                    onChange={(e) => updateDay(index, { break_start: e.target.value || null })}
+                    className="rounded-lg border border-gray-200 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 w-28"
+                  />
+                  <span className="text-gray-400 text-sm">até</span>
+                  <input
+                    type="time"
+                    value={h.break_end ?? ''}
+                    placeholder="--:--"
+                    onChange={(e) => updateDay(index, { break_end: e.target.value || null })}
+                    className="rounded-lg border border-gray-200 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 w-28"
                   />
                 </div>
               ) : (
