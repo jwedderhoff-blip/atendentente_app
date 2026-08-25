@@ -1,27 +1,41 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
-  Calendar,
+  CalendarDays,
   Users,
   Scissors,
   UserCog,
-  Settings,
+  SlidersHorizontal,
   LogOut,
   Menu,
   X,
   LayoutDashboard,
+  Sparkles,
+  Dumbbell,
+  Store,
+  ListChecks,
+  type LucideIcon,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
+import type { Establishment } from '../../types'
+
+const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
+  salao: Scissors,
+  barbearia: Scissors,
+  estetica: Sparkles,
+  pilates: Dumbbell,
+  outro: Store,
+}
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/admin/agenda', label: 'Agenda', icon: Calendar, end: false },
+  { to: '/admin/agenda', label: 'Agenda', icon: CalendarDays, end: false },
   { to: '/admin/clientes', label: 'Clientes', icon: Users, end: false },
-  { to: '/admin/servicos', label: 'Serviços', icon: Scissors, end: false },
+  { to: '/admin/servicos', label: 'Serviços', icon: ListChecks, end: false },
   { to: '/admin/profissionais', label: 'Profissionais', icon: UserCog, end: false },
-  { to: '/admin/configuracoes', label: 'Configurações', icon: Settings, end: false },
+  { to: '/admin/configuracoes', label: 'Configurações', icon: SlidersHorizontal, end: false },
 ]
 
 export default function AdminLayout() {
@@ -35,12 +49,14 @@ export default function AdminLayout() {
     navigate('/login')
   }
 
+  const CategoryIcon = CATEGORY_ICONS[establishment?.category ?? 'outro']
+
   const sidebar = (
     <div className="flex flex-col h-full">
       <div className="p-5 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center">
-            <Scissors size={16} className="text-white" />
+            <CategoryIcon size={16} className="text-white" />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">
