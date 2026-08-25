@@ -25,7 +25,7 @@ export function useEstablishment(userId: string | undefined) {
     supabase
       .from('establishments')
       .select('*')
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .single()
       .then(({ data, error }) => {
         if (error) setError(error.message)

@@ -1,6 +1,6 @@
 export interface Establishment {
   id: string
-  user_id: string
+  owner_id: string
   name: string
   slug: string
   category: 'salao' | 'barbearia' | 'estetica' | 'pilates' | 'outro'

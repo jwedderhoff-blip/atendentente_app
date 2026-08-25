@@ -3,7 +3,7 @@ import type { Establishment, Service, Professional, Client, Appointment, Working
 // ── Estabelecimento ──────────────────────────────────────────────────────────
 export const mockEstablishment: Establishment = {
   id: 'demo',
-  user_id: 'demo-user',
+  owner_id: 'demo-user',
   name: 'Salão Bella Vita',
   slug: 'bella-vita',
   category: 'salao',
