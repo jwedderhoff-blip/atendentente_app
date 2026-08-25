@@ -24,6 +24,7 @@ export const mockServices: Service[] = [
     price: 80,
     active: true,
     schedule_type: 'flexible',
+    max_spots: 1,
   },
   {
     id: 'srv-2',
@@ -34,6 +35,7 @@ export const mockServices: Service[] = [
     price: 60,
     active: true,
     schedule_type: 'flexible',
+    max_spots: 1,
   },
   {
     id: 'srv-3',
@@ -44,6 +46,7 @@ export const mockServices: Service[] = [
     price: 120,
     active: true,
     schedule_type: 'flexible',
+    max_spots: 1,
   },
 ]
 

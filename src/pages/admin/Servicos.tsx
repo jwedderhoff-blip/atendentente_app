@@ -36,6 +36,7 @@ const schema = z.object({
   price: z.number().min(0, 'Preço inválido'),
   active: z.boolean(),
   schedule_type: z.enum(['fixed', 'flexible']),
+  max_spots: z.number().min(1, 'Mínimo 1 vaga'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -65,13 +66,13 @@ export default function Servicos() {
 
   const openCreate = () => {
     setEditing(null)
-    reset({ name: '', description: '', duration_minutes: 60, price: 0, active: true, schedule_type: 'flexible' })
+    reset({ name: '', description: '', duration_minutes: 60, price: 0, active: true, schedule_type: 'flexible', max_spots: 1 })
     setModalOpen(true)
   }
 
   const openEdit = (s: Service) => {
     setEditing(s)
-    reset({ ...s, schedule_type: s.schedule_type ?? 'flexible' })
+    reset({ ...s, schedule_type: s.schedule_type ?? 'flexible', max_spots: s.max_spots ?? 1 })
     setModalOpen(true)
   }
 
@@ -246,6 +247,18 @@ export default function Servicos() {
               ))}
             </div>
           </div>
+          {scheduleType === 'flexible' && (
+            <div>
+              <p className="text-sm text-gray-700 mb-1 font-medium">Vagas por horário</p>
+              <p className="text-xs text-gray-400 mb-2">1 = exclusivo por profissional (barbearia). Mais de 1 = turma compartilhada (pilates).</p>
+              <Input
+                type="number"
+                placeholder="1"
+                error={errors.max_spots?.message}
+                {...register('max_spots', { valueAsNumber: true })}
+              />
+            </div>
+          )}
           <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
             <input type="checkbox" {...register('active')} className="rounded" />
             Serviço ativo

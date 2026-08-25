@@ -20,6 +20,7 @@ export interface Service {
   price: number
   active: boolean
   schedule_type: 'fixed' | 'flexible'
+  max_spots: number
 }
 
 export interface Professional {

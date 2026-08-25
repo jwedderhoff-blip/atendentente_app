@@ -11,6 +11,7 @@ interface UseAvailabilityParams {
   serviceId: string | undefined
   date: Date | null
   durationMinutes: number
+  maxSpots?: number
 }
 
 export function useAvailability({
@@ -19,6 +20,7 @@ export function useAvailability({
   serviceId,
   date,
   durationMinutes,
+  maxSpots = 1,
 }: UseAvailabilityParams) {
   const [slots, setSlots] = useState<TimeSlot[]>([])
   const [loading, setLoading] = useState(false)
@@ -127,11 +129,28 @@ export function useAvailability({
         return
       }
 
-      // Fallback: horários dinâmicos — requer profissional
-      if (!professionalId) {
+      // Fallback: horários dinâmicos
+      // Se max_spots > 1 (turma), não precisa de profissional
+      // Se max_spots = 1 (exclusivo), requer profissional
+      if (maxSpots === 1 && !professionalId) {
         setSlots([])
         setLoading(false)
         return
+      }
+
+      // Monta query de agendamentos: por profissional (exclusivo) ou por serviço (turma)
+      let apptQuery = supabase
+        .from('appointments')
+        .select('starts_at, ends_at')
+        .eq('establishment_id', establishmentId)
+        .neq('status', 'cancelado')
+        .gte('starts_at', `${dateStr}T00:00:00`)
+        .lte('starts_at', `${dateStr}T23:59:59`)
+
+      if (maxSpots === 1 && professionalId) {
+        apptQuery = apptQuery.eq('professional_id', professionalId)
+      } else {
+        apptQuery = apptQuery.eq('service_id', serviceId)
       }
 
       const [hoursRes, apptRes] = await Promise.all([
@@ -141,14 +160,7 @@ export function useAvailability({
           .eq('establishment_id', establishmentId)
           .eq('day_of_week', dayOfWeek)
           .single(),
-        supabase
-          .from('appointments')
-          .select('starts_at, ends_at')
-          .eq('establishment_id', establishmentId)
-          .eq('professional_id', professionalId)
-          .neq('status', 'cancelado')
-          .gte('starts_at', `${dateStr}T00:00:00`)
-          .lte('starts_at', `${dateStr}T23:59:59`),
+        apptQuery,
       ])
 
       const wh = hoursRes.data as WorkingHours | null
@@ -173,12 +185,22 @@ export function useAvailability({
         breakEnd = beH * 60 + beM
       }
 
-      const bookedRanges = ((apptRes.data ?? []) as { starts_at: string; ends_at: string }[]).map(
-        (a) => ({
-          start: parseISO(a.starts_at).getHours() * 60 + parseISO(a.starts_at).getMinutes(),
-          end: parseISO(a.ends_at).getHours() * 60 + parseISO(a.ends_at).getMinutes(),
-        })
-      )
+      const apptData = (apptRes.data ?? []) as { starts_at: string; ends_at: string }[]
+
+      // Para turma (maxSpots > 1): conta agendamentos por horário de início
+      // Para exclusivo (maxSpots = 1): verifica sobreposição de intervalos
+      const bookedCounts = new Map<number, number>()
+      const bookedRanges: { start: number; end: number }[] = []
+
+      for (const a of apptData) {
+        const startMin = parseISO(a.starts_at).getHours() * 60 + parseISO(a.starts_at).getMinutes()
+        const endMin = parseISO(a.ends_at).getHours() * 60 + parseISO(a.ends_at).getMinutes()
+        if (maxSpots > 1) {
+          bookedCounts.set(startMin, (bookedCounts.get(startMin) ?? 0) + 1)
+        } else {
+          bookedRanges.push({ start: startMin, end: endMin })
+        }
+      }
 
       const generatedSlots: TimeSlot[] = []
       let cursor = openMinutes
@@ -186,12 +208,15 @@ export function useAvailability({
       while (cursor + durationMinutes <= closeMinutes) {
         const slotEnd = cursor + durationMinutes
         const inBreak = breakStart !== null && breakEnd !== null && cursor < breakEnd && slotEnd > breakStart
-        const isBooked = bookedRanges.some((r) => cursor < r.end && slotEnd > r.start)
+        const isUnavailable =
+          maxSpots > 1
+            ? (bookedCounts.get(cursor) ?? 0) >= maxSpots
+            : bookedRanges.some((r) => cursor < r.end && slotEnd > r.start)
         if (!inBreak) {
           const slotDate = addMinutes(new Date(date.setHours(0, 0, 0, 0)), cursor)
           generatedSlots.push({
             time: format(slotDate, 'HH:mm'),
-            available: !isBooked,
+            available: !isUnavailable,
           })
         }
         cursor += 30

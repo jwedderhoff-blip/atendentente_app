@@ -74,6 +74,7 @@ export default function Booking() {
     serviceId: selectedService?.id,
     date: selectedDate,
     durationMinutes: selectedService?.duration_minutes ?? 0,
+    maxSpots: selectedService?.max_spots ?? 1,
   })
 
   const { createClient } = useClients(establishment?.id)
@@ -113,10 +114,13 @@ export default function Booking() {
 
   const activeServices = services.filter((s) => s.active)
 
+  const skipsProfessional = (s: Service) =>
+    s.schedule_type === 'fixed' || (s.schedule_type === 'flexible' && (s.max_spots ?? 1) > 1)
+
   const goBack = () => {
     if (step === 2) setStep(1)
     else if (step === 3) {
-      if (selectedService?.schedule_type === 'fixed') setStep(1)
+      if (selectedService && skipsProfessional(selectedService)) setStep(1)
       else setStep(eligibleProfessionals.length > 1 ? 2 : 1)
     }
     else if (step === 4) setStep(3)
@@ -124,7 +128,7 @@ export default function Booking() {
 
   const selectService = (s: Service) => {
     setSelectedService(s)
-    if (s.schedule_type === 'fixed') {
+    if (skipsProfessional(s)) {
       setSelectedProfessional(null)
       setStep(3)
       return
