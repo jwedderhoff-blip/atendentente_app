@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, X, CheckCheck } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useAppointments } from '../../hooks/useAppointments'
 import { useProfessionals } from '../../hooks/useProfessionals'
 import { Badge } from '../../components/ui/Badge'
+import { Modal } from '../../components/ui/Modal'
+import { Button } from '../../components/ui/Button'
+import { formatCurrency } from '../../lib/utils'
 import type { Appointment } from '../../types'
 
 export default function Agenda() {
@@ -14,9 +17,11 @@ export default function Agenda() {
   const { establishment } = useEstablishment(user?.id)
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }))
   const [selectedProfessional, setSelectedProfessional] = useState<string>('all')
+  const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null)
+  const [updating, setUpdating] = useState(false)
 
   const { professionals } = useProfessionals(establishment?.id)
-  const { appointments, loading } = useAppointments(establishment?.id)
+  const { appointments, loading, updateStatus } = useAppointments(establishment?.id)
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -26,6 +31,18 @@ export default function Agenda() {
     const inWeek = weekDays.some((d) => isSameDay(d, apptDate))
     return matchesPro && inWeek
   })
+
+  const handleStatus = async (status: Appointment['status']) => {
+    if (!selectedAppt) return
+    setUpdating(true)
+    await updateStatus(selectedAppt.id, status)
+    setSelectedAppt((prev) => prev ? { ...prev, status } : prev)
+    setUpdating(false)
+  }
+
+  const apptClient = selectedAppt?.client as { name?: string; phone?: string } | undefined
+  const apptService = selectedAppt?.service as { name?: string; price?: number } | undefined
+  const apptProfessional = selectedAppt?.professional as { name?: string } | undefined
 
   return (
     <div>
@@ -108,6 +125,7 @@ export default function Agenda() {
                         return (
                           <div
                             key={a.id}
+                            onClick={() => setSelectedAppt(a)}
                             className="bg-purple-100 rounded-lg p-1.5 mb-1 cursor-pointer hover:bg-purple-200 transition"
                           >
                             <p className="text-xs font-semibold text-purple-800 truncate">
@@ -126,6 +144,98 @@ export default function Agenda() {
           </div>
         </div>
       )}
+
+      {/* Modal detalhes do agendamento */}
+      <Modal
+        open={!!selectedAppt}
+        onClose={() => setSelectedAppt(null)}
+        title="Detalhes do agendamento"
+      >
+        {selectedAppt && (
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Cliente</span>
+                <span className="font-semibold text-gray-900">{apptClient?.name ?? '—'}</span>
+              </div>
+              {apptClient?.phone && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">WhatsApp</span>
+                  <a
+                    href={`https://wa.me/55${apptClient.phone.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-green-600 font-medium hover:underline"
+                  >
+                    {apptClient.phone}
+                  </a>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Serviço</span>
+                <span className="font-semibold text-gray-900">{apptService?.name ?? '—'}</span>
+              </div>
+              {apptProfessional?.name && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Profissional</span>
+                  <span className="font-semibold text-gray-900">{apptProfessional.name}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Data e hora</span>
+                <span className="font-semibold text-gray-900">
+                  {format(new Date(selectedAppt.starts_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </span>
+              </div>
+              {apptService?.price !== undefined && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Valor</span>
+                  <span className="font-semibold text-purple-700">{formatCurrency(apptService.price)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm items-center">
+                <span className="text-gray-500">Status</span>
+                <Badge status={selectedAppt.status} />
+              </div>
+            </div>
+
+            {/* Ações */}
+            <div className="flex flex-col gap-2">
+              {selectedAppt.status === 'pendente' && (
+                <Button
+                  onClick={() => handleStatus('confirmado')}
+                  loading={updating}
+                  className="w-full"
+                >
+                  <Check size={16} />
+                  Confirmar agendamento
+                </Button>
+              )}
+              {selectedAppt.status === 'confirmado' && (
+                <Button
+                  onClick={() => handleStatus('concluido')}
+                  loading={updating}
+                  className="w-full"
+                >
+                  <CheckCheck size={16} />
+                  Marcar como concluído
+                </Button>
+              )}
+              {selectedAppt.status !== 'cancelado' && selectedAppt.status !== 'concluido' && (
+                <Button
+                  variant="ghost"
+                  onClick={() => handleStatus('cancelado')}
+                  loading={updating}
+                  className="w-full text-red-600 hover:bg-red-50"
+                >
+                  <X size={16} />
+                  Cancelar agendamento
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }
