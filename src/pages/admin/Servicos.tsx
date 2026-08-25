@@ -71,7 +71,7 @@ export default function Servicos() {
 
   const openEdit = (s: Service) => {
     setEditing(s)
-    reset(s)
+    reset({ ...s, schedule_type: s.schedule_type ?? 'flexible' })
     setModalOpen(true)
   }
 

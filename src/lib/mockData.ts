@@ -23,6 +23,7 @@ export const mockServices: Service[] = [
     duration_minutes: 60,
     price: 80,
     active: true,
+    schedule_type: 'flexible',
   },
   {
     id: 'srv-2',
@@ -32,6 +33,7 @@ export const mockServices: Service[] = [
     duration_minutes: 45,
     price: 60,
     active: true,
+    schedule_type: 'flexible',
   },
   {
     id: 'srv-3',
@@ -41,6 +43,7 @@ export const mockServices: Service[] = [
     duration_minutes: 90,
     price: 120,
     active: true,
+    schedule_type: 'flexible',
   },
 ]
 
