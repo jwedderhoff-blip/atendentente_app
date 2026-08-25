@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Calendar, Users, DollarSign, TrendingUp } from 'lucide-react'
+import { Calendar, Users, DollarSign, TrendingUp, Check, X, CheckCheck } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useAppointments } from '../../hooks/useAppointments'
 import { Badge } from '../../components/ui/Badge'
+import { Modal } from '../../components/ui/Modal'
+import { Button } from '../../components/ui/Button'
 import { formatCurrency } from '../../lib/utils'
 import type { Appointment } from '../../types'
 
@@ -30,8 +32,10 @@ export default function Dashboard() {
   const { user } = useAuth()
   const { establishment } = useEstablishment(user?.id)
   const today = format(new Date(), 'yyyy-MM-dd')
-  const { appointments } = useAppointments(establishment?.id, today)
+  const { appointments, updateStatus, updatePaymentStatus } = useAppointments(establishment?.id, today)
   const [newClients, setNewClients] = useState(0)
+  const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null)
+  const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd')
@@ -44,6 +48,26 @@ export default function Dashboard() {
     .reduce((sum: number, a: Appointment) => sum + ((a.service as { price?: number })?.price ?? 0), 0)
 
   const confirmed = appointments.filter((a) => a.status === 'confirmado').length
+
+  const handleStatus = async (status: Appointment['status']) => {
+    if (!selectedAppt) return
+    setUpdating(true)
+    await updateStatus(selectedAppt.id, status)
+    setSelectedAppt((prev) => prev ? { ...prev, status } : prev)
+    setUpdating(false)
+  }
+
+  const handlePaymentStatus = async (payment_status: Appointment['payment_status']) => {
+    if (!selectedAppt) return
+    setUpdating(true)
+    await updatePaymentStatus(selectedAppt.id, payment_status)
+    setSelectedAppt((prev) => prev ? { ...prev, payment_status } : prev)
+    setUpdating(false)
+  }
+
+  const apptClient = selectedAppt?.client as { name?: string; phone?: string } | undefined
+  const apptService = selectedAppt?.service as { name?: string; price?: number } | undefined
+  const apptProfessional = selectedAppt?.professional as { name?: string } | undefined
 
   return (
     <div>
@@ -98,7 +122,11 @@ export default function Dashboard() {
               const service = appt.service as { name?: string } | undefined
               const professional = appt.professional as { name?: string } | undefined
               return (
-                <li key={appt.id} className="flex items-center gap-4 p-4">
+                <li
+                  key={appt.id}
+                  onClick={() => setSelectedAppt(appt)}
+                  className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50 transition"
+                >
                   <div className="w-14 text-center">
                     <p className="text-sm font-semibold text-purple-700">
                       {format(new Date(appt.starts_at), 'HH:mm')}
@@ -109,16 +137,139 @@ export default function Dashboard() {
                       {client?.name ?? 'Cliente'}
                     </p>
                     <p className="text-xs text-gray-500 truncate">
-                      {service?.name} · {professional?.name}
+                      {service?.name}{professional?.name ? ` · ${professional.name}` : ''}
                     </p>
                   </div>
-                  <Badge status={appt.status} />
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      appt.payment_status === 'pago'
+                        ? 'bg-green-100 text-green-700'
+                        : appt.payment_status === 'reembolsado'
+                        ? 'bg-gray-100 text-gray-600'
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {appt.payment_status === 'pago' ? 'Pago' : appt.payment_status === 'reembolsado' ? 'Reembolsado' : 'A pagar'}
+                    </span>
+                    <Badge status={appt.status} />
+                  </div>
                 </li>
               )
             })}
           </ul>
         )}
       </div>
+
+      {/* Modal detalhes */}
+      <Modal
+        open={!!selectedAppt}
+        onClose={() => setSelectedAppt(null)}
+        title="Detalhes do agendamento"
+      >
+        {selectedAppt && (
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Cliente</span>
+                <span className="font-semibold text-gray-900">{apptClient?.name ?? '—'}</span>
+              </div>
+              {apptClient?.phone && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">WhatsApp</span>
+                  <a
+                    href={`https://wa.me/55${apptClient.phone.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-green-600 font-medium hover:underline"
+                  >
+                    {apptClient.phone}
+                  </a>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Serviço</span>
+                <span className="font-semibold text-gray-900">{apptService?.name ?? '—'}</span>
+              </div>
+              {apptProfessional?.name && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Profissional</span>
+                  <span className="font-semibold text-gray-900">{apptProfessional.name}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Horário</span>
+                <span className="font-semibold text-gray-900">
+                  {format(new Date(selectedAppt.starts_at), "HH:mm", { locale: ptBR })}
+                </span>
+              </div>
+              {apptService?.price !== undefined && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Valor</span>
+                  <span className="font-semibold text-purple-700">{formatCurrency(apptService.price)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm items-center">
+                <span className="text-gray-500">Status</span>
+                <Badge status={selectedAppt.status} />
+              </div>
+              <div className="flex justify-between text-sm items-center">
+                <span className="text-gray-500">Pagamento</span>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  selectedAppt.payment_status === 'pago'
+                    ? 'bg-green-100 text-green-700'
+                    : selectedAppt.payment_status === 'reembolsado'
+                    ? 'bg-gray-100 text-gray-600'
+                    : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {selectedAppt.payment_status === 'pago' ? 'Pago' : selectedAppt.payment_status === 'reembolsado' ? 'Reembolsado' : 'Pendente'}
+                </span>
+              </div>
+            </div>
+
+            {/* Pagamento */}
+            {selectedAppt.payment_status !== 'pago' && (
+              <Button
+                onClick={() => handlePaymentStatus('pago')}
+                loading={updating}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                Marcar como pago
+              </Button>
+            )}
+            {selectedAppt.payment_status === 'pago' && (
+              <Button
+                variant="ghost"
+                onClick={() => handlePaymentStatus('reembolsado')}
+                loading={updating}
+                className="w-full"
+              >
+                Marcar como reembolsado
+              </Button>
+            )}
+
+            {/* Status do agendamento */}
+            {selectedAppt.status === 'pendente' && (
+              <Button onClick={() => handleStatus('confirmado')} loading={updating} className="w-full">
+                <Check size={16} /> Confirmar agendamento
+              </Button>
+            )}
+            {selectedAppt.status === 'confirmado' && (
+              <Button onClick={() => handleStatus('concluido')} loading={updating} className="w-full">
+                <CheckCheck size={16} /> Marcar como concluído
+              </Button>
+            )}
+            {selectedAppt.status !== 'cancelado' && selectedAppt.status !== 'concluido' && (
+              <Button
+                variant="ghost"
+                onClick={() => handleStatus('cancelado')}
+                loading={updating}
+                className="w-full text-red-600 hover:bg-red-50"
+              >
+                <X size={16} /> Cancelar agendamento
+              </Button>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }
