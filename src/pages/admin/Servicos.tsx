@@ -14,6 +14,7 @@ import { formatCurrency } from '../../lib/utils'
 import type { Service } from '../../types'
 
 const DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const DAY_FULL = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
 interface ServiceSchedule {
   id: string
@@ -21,6 +22,11 @@ interface ServiceSchedule {
   day_of_week: number
   time: string
   max_spots: number
+}
+
+interface DayEntry {
+  time: string
+  spots: number
 }
 
 const schema = z.object({
@@ -41,9 +47,8 @@ export default function Servicos() {
   const [schedulesModal, setSchedulesModal] = useState<Service | null>(null)
   const [editing, setEditing] = useState<Service | null>(null)
   const [schedules, setSchedules] = useState<ServiceSchedule[]>([])
-  const [newDay, setNewDay] = useState(1)
-  const [newTime, setNewTime] = useState('08:00')
-  const [newSpots, setNewSpots] = useState(1)
+  const [activeDay, setActiveDay] = useState<number | null>(null)
+  const [dayEntry, setDayEntry] = useState<DayEntry>({ time: '08:00', spots: 1 })
   const [savingSchedule, setSavingSchedule] = useState(false)
 
   const {
@@ -67,6 +72,7 @@ export default function Servicos() {
 
   const openSchedules = async (s: Service) => {
     setSchedulesModal(s)
+    setActiveDay(null)
     const { data } = await supabase
       .from('service_schedules')
       .select('*')
@@ -77,14 +83,26 @@ export default function Servicos() {
   }
 
   const addSchedule = async () => {
-    if (!schedulesModal) return
+    if (!schedulesModal || activeDay === null) return
     setSavingSchedule(true)
     const { data, error } = await supabase
       .from('service_schedules')
-      .insert({ service_id: schedulesModal.id, day_of_week: newDay, time: newTime, max_spots: newSpots })
+      .insert({
+        service_id: schedulesModal.id,
+        day_of_week: activeDay,
+        time: dayEntry.time,
+        max_spots: dayEntry.spots,
+      })
       .select()
       .single()
-    if (!error && data) setSchedules((prev) => [...prev, data as ServiceSchedule])
+    if (!error && data) {
+      setSchedules((prev) =>
+        [...prev, data as ServiceSchedule].sort(
+          (a, b) => a.day_of_week - b.day_of_week || a.time.localeCompare(b.time)
+        )
+      )
+    }
+    setActiveDay(null)
     setSavingSchedule(false)
   }
 
@@ -107,6 +125,8 @@ export default function Servicos() {
     if (!confirm('Excluir este serviço?')) return
     await deleteService(id)
   }
+
+  const schedulesByDay = (day: number) => schedules.filter((s) => s.day_of_week === day)
 
   return (
     <div>
@@ -211,82 +231,102 @@ export default function Servicos() {
         </form>
       </Modal>
 
-      {/* Modal horários fixos */}
+      {/* Modal horários fixos — grade semanal */}
       <Modal
         open={!!schedulesModal}
         onClose={() => setSchedulesModal(null)}
-        title={`Horários fixos — ${schedulesModal?.name ?? ''}`}
+        title={`Horários — ${schedulesModal?.name ?? ''}`}
       >
-        <div className="space-y-4">
+        <div className="space-y-3">
           <p className="text-sm text-gray-500">
-            Defina os dias e horários fixos para este serviço. Se houver horários fixos cadastrados, o cliente só verá essas opções ao agendar.
+            Clique em <strong>+</strong> ao lado do dia para adicionar um horário. Cada turma pode ter vários horários por semana.
           </p>
 
-          {/* Adicionar horário */}
-          <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Adicionar horário</p>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="text-xs text-gray-500 mb-1 block">Dia</label>
-                <select
-                  value={newDay}
-                  onChange={(e) => setNewDay(Number(e.target.value))}
-                  className="w-full rounded-lg border border-gray-200 text-sm px-2 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                >
-                  {DAY_NAMES.map((d, i) => (
-                    <option key={i} value={i}>{d}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-gray-500 mb-1 block">Horário</label>
-                <input
-                  type="time"
-                  value={newTime}
-                  onChange={(e) => setNewTime(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 text-sm px-2 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-500 mb-1 block">Vagas</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={newSpots}
-                  onChange={(e) => setNewSpots(Number(e.target.value))}
-                  className="w-full rounded-lg border border-gray-200 text-sm px-2 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                />
-              </div>
-            </div>
-            <Button size="sm" onClick={addSchedule} loading={savingSchedule} className="w-full">
-              <Plus size={14} /> Adicionar
-            </Button>
-          </div>
+          <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-50">
+            {DAY_NAMES.map((dayName, day) => {
+              const daySlots = schedulesByDay(day)
+              const isOpen = activeDay === day
 
-          {/* Lista de horários */}
-          {schedules.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">Nenhum horário fixo cadastrado.</p>
-          ) : (
-            <ul className="divide-y divide-gray-50 border border-gray-100 rounded-xl overflow-hidden">
-              {schedules.map((sch) => (
-                <li key={sch.id} className="flex items-center justify-between px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
-                      {DAY_NAMES[sch.day_of_week]}
-                    </span>
-                    <span className="text-sm font-medium text-gray-900">{sch.time}</span>
-                    <span className="text-xs text-gray-400">{sch.max_spots} vaga{sch.max_spots > 1 ? 's' : ''}</span>
+              return (
+                <div key={day} className="p-3">
+                  {/* Cabeçalho do dia */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-gray-700">{DAY_FULL[day]}</span>
+                    <button
+                      onClick={() => {
+                        setActiveDay(isOpen ? null : day)
+                        setDayEntry({ time: '08:00', spots: 1 })
+                      }}
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition ${
+                        isOpen
+                          ? 'bg-purple-100 text-purple-700'
+                          : 'bg-gray-100 text-gray-500 hover:bg-purple-50 hover:text-purple-600'
+                      }`}
+                    >
+                      <Plus size={12} />
+                      {isOpen ? 'Cancelar' : 'Adicionar'}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => removeSchedule(sch.id)}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                  >
-                    <X size={14} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+
+                  {/* Formulário inline */}
+                  {isOpen && (
+                    <div className="flex items-end gap-2 mb-2 bg-purple-50 rounded-lg p-2">
+                      <div className="flex-1">
+                        <label className="text-xs text-gray-500 mb-1 block">Horário</label>
+                        <input
+                          type="time"
+                          value={dayEntry.time}
+                          onChange={(e) => setDayEntry((prev) => ({ ...prev, time: e.target.value }))}
+                          className="w-full rounded-lg border border-gray-200 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-white"
+                        />
+                      </div>
+                      <div className="w-20">
+                        <label className="text-xs text-gray-500 mb-1 block">Vagas</label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={dayEntry.spots}
+                          onChange={(e) => setDayEntry((prev) => ({ ...prev, spots: Number(e.target.value) }))}
+                          className="w-full rounded-lg border border-gray-200 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-white"
+                        />
+                      </div>
+                      <button
+                        onClick={addSchedule}
+                        disabled={savingSchedule}
+                        className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+                      >
+                        {savingSchedule ? '...' : 'OK'}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Slots do dia */}
+                  {daySlots.length === 0 && !isOpen ? (
+                    <p className="text-xs text-gray-400">Nenhum horário</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {daySlots.map((sch) => (
+                        <div
+                          key={sch.id}
+                          className="flex items-center gap-1 bg-purple-50 text-purple-700 text-xs px-2 py-1 rounded-lg"
+                        >
+                          <span className="font-semibold">{sch.time.slice(0, 5)}</span>
+                          <span className="text-purple-400">·</span>
+                          <span>{sch.max_spots}v</span>
+                          <button
+                            onClick={() => removeSchedule(sch.id)}
+                            className="ml-1 text-purple-300 hover:text-red-500 transition"
+                          >
+                            <X size={11} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </Modal>
     </div>
