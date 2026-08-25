@@ -10,6 +10,7 @@ import { useEstablishmentBySlug } from '../hooks/useEstablishment'
 import { useServices } from '../hooks/useServices'
 import { useProfessionals } from '../hooks/useProfessionals'
 import { useAvailability } from '../hooks/useAvailability'
+import { useWorkingHours } from '../hooks/useWorkingHours'
 import { useClients } from '../hooks/useClients'
 import { useAppointments } from '../hooks/useAppointments'
 import { usePixPayment } from '../hooks/usePixPayment'
@@ -52,6 +53,7 @@ export default function Booking() {
   const { establishment, loading: estLoading } = useEstablishmentBySlug(slug)
   const { services } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
+  const { closedDays } = useWorkingHours(establishment?.id)
 
   const [step, setStep] = useState<Step>(1)
   const [selectedService, setSelectedService] = useState<Service | null>(null)
@@ -305,6 +307,7 @@ export default function Booking() {
                   setSelectedDate(d)
                   setSelectedTime(null)
                 }}
+                disabledDays={closedDays}
               />
             </div>
 
