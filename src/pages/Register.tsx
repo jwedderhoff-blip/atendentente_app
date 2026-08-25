@@ -40,22 +40,28 @@ export default function Register() {
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   const onSubmit = async (data: FormData) => {
+    // Tenta signup; se o usuário já existe, tenta login direto
     const { error: authError } = await signUp(data.email, data.password)
-    if (authError) {
+    if (authError && !authError.message.includes('already registered')) {
       setError('root', { message: authError.message })
       return
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setError('root', { message: 'Erro ao criar conta. Tente novamente.' })
+    // Garante sessão ativa fazendo login após signup
+    const { error: loginError, data: loginData } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    })
+    if (loginError || !loginData.user) {
+      setError('root', { message: loginError?.message ?? 'Erro ao autenticar. Tente novamente.' })
       return
     }
 
+    const user = loginData.user
     const slug = `${slugify(data.name)}-${Math.random().toString(36).slice(2, 6)}`
 
     const { error: dbError } = await supabase.from('establishments').insert({
-      user_id: user.id,
+      owner_id: user.id,
       name: data.name,
       slug,
       category: data.category,
