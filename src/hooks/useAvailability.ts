@@ -81,13 +81,13 @@ export function useAvailability({
       const dayOfWeek = date.getDay()
       const dateStr = format(date, 'yyyy-MM-dd')
 
-      const [hoursRes, apptRes] = await Promise.all([
+      const [schedulesRes, apptRes] = await Promise.all([
         supabase
-          .from('working_hours')
+          .from('service_schedules')
           .select('*')
-          .eq('establishment_id', establishmentId)
+          .eq('service_id', serviceId)
           .eq('day_of_week', dayOfWeek)
-          .single(),
+          .order('time'),
         supabase
           .from('appointments')
           .select('starts_at, ends_at')
@@ -97,6 +97,32 @@ export function useAvailability({
           .gte('starts_at', `${dateStr}T00:00:00`)
           .lte('starts_at', `${dateStr}T23:59:59`),
       ])
+
+      const fixedSchedules = schedulesRes.data ?? []
+
+      // Se há horários fixos, usa eles; senão usa horários de funcionamento
+      if (fixedSchedules.length > 0) {
+        const bookedTimes = new Set(
+          ((apptRes.data ?? []) as { starts_at: string }[]).map(
+            (a) => format(parseISO(a.starts_at), 'HH:mm')
+          )
+        )
+        const generatedSlots: TimeSlot[] = fixedSchedules.map((sch: { time: string }) => ({
+          time: sch.time.slice(0, 5),
+          available: !bookedTimes.has(sch.time.slice(0, 5)),
+        }))
+        setSlots(generatedSlots)
+        setLoading(false)
+        return
+      }
+
+      // Fallback: horários dinâmicos baseados em funcionamento
+      const hoursRes = await supabase
+        .from('working_hours')
+        .select('*')
+        .eq('establishment_id', establishmentId)
+        .eq('day_of_week', dayOfWeek)
+        .single()
 
       const wh = hoursRes.data as WorkingHours | null
       if (!wh || !wh.is_open) {
