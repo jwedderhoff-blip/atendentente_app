@@ -5,7 +5,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { format, addMinutes } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Clock, DollarSign, User, CheckCircle, ChevronLeft, Scissors } from 'lucide-react'
+import {
+  Clock, DollarSign, User, CheckCircle, ChevronLeft,
+  Scissors, Droplets, Palette, Sparkles, Dumbbell, Activity,
+  Apple, Heart, Star, Eye, Zap, Leaf, ClipboardList, Wind,
+  Baby, Sun, type LucideIcon,
+} from 'lucide-react'
 import { useEstablishmentBySlug } from '../hooks/useEstablishment'
 import { useServices } from '../hooks/useServices'
 import { useProfessionals } from '../hooks/useProfessionals'
@@ -23,6 +28,41 @@ import { formatCurrency, formatPhone } from '../lib/utils'
 import type { Service, Professional } from '../types'
 
 type Step = 1 | 2 | 3 | 4 | 5
+
+interface ServiceVisual { icon: LucideIcon; bg: string; text: string }
+
+const SERVICE_RULES: { keywords: string[]; icon: LucideIcon; bg: string; text: string }[] = [
+  { keywords: ['corte', 'cabelo', 'hair', 'tesoura', 'franja', 'degrade', 'degradê'], icon: Scissors,      bg: 'bg-violet-100', text: 'text-violet-600' },
+  { keywords: ['barba', 'bigode', 'navalha', 'barbear'],                              icon: Scissors,      bg: 'bg-slate-100',  text: 'text-slate-600' },
+  { keywords: ['escova', 'progressiva', 'alisamento', 'blow'],                        icon: Wind,          bg: 'bg-sky-100',    text: 'text-sky-600'  },
+  { keywords: ['hidrat', 'nutrição', 'reconstru', 'banho de creme', 'máscara'],       icon: Droplets,      bg: 'bg-cyan-100',   text: 'text-cyan-600' },
+  { keywords: ['color', 'tintura', 'mechas', 'loiro', 'reflexo', 'tint', 'luzes'],   icon: Palette,       bg: 'bg-pink-100',   text: 'text-pink-600' },
+  { keywords: ['manicure', 'pedicure', 'unha', 'nail', 'esmalt'],                    icon: Star,          bg: 'bg-rose-100',   text: 'text-rose-600' },
+  { keywords: ['sobrancelha', 'design', 'micropigment', 'olho', 'cílio', 'cilio'],   icon: Eye,           bg: 'bg-amber-100',  text: 'text-amber-600'},
+  { keywords: ['depilação', 'depilacao', 'laser', 'cera', 'pelo'],                   icon: Zap,           bg: 'bg-yellow-100', text: 'text-yellow-600'},
+  { keywords: ['massagem', 'massage', 'relaxamento', 'spa', 'drenagem'],             icon: Heart,         bg: 'bg-red-100',    text: 'text-red-600'  },
+  { keywords: ['facial', 'limpeza de pele', 'peeling', 'botox', 'preench'],          icon: Sparkles,      bg: 'bg-fuchsia-100',text: 'text-fuchsia-600'},
+  { keywords: ['pilates', 'yoga', 'alongamento', 'stretching'],                      icon: Dumbbell,      bg: 'bg-purple-100', text: 'text-purple-600'},
+  { keywords: ['academia', 'musculação', 'funcional', 'crossfit', 'treino', 'fitness'], icon: Dumbbell,   bg: 'bg-indigo-100', text: 'text-indigo-600'},
+  { keywords: ['avaliação física', 'avaliacao física', 'avaliação fisica', 'bioimpedância', 'medida', 'antropom'], icon: Activity, bg: 'bg-blue-100', text: 'text-blue-600' },
+  { keywords: ['nutri', 'dieta', 'alimentação', 'aliment', 'cardápio'],              icon: Apple,         bg: 'bg-green-100',  text: 'text-green-600'},
+  { keywords: ['infantil', 'criança', 'baby', 'bebê'],                               icon: Baby,          bg: 'bg-orange-100', text: 'text-orange-600'},
+  { keywords: ['bronz', 'solário', 'autobronz'],                                     icon: Sun,           bg: 'bg-yellow-100', text: 'text-yellow-600'},
+  { keywords: ['consulta', 'avaliação', 'avaliacao', 'anamnese', 'check'],           icon: ClipboardList, bg: 'bg-teal-100',   text: 'text-teal-600' },
+  { keywords: ['natural', 'orgânic', 'botânic', 'erva'],                             icon: Leaf,          bg: 'bg-lime-100',   text: 'text-lime-600' },
+]
+
+const DEFAULT_VISUAL: ServiceVisual = { icon: Sparkles, bg: 'bg-purple-100', text: 'text-purple-600' }
+
+function getServiceVisual(name: string): ServiceVisual {
+  const lower = name.toLowerCase()
+  for (const rule of SERVICE_RULES) {
+    if (rule.keywords.some((kw) => lower.includes(kw))) {
+      return { icon: rule.icon, bg: rule.bg, text: rule.text }
+    }
+  }
+  return DEFAULT_VISUAL
+}
 
 const clientSchema = z.object({
   name: z.string().min(2, 'Nome obrigatório'),
@@ -241,34 +281,48 @@ export default function Booking() {
 
         {step === 1 && (
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Escolha o serviço</h2>
-            <p className="text-sm text-gray-400 mb-6">Selecione o que deseja realizar</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">O que você precisa?</h2>
+            <p className="text-sm text-gray-400 mb-6">Toque no serviço desejado para agendar</p>
             {activeServices.length === 0 ? (
               <p className="text-center text-gray-400 py-10">Nenhum serviço disponível.</p>
             ) : (
-              <div className="space-y-3">
-                {activeServices.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => selectService(s)}
-                    className={`w-full text-left bg-white rounded-2xl border p-4 transition hover:border-purple-400 hover:shadow-sm ${
-                      selectedService?.id === s.id
-                        ? 'border-purple-600 ring-2 ring-purple-200'
-                        : 'border-gray-200'
-                    }`}
-                  >
-                    <p className="font-semibold text-gray-900">{s.name}</p>
-                    {s.description && <p className="text-xs text-gray-400 mt-0.5">{s.description}</p>}
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                        <Clock size={14} /> {s.duration_minutes}min
-                      </span>
-                      <span className="flex items-center gap-1.5 text-sm font-semibold text-purple-700">
-                        <DollarSign size={14} /> {formatCurrency(s.price)}
-                      </span>
-                    </div>
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-3">
+                {activeServices.map((s) => {
+                  const { icon: Icon, bg, text } = getServiceVisual(s.name)
+                  const selected = selectedService?.id === s.id
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => selectService(s)}
+                      className={`relative flex flex-col items-center text-center bg-white rounded-2xl border-2 p-5 transition active:scale-95 ${
+                        selected
+                          ? 'border-purple-600 shadow-lg shadow-purple-100'
+                          : 'border-gray-100 hover:border-purple-300 hover:shadow-md shadow-sm'
+                      }`}
+                    >
+                      {selected && (
+                        <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center">
+                          <CheckCircle size={12} className="text-white" />
+                        </span>
+                      )}
+                      <div className={`w-14 h-14 rounded-2xl ${bg} flex items-center justify-center mb-3`}>
+                        <Icon size={28} className={text} />
+                      </div>
+                      <p className="font-bold text-gray-900 text-sm leading-tight mb-1">{s.name}</p>
+                      {s.description && (
+                        <p className="text-xs text-gray-400 leading-snug mb-2 line-clamp-2">{s.description}</p>
+                      )}
+                      <div className="mt-auto w-full pt-2 border-t border-gray-100 flex justify-between items-center">
+                        <span className="flex items-center gap-1 text-xs text-gray-400">
+                          <Clock size={11} /> {s.duration_minutes}min
+                        </span>
+                        <span className="text-sm font-bold text-purple-700">
+                          {formatCurrency(s.price)}
+                        </span>
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             )}
           </div>
