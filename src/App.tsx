@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Home from './pages/Home'
 import Booking from './pages/Booking'
+import EstabelecimentoPage from './pages/EstabelecimentoPage'
 import NotFound from './pages/NotFound'
 import Dashboard from './pages/admin/Dashboard'
 import Agenda from './pages/admin/Agenda'
@@ -34,7 +35,8 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/agendar/:slug" element={<Booking />} />
+      <Route path="/agendar/:slug" element={<EstabelecimentoPage />} />
+      <Route path="/agendar/:slug/agendar" element={<Booking />} />
       <Route element={<PrivateRoute />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />

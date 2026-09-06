@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -90,6 +90,8 @@ function StepIndicator({ current, total }: { current: Step; total: number }) {
 
 export default function Booking() {
   const { slug } = useParams<{ slug: string }>()
+  const location = useLocation()
+  const preselectedServiceId = (location.state as { preselectedServiceId?: string } | null)?.preselectedServiceId
   const { establishment, loading: estLoading } = useEstablishmentBySlug(slug)
   const { services } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
@@ -103,6 +105,14 @@ export default function Booking() {
   const [appointmentId, setAppointmentId] = useState<string | null>(null)
   const [confirmedClientData, setConfirmedClientData] = useState<ClientData | null>(null)
   const [bookingError, setBookingError] = useState<string | null>(null)
+
+  // Pré-seleciona serviço quando vem da página do estabelecimento
+  useEffect(() => {
+    if (!preselectedServiceId || services.length === 0 || selectedService) return
+    const found = services.find((s) => s.id === preselectedServiceId && s.active)
+    if (found) selectService(found)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preselectedServiceId, services])
 
   const eligibleProfessionals = selectedService
     ? professionals.filter((p) => p.services.includes(selectedService.id))
@@ -255,14 +265,21 @@ export default function Booking() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-100 px-4 py-4">
+      <div className="bg-white border-b border-gray-100 px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center">
-            <Scissors size={16} className="text-white" />
+          <Link
+            to={`/agendar/${slug}`}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition"
+            title="Voltar ao perfil"
+          >
+            <ChevronLeft size={20} />
+          </Link>
+          <div className="w-8 h-8 rounded-xl bg-purple-600 flex items-center justify-center shrink-0">
+            <Sparkles size={14} className="text-white" />
           </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-900">{establishment.name}</p>
-            <p className="text-xs text-gray-400 capitalize">{establishment.category}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 truncate">{establishment.name}</p>
+            <p className="text-xs text-gray-400">Agendamento online</p>
           </div>
         </div>
       </div>
