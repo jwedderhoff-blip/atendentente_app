@@ -14,6 +14,7 @@ import Clientes from './pages/admin/Clientes'
 import Servicos from './pages/admin/Servicos'
 import Profissionais from './pages/admin/Profissionais'
 import Configuracoes from './pages/admin/Configuracoes'
+import SelecionarEstabelecimento from './pages/admin/SelecionarEstabelecimento'
 import './index.css'
 
 function PrivateRoute() {
@@ -38,6 +39,7 @@ function AppRoutes() {
       <Route path="/agendar/:slug" element={<EstabelecimentoPage />} />
       <Route path="/agendar/:slug/agendar" element={<Booking />} />
       <Route element={<PrivateRoute />}>
+        <Route path="/selecionar" element={<SelecionarEstabelecimento />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="agenda" element={<Agenda />} />

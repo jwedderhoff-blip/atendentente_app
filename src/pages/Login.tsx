@@ -30,7 +30,7 @@ export default function Login() {
     if (error) {
       setError('root', { message: 'Email ou senha incorretos.' })
     } else {
-      navigate('/admin')
+      navigate('/selecionar')
     }
   }
 

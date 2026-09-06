@@ -17,6 +17,7 @@ import {
   Apple,
   Activity,
   ChevronDown,
+  ArrowLeftRight,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
@@ -130,7 +131,16 @@ export default function AdminLayout() {
         ))}
       </nav>
 
-      <div className="p-3 border-t border-gray-100">
+      <div className="p-3 border-t border-gray-100 space-y-0.5">
+        {establishments.length > 1 && (
+          <button
+            onClick={() => navigate('/selecionar')}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition w-full"
+          >
+            <ArrowLeftRight size={18} />
+            Trocar estabelecimento
+          </button>
+        )}
         <button
           onClick={handleSignOut}
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-700 transition w-full"

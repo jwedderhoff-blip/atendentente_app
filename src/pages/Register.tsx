@@ -75,7 +75,7 @@ export default function Register() {
       return
     }
 
-    navigate('/admin')
+    navigate('/selecionar')
   }
 
   return (
