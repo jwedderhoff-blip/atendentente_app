@@ -4,6 +4,16 @@ import { isDemo } from '../lib/isDemo'
 import { mockEstablishment } from '../lib/mockData'
 import type { Establishment } from '../types'
 
+const STORAGE_KEY = 'selectedEstablishmentId'
+
+export function getSelectedEstablishmentId() {
+  return localStorage.getItem(STORAGE_KEY)
+}
+
+export function setSelectedEstablishmentId(id: string) {
+  localStorage.setItem(STORAGE_KEY, id)
+}
+
 export function useEstablishment(userId: string | undefined) {
   const [establishment, setEstablishment] = useState<Establishment | null>(null)
   const [loading, setLoading] = useState(true)
@@ -26,13 +36,24 @@ export function useEstablishment(userId: string | undefined) {
       .from('establishments')
       .select('*')
       .eq('owner_id', userId)
-      .single()
+      .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        if (error) setError(error.message)
-        else setEstablishment(data as Establishment)
+        if (error) {
+          setError(error.message)
+        } else if (data && data.length > 0) {
+          const savedId = getSelectedEstablishmentId()
+          const selected = data.find((e) => e.id === savedId) ?? data[0]
+          setEstablishment(selected as Establishment)
+        }
         setLoading(false)
       })
   }, [userId])
+
+  const switchEstablishment = (id: string) => {
+    setSelectedEstablishmentId(id)
+    // força re-fetch no próximo render via window reload simples
+    window.location.reload()
+  }
 
   const updateEstablishment = async (updates: Partial<Establishment>) => {
     if (isDemo) {
@@ -50,7 +71,7 @@ export function useEstablishment(userId: string | undefined) {
     return { error: error?.message ?? null }
   }
 
-  return { establishment, loading, error, updateEstablishment }
+  return { establishment, loading, error, updateEstablishment, switchEstablishment }
 }
 
 export function useEstablishmentBySlug(slug: string | undefined) {
@@ -60,7 +81,6 @@ export function useEstablishmentBySlug(slug: string | undefined) {
 
   useEffect(() => {
     if (isDemo) {
-      // Em modo demo qualquer slug retorna o estabelecimento demo
       setEstablishment(mockEstablishment)
       setLoading(false)
       return

@@ -16,11 +16,13 @@ import {
   ListChecks,
   Apple,
   Activity,
+  ChevronDown,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../context/AuthContext'
-import { useEstablishment } from '../../hooks/useEstablishment'
+import { useEstablishment, setSelectedEstablishmentId } from '../../hooks/useEstablishment'
+import { useEstablishments } from '../../hooks/useEstablishments'
 import type { Establishment } from '../../types'
 
 const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
@@ -46,8 +48,10 @@ const navItems = [
 export default function AdminLayout() {
   const { user, signOut } = useAuth()
   const { establishment } = useEstablishment(user?.id)
+  const { establishments } = useEstablishments(user?.id)
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [switcherOpen, setSwitcherOpen] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
@@ -59,16 +63,48 @@ export default function AdminLayout() {
   const sidebar = (
     <div className="flex flex-col h-full">
       <div className="p-5 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center">
-            <CategoryIcon size={16} className="text-white" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">
-              {establishment?.name ?? 'Meu estabelecimento'}
-            </p>
-            <p className="text-xs text-gray-400 capitalize">{establishment?.category ?? ''}</p>
-          </div>
+        <div className="relative">
+          <button
+            onClick={() => establishments.length > 1 && setSwitcherOpen((v) => !v)}
+            className={cn(
+              'flex items-center gap-2 w-full text-left',
+              establishments.length > 1 && 'hover:bg-gray-50 rounded-xl px-1 py-0.5 -mx-1 transition'
+            )}
+          >
+            <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center shrink-0">
+              <CategoryIcon size={16} className="text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {establishment?.name ?? 'Meu estabelecimento'}
+              </p>
+              <p className="text-xs text-gray-400 capitalize">{establishment?.category ?? ''}</p>
+            </div>
+            {establishments.length > 1 && (
+              <ChevronDown size={14} className="text-gray-400 shrink-0" />
+            )}
+          </button>
+
+          {switcherOpen && establishments.length > 1 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+              {establishments.map((e) => (
+                <button
+                  key={e.id}
+                  onClick={() => {
+                    setSelectedEstablishmentId(e.id)
+                    setSwitcherOpen(false)
+                    window.location.reload()
+                  }}
+                  className={cn(
+                    'flex items-center gap-2 w-full px-3 py-2.5 text-sm text-left hover:bg-purple-50 transition',
+                    e.id === establishment?.id && 'bg-purple-50 text-purple-700 font-medium'
+                  )}
+                >
+                  <span className="truncate">{e.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
