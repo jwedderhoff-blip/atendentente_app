@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { format, addMinutes } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
-  Clock, DollarSign, User, CheckCircle, ChevronLeft,
+  Clock, User, CheckCircle, ChevronLeft,
   Scissors, Droplets, Palette, Sparkles, Dumbbell, Activity,
   Apple, Heart, Star, Eye, Zap, Leaf, ClipboardList, Wind,
   Baby, Sun, type LucideIcon,
