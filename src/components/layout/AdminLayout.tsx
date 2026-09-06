@@ -14,6 +14,8 @@ import {
   Dumbbell,
   Store,
   ListChecks,
+  Apple,
+  Activity,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
@@ -26,6 +28,9 @@ const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
   barbearia: Scissors,
   estetica: Sparkles,
   pilates: Dumbbell,
+  avaliacao_fisica: Activity,
+  avaliacao_nutricional: Apple,
+  academia: Dumbbell,
   outro: Store,
 }
 

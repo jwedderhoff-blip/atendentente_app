@@ -3,7 +3,7 @@ export interface Establishment {
   owner_id: string
   name: string
   slug: string
-  category: 'salao' | 'barbearia' | 'estetica' | 'pilates' | 'outro'
+  category: 'salao' | 'barbearia' | 'estetica' | 'pilates' | 'avaliacao_fisica' | 'avaliacao_nutricional' | 'academia' | 'outro'
   phone: string
   email: string
   address: string

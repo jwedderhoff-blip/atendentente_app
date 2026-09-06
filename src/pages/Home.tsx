@@ -75,7 +75,7 @@ export default function Home() {
         </h1>
         <p className="text-lg sm:text-xl text-gray-600 max-w-xl mx-auto mb-8">
           Agendamento online, lembretes automáticos e gestão completa para salões, barbearias,
-          estética e pilates.
+          estética, pilates, avaliações físicas, nutricionais e academias.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link

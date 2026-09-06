@@ -10,7 +10,7 @@ import { Input } from '../components/ui/Input'
 
 const schema = z.object({
   name: z.string().min(2, 'Nome obrigatório'),
-  category: z.enum(['salao', 'barbearia', 'estetica', 'pilates', 'outro']),
+  category: z.enum(['salao', 'barbearia', 'estetica', 'pilates', 'avaliacao_fisica', 'avaliacao_nutricional', 'academia', 'outro']),
   phone: z.string().min(10, 'Telefone inválido'),
   address: z.string().min(5, 'Endereço obrigatório'),
   email: z.string().min(1, 'Email obrigatório').email('Email inválido'),
@@ -104,11 +104,20 @@ export default function Register() {
               className="w-full rounded-xl border border-gray-300 bg-white py-2.5 px-4 text-sm text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition"
               {...register('category')}
             >
-              <option value="salao">Salão de beleza</option>
-              <option value="barbearia">Barbearia</option>
-              <option value="estetica">Estética</option>
-              <option value="pilates">Pilates</option>
-              <option value="outro">Outro</option>
+              <optgroup label="Beleza">
+                <option value="salao">Salão de beleza</option>
+                <option value="barbearia">Barbearia</option>
+                <option value="estetica">Estética</option>
+              </optgroup>
+              <optgroup label="Saúde &amp; Fitness">
+                <option value="pilates">Pilates</option>
+                <option value="avaliacao_fisica">Avaliação física</option>
+                <option value="avaliacao_nutricional">Avaliação nutricional</option>
+                <option value="academia">Academia</option>
+              </optgroup>
+              <optgroup label="Outros">
+                <option value="outro">Outro</option>
+              </optgroup>
             </select>
             {errors.category && <p className="text-xs text-red-600">{errors.category.message}</p>}
           </div>
