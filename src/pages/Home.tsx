@@ -62,6 +62,21 @@ const categories = [
     label: 'Estúdio de Pilates',
     examples: ['Pilates individual e em grupo', 'Avaliação postural'],
   },
+  {
+    emoji: '🏃',
+    label: 'Avaliação Física',
+    examples: ['Bioimpedância e antropometria', 'Prescrição de treino'],
+  },
+  {
+    emoji: '🥗',
+    label: 'Avaliação Nutricional',
+    examples: ['Consulta e plano alimentar', 'Acompanhamento nutricional'],
+  },
+  {
+    emoji: '🏋️',
+    label: 'Academia',
+    examples: ['Personal trainer e musculação', 'Aulas funcionais e crossfit'],
+  },
 ]
 
 export default function Home() {
