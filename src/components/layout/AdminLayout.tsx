@@ -26,6 +26,17 @@ import { useEstablishment, setSelectedEstablishmentId } from '../../hooks/useEst
 import { useEstablishments } from '../../hooks/useEstablishments'
 import type { Establishment } from '../../types'
 
+const CATEGORY_LABELS: Record<Establishment['category'], string> = {
+  salao: 'Salão de Beleza',
+  barbearia: 'Barbearia',
+  estetica: 'Estética',
+  pilates: 'Pilates',
+  avaliacao_fisica: 'Avaliação Física',
+  avaliacao_nutricional: 'Avaliação Nutricional',
+  academia: 'Academia',
+  outro: 'Outro',
+}
+
 const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
   salao: Scissors,
   barbearia: Scissors,
@@ -79,7 +90,9 @@ export default function AdminLayout() {
               <p className="text-sm font-semibold text-gray-900 truncate">
                 {establishment?.name ?? 'Meu estabelecimento'}
               </p>
-              <p className="text-xs text-gray-400 capitalize">{establishment?.category ?? ''}</p>
+              <p className="text-xs text-gray-400">
+                {establishment?.tagline ?? (establishment?.category ? CATEGORY_LABELS[establishment.category] : '')}
+              </p>
             </div>
             {establishments.length > 1 && (
               <ChevronDown size={14} className="text-gray-400 shrink-0" />

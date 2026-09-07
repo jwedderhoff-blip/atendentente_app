@@ -29,7 +29,7 @@ import type { Service, Professional } from '../types'
 
 type Step = 1 | 2 | 3 | 4 | 5
 
-const PREPAY_DISCOUNT = 0.10
+const DEFAULT_prepayDiscount = 10
 
 interface ServiceVisual { icon: LucideIcon; bg: string; text: string }
 
@@ -109,6 +109,8 @@ export default function Booking() {
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [paymentChoice, setPaymentChoice] = useState<'none' | 'confirm' | 'prepay'>('none')
 
+  const prepayDiscount = (establishment?.prepay_discount ?? DEFAULT_prepayDiscount) / 100
+
   // Pré-seleciona serviço quando vem da página do estabelecimento
   useEffect(() => {
     if (!preselectedServiceId || services.length === 0 || selectedService) return
@@ -155,7 +157,7 @@ export default function Booking() {
       !pixData &&
       !pixLoading
     ) {
-      const discountedAmount = Math.round(selectedService.price * (1 - PREPAY_DISCOUNT))
+      const discountedAmount = Math.round(selectedService.price * (1 - prepayDiscount))
       void generatePix({
         appointment_id: appointmentId,
         amount: discountedAmount,
@@ -518,8 +520,8 @@ export default function Booking() {
                   <div className="text-left">
                     <p className="font-semibold text-white">Pagar agora com desconto</p>
                     <p className="text-sm text-purple-200">
-                      {formatCurrency(Math.round(selectedService.price * (1 - PREPAY_DISCOUNT)))}
-                      {' '}· {Math.round(PREPAY_DISCOUNT * 100)}% off via PIX antecipado
+                      {formatCurrency(Math.round(selectedService.price * (1 - prepayDiscount)))}
+                      {' '}· {Math.round(prepayDiscount * 100)}% off via PIX antecipado
                     </p>
                   </div>
                   <Tag size={20} className="text-purple-200 shrink-0" />
@@ -554,19 +556,19 @@ export default function Booking() {
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-semibold text-gray-900">Pagamento via PIX</p>
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                    {Math.round(PREPAY_DISCOUNT * 100)}% off
+                    {Math.round(prepayDiscount * 100)}% off
                   </span>
                 </div>
                 {pixData ? (
                   <PixPayment
                     pixData={pixData}
-                    amount={Math.round(selectedService.price * (1 - PREPAY_DISCOUNT))}
+                    amount={Math.round(selectedService.price * (1 - prepayDiscount))}
                     loading={false}
                   />
                 ) : (
                   <PixPayment
                     pixData={{ qr_code: '', qr_code_base64: '', ticket_url: '', payment_id: '', status: 'pending' }}
-                    amount={Math.round(selectedService.price * (1 - PREPAY_DISCOUNT))}
+                    amount={Math.round(selectedService.price * (1 - prepayDiscount))}
                     loading={pixLoading}
                   />
                 )}

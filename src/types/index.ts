@@ -8,6 +8,8 @@ export interface Establishment {
   email: string
   address: string
   logo_url?: string
+  tagline?: string
+  prepay_discount?: number
   created_at: string
 }
 
