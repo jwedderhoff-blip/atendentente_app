@@ -14,69 +14,75 @@ const features = [
     icon: Calendar,
     title: 'Agendamento online',
     description: 'Clientes agendam pelo link do seu negócio, 24 horas por dia.',
+    img: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&auto=format&fit=crop&q=75',
   },
   {
     icon: Bell,
     title: 'Lembretes automáticos',
     description: 'Envio automático de lembretes por WhatsApp e e-mail antes do horário.',
+    img: 'https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=600&auto=format&fit=crop&q=75',
   },
   {
     icon: Briefcase,
     title: 'Catálogo de serviços',
     description: 'Cadastre serviços com duração e preço para facilitar a escolha do cliente.',
+    img: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&auto=format&fit=crop&q=75',
   },
   {
     icon: Users,
     title: 'Gestão de clientes',
     description: 'Histórico completo, notas e exportação em CSV a qualquer momento.',
+    img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&auto=format&fit=crop&q=75',
   },
   {
     icon: CreditCard,
     title: 'Pagamento integrado',
     description: 'Receba online no ato do agendamento com checkout integrado.',
+    img: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&auto=format&fit=crop&q=75',
   },
   {
     icon: LayoutDashboard,
     title: 'Painel completo',
     description: 'Visualize a agenda, equipe e desempenho em um só lugar.',
+    img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=75',
   },
 ]
 
 const categories = [
   {
-    emoji: '💇',
     label: 'Salão de Beleza',
     examples: ['Corte, escova e coloração', 'Manicure e pedicure'],
+    img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=75',
   },
   {
-    emoji: '✂️',
     label: 'Barbearia',
     examples: ['Corte masculino e barba', 'Tratamento capilar'],
+    img: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=75',
   },
   {
-    emoji: '✨',
     label: 'Centro de Estética',
     examples: ['Limpeza de pele e depilação', 'Massagem e drenagem'],
+    img: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&auto=format&fit=crop&q=75',
   },
   {
-    emoji: '🧘',
     label: 'Estúdio de Pilates',
     examples: ['Pilates individual e em grupo', 'Avaliação postural'],
+    img: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&auto=format&fit=crop&q=75',
   },
   {
-    emoji: '🏃',
     label: 'Avaliação Física',
     examples: ['Bioimpedância e antropometria', 'Prescrição de treino'],
+    img: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&auto=format&fit=crop&q=75',
   },
   {
-    emoji: '🥗',
     label: 'Avaliação Nutricional',
     examples: ['Consulta e plano alimentar', 'Acompanhamento nutricional'],
+    img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&auto=format&fit=crop&q=75',
   },
   {
-    emoji: '🏋️',
     label: 'Academia',
     examples: ['Personal trainer e musculação', 'Aulas funcionais e crossfit'],
+    img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=75',
   },
 ]
 
@@ -85,7 +91,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero */}
+
+      {/* ── Hero ── */}
       <section className="bg-gradient-to-br from-purple-50 to-indigo-100 py-20 px-6 text-center">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
           Seu negócio,{' '}
@@ -122,56 +129,80 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Funcionalidades */}
+      {/* ── Funcionalidades ── */}
       <section className="py-16 px-6 max-w-5xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-10">
           Tudo que você precisa em um só lugar
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map(({ icon: Icon, title, description }) => (
+          {features.map(({ icon: Icon, title, description, img }) => (
             <div
               key={title}
-              className="bg-gray-50 rounded-2xl p-6 flex flex-col gap-3 hover:shadow-md transition"
+              className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition group"
             >
-              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                <Icon className="w-5 h-5 text-purple-600" />
+              {/* Foto */}
+              <div className="h-40 overflow-hidden">
+                <img
+                  src={img}
+                  alt={title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                />
               </div>
-              <h3 className="font-semibold text-gray-900">{title}</h3>
-              <p className="text-sm text-gray-500">{description}</p>
+              {/* Conteúdo */}
+              <div className="p-5 flex flex-col gap-2">
+                <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <Icon className="w-4 h-4 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900">{title}</h3>
+                <p className="text-sm text-gray-500">{description}</p>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Para quem é */}
+      {/* ── Para quem é ── */}
       <section className="bg-gray-50 py-16 px-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-10">
             Para quem é?
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {categories.map(({ emoji, label, examples }) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories.map(({ label, examples, img }) => (
               <div
                 key={label}
-                className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition"
+                className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition group"
               >
-                <div className="text-4xl mb-3">{emoji}</div>
-                <h3 className="font-semibold text-gray-900 mb-2">{label}</h3>
-                <ul className="space-y-1">
-                  {examples.map((ex) => (
-                    <li key={ex} className="text-sm text-gray-500 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block shrink-0" />
-                      {ex}
-                    </li>
-                  ))}
-                </ul>
+                {/* Foto */}
+                <div className="h-44 overflow-hidden relative">
+                  <img
+                    src={img}
+                    alt={label}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <h3 className="absolute bottom-3 left-4 font-bold text-white text-base drop-shadow">
+                    {label}
+                  </h3>
+                </div>
+                {/* Exemplos */}
+                <div className="p-4">
+                  <ul className="space-y-1.5">
+                    {examples.map((ex) => (
+                      <li key={ex} className="text-sm text-gray-500 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block shrink-0" />
+                        {ex}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA final */}
+      {/* ── CTA final ── */}
       <section className="bg-purple-600 py-16 px-6 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
           Comece grátis hoje
@@ -187,9 +218,9 @@ export default function Home() {
         </Link>
       </section>
 
-      {/* Footer mínimo */}
+      {/* ── Footer ── */}
       <footer className="py-6 px-6 text-center text-sm text-gray-400">
-        © {new Date().getFullYear()} Atendente App. Todos os direitos reservados.
+        © {new Date().getFullYear()} MeuToki. Todos os direitos reservados.
       </footer>
     </div>
   )
