@@ -501,7 +501,7 @@ export default function EstabelecimentoPage() {
       {/* ── Rodapé ── */}
       <div className="max-w-lg mx-auto px-4 pb-6 text-center">
         <p className="text-xs text-gray-300">Agendamento online via</p>
-        <p className="text-xs font-bold text-gray-400 tracking-wide">MeuToki</p>
+        <p className="text-xs font-bold text-gray-400 tracking-wide">Meridio</p>
       </div>
 
       {/* ── Modal de detalhes do serviço ── */}

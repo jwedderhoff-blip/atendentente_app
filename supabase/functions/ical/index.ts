@@ -101,12 +101,12 @@ Deno.serve(async (req: Request) => {
   const header = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    `PRODID:-//MeuToki//${escapeIcal(est.name)}//PT`,
+    `PRODID:-//Meridio//${escapeIcal(est.name)}//PT`,
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${escapeIcal(est.name)}`,
     'X-WR-TIMEZONE:America/Sao_Paulo',
-    'X-WR-CALDESC:Agendamentos via MeuToki',
+    'X-WR-CALDESC:Agendamentos via Meridio',
   ]
 
   const events: string[] = []
@@ -136,7 +136,7 @@ Deno.serve(async (req: Request) => {
 
     const eventLines = [
       'BEGIN:VEVENT',
-      `UID:${a.id}@meutoki`,
+      `UID:${a.id}@meridio`,
       `DTSTART;${dtstart}`,
       `DTEND;${dtend}`,
       foldLine(`SUMMARY:${escapeIcal(summary)}`),

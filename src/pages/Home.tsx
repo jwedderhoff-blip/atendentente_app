@@ -440,7 +440,7 @@ export default function Home() {
           <div className="text-center mb-14">
             <p className="text-indigo-600 font-semibold text-sm uppercase tracking-widest mb-3">Segmentos</p>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">Para quem é?</h2>
-            <p className="text-gray-500 mt-3">Do salão ao estúdio de pilates, o MeuToki se adapta ao seu negócio.</p>
+            <p className="text-gray-500 mt-3">Do salão ao estúdio de pilates, o Meridio se adapta ao seu negócio.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.map(({ label, examples, img }) => (
@@ -526,8 +526,8 @@ export default function Home() {
 
       {/* ── Footer ── */}
       <footer className="py-8 px-6 text-center text-sm text-gray-400 bg-white border-t border-gray-100">
-        <p className="mb-1 font-semibold text-gray-600">MeuToki</p>
-        © {new Date().getFullYear()} MeuToki. Todos os direitos reservados.
+        <p className="mb-1 font-semibold text-gray-600">Meridio</p>
+        © {new Date().getFullYear()} Meridio. Todos os direitos reservados.
       </footer>
     </div>
   )
