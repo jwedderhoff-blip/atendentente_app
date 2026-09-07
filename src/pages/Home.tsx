@@ -7,6 +7,7 @@ import {
   CreditCard,
   LayoutDashboard,
 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 const features = [
   {
@@ -80,6 +81,8 @@ const categories = [
 ]
 
 export default function Home() {
+  const { session } = useAuth()
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}
@@ -93,18 +96,29 @@ export default function Home() {
           estética, pilates, avaliações físicas, nutricionais e academias.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            to="/agendar/bella-vita"
-            className="bg-purple-600 text-white px-8 py-3 rounded-xl font-semibold text-base hover:bg-purple-700 transition shadow-md"
-          >
-            Ver demonstração
-          </Link>
-          <Link
-            to="/register"
-            className="border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-xl font-semibold text-base hover:bg-purple-50 transition"
-          >
-            Criar minha conta
-          </Link>
+          {session ? (
+            <Link
+              to="/selecionar"
+              className="bg-purple-600 text-white px-8 py-3 rounded-xl font-semibold text-base hover:bg-purple-700 transition shadow-md"
+            >
+              Acessar minha conta
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="bg-purple-600 text-white px-8 py-3 rounded-xl font-semibold text-base hover:bg-purple-700 transition shadow-md"
+              >
+                Entrar na plataforma
+              </Link>
+              <Link
+                to="/register"
+                className="border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-xl font-semibold text-base hover:bg-purple-50 transition"
+              >
+                Criar minha conta
+              </Link>
+            </>
+          )}
         </div>
       </section>
 
