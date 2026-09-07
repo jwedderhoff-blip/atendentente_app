@@ -39,6 +39,27 @@ const CATEGORY_LABELS: Record<Establishment['category'], string> = {
   outro: 'Estabelecimento',
 }
 
+// cor de destaque por categoria: [bg-button, shadow-button, bg-icon, text-icon, bg-badge, text-badge, gradient-from]
+type CategoryColor = { btn: string; btnHover: string; shadow: string; iconBg: string; iconText: string; badge: string; badgeText: string; gradientFrom: string }
+const CATEGORY_COLORS: Record<Establishment['category'], CategoryColor> = {
+  salao:               { btn: 'bg-pink-500',    btnHover: 'hover:bg-pink-600',    shadow: 'shadow-pink-300',    iconBg: 'bg-pink-500',    iconText: 'text-white', badge: 'bg-pink-500/20',    badgeText: 'text-pink-100',  gradientFrom: 'from-pink-900/80' },
+  barbearia:           { btn: 'bg-slate-700',   btnHover: 'hover:bg-slate-800',   shadow: 'shadow-slate-400',   iconBg: 'bg-slate-700',   iconText: 'text-white', badge: 'bg-slate-600/30',   badgeText: 'text-slate-100', gradientFrom: 'from-slate-900/90' },
+  estetica:            { btn: 'bg-fuchsia-500', btnHover: 'hover:bg-fuchsia-600', shadow: 'shadow-fuchsia-300', iconBg: 'bg-fuchsia-500', iconText: 'text-white', badge: 'bg-fuchsia-500/20', badgeText: 'text-fuchsia-100', gradientFrom: 'from-fuchsia-900/80' },
+  beleza:              { btn: 'bg-rose-500',    btnHover: 'hover:bg-rose-600',    shadow: 'shadow-rose-300',    iconBg: 'bg-rose-500',    iconText: 'text-white', badge: 'bg-rose-500/20',    badgeText: 'text-rose-100',  gradientFrom: 'from-rose-900/80' },
+  pilates:             { btn: 'bg-violet-600',  btnHover: 'hover:bg-violet-700',  shadow: 'shadow-violet-300',  iconBg: 'bg-violet-600',  iconText: 'text-white', badge: 'bg-violet-500/20',  badgeText: 'text-violet-100', gradientFrom: 'from-violet-900/80' },
+  aulas_coletivas:     { btn: 'bg-orange-500',  btnHover: 'hover:bg-orange-600',  shadow: 'shadow-orange-300',  iconBg: 'bg-orange-500',  iconText: 'text-white', badge: 'bg-orange-500/20',  badgeText: 'text-orange-100', gradientFrom: 'from-orange-900/80' },
+  avaliacao_fisica:    { btn: 'bg-blue-600',    btnHover: 'hover:bg-blue-700',    shadow: 'shadow-blue-300',    iconBg: 'bg-blue-600',    iconText: 'text-white', badge: 'bg-blue-500/20',    badgeText: 'text-blue-100',  gradientFrom: 'from-blue-900/80' },
+  avaliacao_nutricional:{ btn: 'bg-green-600',  btnHover: 'hover:bg-green-700',   shadow: 'shadow-green-300',   iconBg: 'bg-green-600',   iconText: 'text-white', badge: 'bg-green-500/20',   badgeText: 'text-green-100', gradientFrom: 'from-green-900/80' },
+  academia:            { btn: 'bg-gray-800',    btnHover: 'hover:bg-gray-900',    shadow: 'shadow-gray-400',    iconBg: 'bg-gray-800',    iconText: 'text-white', badge: 'bg-gray-600/30',    badgeText: 'text-gray-100',  gradientFrom: 'from-gray-900/90' },
+  outro:               { btn: 'bg-indigo-600',  btnHover: 'hover:bg-indigo-700',  shadow: 'shadow-indigo-300',  iconBg: 'bg-indigo-600',  iconText: 'text-white', badge: 'bg-indigo-500/20',  badgeText: 'text-indigo-100', gradientFrom: 'from-indigo-900/80' },
+}
+
+const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
+  salao: Scissors, barbearia: Scissors, estetica: Sparkles, beleza: Star,
+  pilates: Dumbbell, aulas_coletivas: Heart, avaliacao_fisica: Activity,
+  avaliacao_nutricional: Apple, academia: Dumbbell, outro: Sparkles,
+}
+
 // ── Ícone + imagem por serviço ────────────────────────────────────────────────
 interface ServiceVisual { icon: LucideIcon; bg: string; text: string; img: string }
 
@@ -278,8 +299,11 @@ export default function EstabelecimentoPage() {
   const [selectedService, setSelectedService] = useState<Service | null>(null)
 
   const activeServices = services.filter((s) => s.active)
-  const categoryLabel = CATEGORY_LABELS[establishment?.category ?? 'outro']
-  const heroImage = establishment?.logo_url ?? CATEGORY_HERO[establishment?.category ?? 'outro']
+  const category = establishment?.category ?? 'outro'
+  const categoryLabel = CATEGORY_LABELS[category]
+  const heroImage = establishment?.logo_url ?? CATEGORY_HERO[category]
+  const colors = CATEGORY_COLORS[category]
+  const CategoryIcon = CATEGORY_ICONS[category]
   const whatsappUrl = establishment?.phone
     ? `https://wa.me/55${formatPhone(establishment.phone)}`
     : null
@@ -306,50 +330,75 @@ export default function EstabelecimentoPage() {
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* ── Hero com foto da categoria ── */}
-      <div className="relative h-64 sm:h-80 overflow-hidden">
+      {/* ── Hero ── */}
+      <div className="relative h-72 sm:h-96 overflow-hidden">
         <img
           src={heroImage}
           alt={categoryLabel}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-5 max-w-lg mx-auto">
-          <span className="inline-flex items-center text-xs font-semibold text-white/80 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full mb-2">
+        {/* gradiente duplo: cor da categoria em baixo, escuro no topo */}
+        <div className={`absolute inset-0 bg-gradient-to-t ${colors.gradientFrom} via-black/20 to-black/40`} />
+
+        {/* Badge de categoria no topo */}
+        <div className="absolute top-4 left-0 right-0 flex justify-center">
+          <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${colors.badge} ${colors.badgeText} backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20`}>
+            <CategoryIcon size={11} />
             {categoryLabel}
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight drop-shadow">
+        </div>
+
+        {/* Nome + tagline no rodapé do hero */}
+        <div className="absolute bottom-14 left-0 right-0 px-5 max-w-lg mx-auto text-center">
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-white leading-tight drop-shadow-lg">
             {establishment.name}
           </h1>
+          {establishment.tagline && (
+            <p className="mt-1 text-sm sm:text-base text-white/80 drop-shadow">
+              {establishment.tagline}
+            </p>
+          )}
         </div>
       </div>
 
-      {/* ── Card flutuante: infos + CTAs ── */}
-      <div className="max-w-lg mx-auto px-4 -mt-4 relative z-10">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5">
-          <div className="space-y-2 mb-5">
-            {establishment.address && (
-              <div className="flex items-start gap-3 text-sm text-gray-600">
-                <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
-                  <MapPin size={15} className="text-gray-500" />
-                </div>
-                <span className="pt-1.5">{establishment.address}</span>
-              </div>
-            )}
-            {establishment.phone && (
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-                  <Phone size={15} className="text-gray-500" />
-                </div>
-                <span>{establishment.phone}</span>
-              </div>
-            )}
-          </div>
+      {/* ── Ícone flutuante + card de infos ── */}
+      <div className="max-w-lg mx-auto px-4 -mt-6 relative z-10">
 
+        {/* Ícone da categoria flutuando sobre o hero */}
+        <div className="flex justify-center -mt-8 mb-4">
+          <div className={`w-16 h-16 rounded-2xl ${colors.iconBg} ${colors.iconText} flex items-center justify-center shadow-xl ring-4 ring-white`}>
+            <CategoryIcon size={30} />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-5">
+          {/* Infos de contato */}
+          {(establishment.address || establishment.phone) && (
+            <div className="space-y-2 mb-5">
+              {establishment.address && (
+                <div className="flex items-start gap-3 text-sm text-gray-600">
+                  <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin size={14} className="text-gray-400" />
+                  </div>
+                  <span className="pt-1.5 leading-snug">{establishment.address}</span>
+                </div>
+              )}
+              {establishment.phone && (
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                    <Phone size={14} className="text-gray-400" />
+                  </div>
+                  <span>{establishment.phone}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* CTAs */}
           <div className="flex flex-col gap-2.5">
             <Link
               to={`/agendar/${slug}/agendar`}
-              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold py-4 rounded-2xl transition text-base shadow-md shadow-indigo-200"
+              className={`flex items-center justify-center gap-2 ${colors.btn} ${colors.btnHover} active:scale-95 text-white font-bold py-4 rounded-2xl transition text-base shadow-lg ${colors.shadow}`}
             >
               <CalendarCheck size={20} />
               Agendar agora
@@ -359,7 +408,7 @@ export default function EstabelecimentoPage() {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 active:scale-95 text-white font-semibold py-3.5 rounded-2xl transition text-base"
+                className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5a] active:scale-95 text-white font-semibold py-3.5 rounded-2xl transition text-base"
               >
                 <MessageCircle size={18} />
                 Falar no WhatsApp
@@ -427,7 +476,7 @@ export default function EstabelecimentoPage() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur border-t border-gray-100 lg:hidden z-20">
         <Link
           to={`/agendar/${slug}/agendar`}
-          className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-2xl transition text-base w-full shadow-lg shadow-indigo-300"
+          className={`flex items-center justify-center gap-2 ${colors.btn} ${colors.btnHover} text-white font-bold py-3.5 rounded-2xl transition text-base w-full shadow-lg ${colors.shadow}`}
         >
           <CalendarCheck size={20} />
           Agendar agora
