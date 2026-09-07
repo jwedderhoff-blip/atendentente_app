@@ -10,7 +10,7 @@ import { Input } from '../components/ui/Input'
 
 const schema = z.object({
   name: z.string().min(2, 'Nome obrigatório'),
-  category: z.enum(['salao', 'barbearia', 'estetica', 'pilates', 'avaliacao_fisica', 'avaliacao_nutricional', 'academia', 'outro']),
+  category: z.enum(['salao', 'barbearia', 'estetica', 'beleza', 'pilates', 'aulas_coletivas', 'avaliacao_fisica', 'avaliacao_nutricional', 'academia', 'outro']),
   phone: z.string().min(10, 'Telefone inválido'),
   address: z.string().min(5, 'Endereço obrigatório'),
   email: z.string().min(1, 'Email obrigatório').email('Email inválido'),
@@ -108,9 +108,11 @@ export default function Register() {
                 <option value="salao">Salão de beleza</option>
                 <option value="barbearia">Barbearia</option>
                 <option value="estetica">Estética</option>
+                <option value="beleza">Serviços de beleza (unhas, cílios…)</option>
               </optgroup>
               <optgroup label="Saúde &amp; Fitness">
-                <option value="pilates">Pilates</option>
+                <option value="pilates">Pilates / Studio</option>
+                <option value="aulas_coletivas">Aulas coletivas (balé, jiu-jitsu, karate…)</option>
                 <option value="avaliacao_fisica">Avaliação física</option>
                 <option value="avaliacao_nutricional">Avaliação nutricional</option>
                 <option value="academia">Academia</option>

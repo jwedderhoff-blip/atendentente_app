@@ -17,7 +17,9 @@ const STATUS_LABELS: Record<string, { label: string; color: string; icon: typeof
 
 const CATEGORY_LABELS: Record<string, string> = {
   salao: 'Salão de Beleza', barbearia: 'Barbearia', estetica: 'Estética',
-  pilates: 'Pilates', avaliacao_fisica: 'Avaliação Física',
+  beleza: 'Serviços de Beleza',
+  pilates: 'Pilates', aulas_coletivas: 'Aulas Coletivas',
+  avaliacao_fisica: 'Avaliação Física',
   avaliacao_nutricional: 'Avaliação Nutricional', academia: 'Academia', outro: 'Outro',
 }
 

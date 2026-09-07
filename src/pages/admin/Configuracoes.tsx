@@ -9,14 +9,22 @@ import type { WorkingHours } from '../../types'
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
 const CATEGORIES = [
-  { value: 'salao',                label: 'Salão de Beleza' },
-  { value: 'barbearia',           label: 'Barbearia' },
-  { value: 'estetica',            label: 'Estética' },
-  { value: 'pilates',             label: 'Pilates' },
-  { value: 'avaliacao_fisica',    label: 'Avaliação Física' },
-  { value: 'avaliacao_nutricional', label: 'Avaliação Nutricional' },
-  { value: 'academia',            label: 'Academia' },
-  { value: 'outro',               label: 'Outro' },
+  { group: 'Beleza', items: [
+    { value: 'salao',    label: 'Salão de Beleza' },
+    { value: 'barbearia', label: 'Barbearia' },
+    { value: 'estetica', label: 'Estética' },
+    { value: 'beleza',   label: 'Serviços de Beleza (unhas, cílios, etc.)' },
+  ]},
+  { group: 'Saúde & Fitness', items: [
+    { value: 'pilates',               label: 'Pilates / Studio' },
+    { value: 'aulas_coletivas',       label: 'Aulas Coletivas (balé, jiu-jitsu, karate…)' },
+    { value: 'avaliacao_fisica',      label: 'Avaliação Física' },
+    { value: 'avaliacao_nutricional', label: 'Avaliação Nutricional' },
+    { value: 'academia',              label: 'Academia' },
+  ]},
+  { group: 'Outros', items: [
+    { value: 'outro', label: 'Outro' },
+  ]},
 ]
 
 const DEFAULT_HOURS: Omit<WorkingHours, 'id' | 'establishment_id'>[] = DAY_NAMES.map((_, i) => ({
@@ -200,8 +208,12 @@ export default function Configuracoes() {
               onChange={(e) => setCategory(e.target.value)}
               className={inputCls}
             >
-              {CATEGORIES.map(({ value, label }) => (
-                <option key={value} value={value}>{label}</option>
+              {CATEGORIES.map(({ group, items }) => (
+                <optgroup key={group} label={group}>
+                  {items.map(({ value, label }) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>
