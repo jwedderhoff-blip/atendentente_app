@@ -20,7 +20,7 @@ const features = [
     icon: Bell,
     title: 'Lembretes automáticos',
     description: 'Envio automático de lembretes por WhatsApp e e-mail antes do horário.',
-    img: 'https://images.unsplash.com/photo-1577563908411-5077b6923f10?w=600&auto=format&fit=crop&q=75',
+    img: 'https://images.unsplash.com/photo-1526406915894-7bcd65f60845?w=600&auto=format&fit=crop&q=75',
   },
   {
     icon: Briefcase,
