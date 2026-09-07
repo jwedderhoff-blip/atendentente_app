@@ -63,7 +63,7 @@ const features = [
 ]
 
 const stats = [
-  { value: '+2.400', label: 'Negócios ativos', icon: TrendingUp },
+  { value: 'Quem acredita,', label: 'cresce com a gente', icon: TrendingUp },
   { value: '98%', label: 'Satisfação dos clientes', icon: Star },
   { value: '< 5 min', label: 'Para configurar', icon: Clock },
   { value: 'Grátis', label: 'Para começar', icon: CheckCircle2 },
@@ -236,7 +236,7 @@ export default function Home() {
             style={{ background: 'rgba(99,102,241,0.25)', border: '1px solid rgba(99,102,241,0.5)', color: '#a5b4fc' }}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 inline-block" style={{ animation: 'pulse-glow 2s infinite' }} />
-            Plataforma de agendamento nº 1 do Brasil
+            Desenvolvida para o seu negócio
           </div>
 
           <h1
@@ -319,7 +319,7 @@ export default function Home() {
               ))}
             </div>
             <p className="text-white/80 text-sm" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.7)' }}>
-              <span className="text-white font-semibold">+2.400 negócios</span> já usam o MeuToki
+              Junte-se a quem já acredita e <span className="text-white font-semibold">cresce com a gente</span>
             </p>
 
           </div>
@@ -519,7 +519,7 @@ export default function Home() {
             Criar minha conta grátis <ArrowRight size={20} />
           </Link>
           <p className="text-slate-500 text-sm mt-5">
-            Junte-se a mais de 2.400 profissionais que já automatizaram sua agenda
+            Sem complicações. Do cadastro ao primeiro agendamento em minutos.
           </p>
         </div>
       </section>
