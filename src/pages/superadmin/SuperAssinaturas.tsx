@@ -1,6 +1,7 @@
 import { useAllSubscriptions, useAllEstablishments, usePlans } from '../../hooks/useSuperAdmin'
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { Calendar, Check, X } from 'lucide-react'
 
 const STATUS_COLORS: Record<string, string> = {
   trial: 'bg-amber-100 text-amber-700',
@@ -13,12 +14,44 @@ const STATUS_LABELS: Record<string, string> = {
   trial: 'Trial', active: 'Ativo', suspended: 'Suspenso', cancelled: 'Cancelado',
 }
 
+function expiryInfo(expiresAt: string | null): {
+  label: string
+  cls: string
+} {
+  if (!expiresAt) return { label: '—', cls: 'text-gray-400' }
+  const now = new Date()
+  const exp = new Date(expiresAt)
+  const diffMs = exp.getTime() - now.getTime()
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+  const dateStr = exp.toLocaleDateString('pt-BR')
+
+  if (diffDays < 0) return { label: `Vencido (${dateStr})`, cls: 'text-red-600 font-semibold' }
+  if (diffDays === 0) return { label: `Vence hoje`, cls: 'text-red-600 font-semibold' }
+  if (diffDays <= 7) return { label: `${diffDays}d (${dateStr})`, cls: 'text-orange-600 font-semibold' }
+  if (diffDays <= 30) return { label: `${diffDays}d (${dateStr})`, cls: 'text-amber-600' }
+  return { label: dateStr, cls: 'text-green-700' }
+}
+
+function calcExpiresAt(planId: string, plans: ReturnType<typeof usePlans>['plans']): string | null {
+  const plan = plans.find((p) => p.id === planId)
+  if (!plan) return null
+  const now = new Date()
+  if (plan.billing_type === 'package' && plan.package_days) {
+    now.setDate(now.getDate() + plan.package_days)
+  } else {
+    now.setDate(now.getDate() + 30)
+  }
+  return now.toISOString()
+}
+
 export default function SuperAssinaturas() {
-  const { subscriptions, loading } = useAllSubscriptions()
+  const { subscriptions, loading, updateSubscription, refetch } = useAllSubscriptions()
   const { establishments } = useAllEstablishments()
   const { plans } = usePlans()
   const [assigning, setAssigning] = useState<string | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<Record<string, string>>({})
+  const [editingExpiry, setEditingExpiry] = useState<string | null>(null)
+  const [expiryInput, setExpiryInput] = useState('')
 
   const noSubscription = establishments.filter(
     (e) => !subscriptions.some((s) => s.establishment_id === e.id)
@@ -28,18 +61,29 @@ export default function SuperAssinaturas() {
     const planId = selectedPlan[establishmentId]
     if (!planId) return
     setAssigning(establishmentId)
+    const expiresAt = calcExpiresAt(planId, plans)
     await supabase.from('subscriptions').insert({
       establishment_id: establishmentId,
       plan_id: planId,
       status: 'active',
+      started_at: new Date().toISOString(),
+      expires_at: expiresAt,
     })
     setAssigning(null)
-    window.location.reload()
+    await refetch()
   }
 
-  const updateSub = async (id: string, updates: { status?: string; plan_id?: string }) => {
-    await supabase.from('subscriptions').update(updates).eq('id', id)
-    window.location.reload()
+  const startEditExpiry = (id: string, current: string | null) => {
+    setEditingExpiry(id)
+    setExpiryInput(current ? current.slice(0, 10) : '')
+  }
+
+  const saveExpiry = async (id: string) => {
+    if (expiryInput) {
+      const iso = new Date(expiryInput + 'T23:59:59').toISOString()
+      await updateSubscription(id, { expires_at: iso })
+    }
+    setEditingExpiry(null)
   }
 
   return (
@@ -54,28 +98,42 @@ export default function SuperAssinaturas() {
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
           <h2 className="font-semibold text-amber-800 mb-3">Sem plano atribuído ({noSubscription.length})</h2>
           <div className="space-y-3">
-            {noSubscription.map((e) => (
-              <div key={e.id} className="flex items-center gap-3 flex-wrap">
-                <span className="text-sm font-medium text-gray-900 flex-1">{e.name}</span>
-                <select
-                  value={selectedPlan[e.id] ?? ''}
-                  onChange={(ev) => setSelectedPlan((p) => ({ ...p, [e.id]: ev.target.value }))}
-                  className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                >
-                  <option value="">Selecionar plano</option>
-                  {plans.filter((p) => p.is_active).map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => assign(e.id)}
-                  disabled={!selectedPlan[e.id] || assigning === e.id}
-                  className="text-sm px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 transition font-medium"
-                >
-                  {assigning === e.id ? 'Salvando...' : 'Atribuir'}
-                </button>
-              </div>
-            ))}
+            {noSubscription.map((e) => {
+              const planId = selectedPlan[e.id] ?? ''
+              const plan = plans.find((p) => p.id === planId)
+              const preview = plan
+                ? plan.billing_type === 'package' && plan.package_days
+                  ? `Pacote ${plan.package_days}d`
+                  : '30 dias'
+                : null
+              return (
+                <div key={e.id} className="flex items-center gap-3 flex-wrap">
+                  <span className="text-sm font-medium text-gray-900 flex-1">{e.name}</span>
+                  <select
+                    value={planId}
+                    onChange={(ev) => setSelectedPlan((p) => ({ ...p, [e.id]: ev.target.value }))}
+                    className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  >
+                    <option value="">Selecionar plano</option>
+                    {plans.filter((p) => p.is_active).map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  {preview && (
+                    <span className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded-lg">
+                      Expira em {preview}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => assign(e.id)}
+                    disabled={!planId || assigning === e.id}
+                    className="text-sm px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 transition font-medium"
+                  >
+                    {assigning === e.id ? 'Salvando...' : 'Atribuir'}
+                  </button>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -103,65 +161,112 @@ export default function SuperAssinaturas() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {subscriptions.map((s) => (
-                    <tr key={s.id} className="hover:bg-gray-50 transition">
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        {s.establishments?.name ?? '—'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={s.plan_id ?? ''}
-                          onChange={(e) => updateSub(s.id, { plan_id: e.target.value || undefined })}
-                          className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        >
-                          <option value="">Sem plano</option>
-                          {plans.map((p) => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={s.status}
-                          onChange={(e) => updateSub(s.id, { status: e.target.value })}
-                          className={`text-xs font-medium px-2.5 py-1 rounded-full border-0 outline-none cursor-pointer ${STATUS_COLORS[s.status]}`}
-                        >
-                          {Object.entries(STATUS_LABELS).map(([v, l]) => (
-                            <option key={v} value={v}>{l}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">
-                        {new Date(s.started_at).toLocaleDateString('pt-BR')}
-                      </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">
-                        {s.expires_at ? new Date(s.expires_at).toLocaleDateString('pt-BR') : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {s.status === 'active' ? (
-                          <button
-                            onClick={() => updateSub(s.id, { status: 'suspended' })}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition font-medium"
+                  {subscriptions.map((s) => {
+                    const expiry = expiryInfo(s.expires_at ?? null)
+                    return (
+                      <tr key={s.id} className="hover:bg-gray-50 transition">
+                        <td className="px-4 py-3 font-medium text-gray-900">
+                          {s.establishments?.name ?? '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <select
+                            value={s.plan_id ?? ''}
+                            onChange={async (e) => {
+                              const newPlanId = e.target.value || undefined
+                              const expiresAt = newPlanId ? calcExpiresAt(newPlanId, plans) : null
+                              await updateSubscription(s.id, {
+                                plan_id: newPlanId ?? null,
+                                ...(expiresAt ? { expires_at: expiresAt } : {}),
+                              } as Parameters<typeof updateSubscription>[1])
+                            }}
+                            className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                           >
-                            Suspender
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => updateSub(s.id, { status: 'active' })}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition font-medium"
+                            <option value="">Sem plano</option>
+                            {plans.map((p) => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <select
+                            value={s.status}
+                            onChange={(e) => updateSubscription(s.id, { status: e.target.value as typeof s.status })}
+                            className={`text-xs font-medium px-2.5 py-1 rounded-full border-0 outline-none cursor-pointer ${STATUS_COLORS[s.status]}`}
                           >
-                            Ativar
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                            {Object.entries(STATUS_LABELS).map(([v, l]) => (
+                              <option key={v} value={v}>{l}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="px-4 py-3 text-gray-400 text-xs">
+                          {new Date(s.started_at).toLocaleDateString('pt-BR')}
+                        </td>
+                        <td className="px-4 py-3 text-xs">
+                          {editingExpiry === s.id ? (
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="date"
+                                value={expiryInput}
+                                onChange={(e) => setExpiryInput(e.target.value)}
+                                className="border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                              />
+                              <button
+                                onClick={() => saveExpiry(s.id)}
+                                className="p-1 text-green-600 hover:bg-green-50 rounded"
+                              >
+                                <Check size={13} />
+                              </button>
+                              <button
+                                onClick={() => setEditingExpiry(null)}
+                                className="p-1 text-gray-400 hover:bg-gray-100 rounded"
+                              >
+                                <X size={13} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => startEditExpiry(s.id, s.expires_at ?? null)}
+                              className="flex items-center gap-1.5 group"
+                            >
+                              <span className={expiry.cls}>{expiry.label}</span>
+                              <Calendar size={11} className="text-gray-300 group-hover:text-indigo-400 transition" />
+                            </button>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {s.status === 'active' ? (
+                            <button
+                              onClick={() => updateSubscription(s.id, { status: 'suspended' })}
+                              className="text-xs px-2.5 py-1 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition font-medium"
+                            >
+                              Suspender
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => updateSubscription(s.id, { status: 'active' })}
+                              className="text-xs px-2.5 py-1 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition font-medium"
+                            >
+                              Ativar
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
           )}
         </div>
       )}
+
+      {/* Legenda */}
+      <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap">
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> Mais de 30 dias</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> 8–30 dias</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-500 inline-block" /> ≤ 7 dias</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> Vencido</span>
+      </div>
     </div>
   )
 }
