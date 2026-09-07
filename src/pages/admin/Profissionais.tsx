@@ -95,8 +95,8 @@ export default function Profissionais() {
                 const proServices = services.filter((s) => p.services.includes(s.id))
                 return (
                   <li key={p.id} className="flex items-center gap-4 p-4">
-                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                      <User size={18} className="text-purple-600" />
+                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                      <User size={18} className="text-indigo-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900">{p.name}</p>
@@ -109,7 +109,7 @@ export default function Profissionais() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => openEdit(p)}
-                        className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
                       >
                         <Edit size={16} />
                       </button>
