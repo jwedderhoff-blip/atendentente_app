@@ -64,7 +64,7 @@ async function sendEmail(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Agendamento <noreply@atendentente.app>',
+        from: 'Meridio <noreply@meridio.app>',
         to,
         subject: `Lembrete: ${serviceName} ${when} às ${timeStr}`,
         html: `
