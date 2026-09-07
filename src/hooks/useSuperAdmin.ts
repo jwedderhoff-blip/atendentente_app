@@ -33,8 +33,17 @@ export interface SuperEstablishment {
   email: string | null
   phone: string | null
   slug: string
+  address?: string | null
   created_at: string
   subscriptions?: { status: string; plans?: { name: string } }[]
+}
+
+export interface SuperProfessional {
+  id: string
+  establishment_id: string
+  name: string
+  avatar_url?: string | null
+  services: string[]
 }
 
 export function usePlans() {
@@ -68,7 +77,7 @@ export function useAllEstablishments() {
   const fetch = async () => {
     const { data } = await supabase
       .from('establishments')
-      .select('id, name, category, status, email, phone, slug, created_at, subscriptions(status, plans(name))')
+      .select('id, name, category, status, email, phone, slug, address, created_at, subscriptions(status, plans(name))')
       .order('created_at', { ascending: false })
     if (data) setEstablishments(data as unknown as SuperEstablishment[])
     setLoading(false)
@@ -82,7 +91,13 @@ export function useAllEstablishments() {
     return { error: error?.message ?? null }
   }
 
-  return { establishments, loading, updateStatus, refetch: fetch }
+  const updateEstablishment = async (id: string, updates: Partial<Omit<SuperEstablishment, 'id' | 'created_at' | 'subscriptions'>>) => {
+    const { error } = await supabase.from('establishments').update(updates).eq('id', id)
+    if (!error) await fetch()
+    return { error: error?.message ?? null }
+  }
+
+  return { establishments, loading, updateStatus, updateEstablishment, refetch: fetch }
 }
 
 export function useAllSubscriptions() {
@@ -101,4 +116,47 @@ export function useAllSubscriptions() {
   }, [])
 
   return { subscriptions, loading }
+}
+
+export function useProfessionalsForEstablishment(establishmentId: string | null) {
+  const [professionals, setProfessionals] = useState<SuperProfessional[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const fetch = async (id: string) => {
+    setLoading(true)
+    const { data } = await supabase
+      .from('professionals')
+      .select('id, establishment_id, name, avatar_url, services')
+      .eq('establishment_id', id)
+      .order('name')
+    if (data) setProfessionals(data as SuperProfessional[])
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    if (establishmentId) fetch(establishmentId)
+    else setProfessionals([])
+  }, [establishmentId])
+
+  const addProfessional = async (establishmentId: string, name: string) => {
+    const { error } = await supabase
+      .from('professionals')
+      .insert({ establishment_id: establishmentId, name, services: [] })
+    if (!error) await fetch(establishmentId)
+    return { error: error?.message ?? null }
+  }
+
+  const updateProfessional = async (id: string, establishmentId: string, name: string) => {
+    const { error } = await supabase.from('professionals').update({ name }).eq('id', id)
+    if (!error) await fetch(establishmentId)
+    return { error: error?.message ?? null }
+  }
+
+  const deleteProfessional = async (id: string, establishmentId: string) => {
+    const { error } = await supabase.from('professionals').delete().eq('id', id)
+    if (!error) await fetch(establishmentId)
+    return { error: error?.message ?? null }
+  }
+
+  return { professionals, loading, addProfessional, updateProfessional, deleteProfessional }
 }
