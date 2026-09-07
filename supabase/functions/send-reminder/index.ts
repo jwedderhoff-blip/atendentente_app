@@ -8,6 +8,7 @@ const supabase = createClient(
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 const ZAPI_TOKEN = Deno.env.get('ZAPI_TOKEN') ?? ''
 const ZAPI_INSTANCE = Deno.env.get('ZAPI_INSTANCE') ?? ''
+const ZAPI_CLIENT_TOKEN = Deno.env.get('ZAPI_CLIENT_TOKEN') ?? ''
 
 /** Normaliza telefone para formato internacional sem + (ex: 5547999999999) */
 function normalizePhone(raw: string): string {
@@ -27,7 +28,7 @@ async function sendWhatsApp(phone: string, message: string): Promise<boolean> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Client-Token': ZAPI_TOKEN,
+          'Client-Token': ZAPI_CLIENT_TOKEN,
         },
         body: JSON.stringify({ phone: normalized, message }),
       },
