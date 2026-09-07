@@ -25,12 +25,20 @@ async function sendWhatsApp(phone: string, message: string): Promise<boolean> {
       `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Token': ZAPI_TOKEN,
+        },
         body: JSON.stringify({ phone: normalized, message }),
       },
     )
+    if (!res.ok) {
+      const body = await res.text()
+      console.error('Z-API error:', res.status, body)
+    }
     return res.ok
-  } catch {
+  } catch (e) {
+    console.error('sendWhatsApp exception:', e)
     return false
   }
 }
