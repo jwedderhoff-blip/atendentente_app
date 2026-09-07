@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { format, addMinutes } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
-  Clock, User, CheckCircle, ChevronLeft,
+  Clock, User, CheckCircle, ChevronLeft, Tag,
   Scissors, Droplets, Palette, Sparkles, Dumbbell, Activity,
   Apple, Heart, Star, Eye, Zap, Leaf, ClipboardList, Wind,
   Baby, Sun, type LucideIcon,
@@ -28,6 +28,8 @@ import { formatCurrency, formatPhone } from '../lib/utils'
 import type { Service, Professional } from '../types'
 
 type Step = 1 | 2 | 3 | 4 | 5
+
+const PREPAY_DISCOUNT = 0.10
 
 interface ServiceVisual { icon: LucideIcon; bg: string; text: string }
 
@@ -105,6 +107,7 @@ export default function Booking() {
   const [appointmentId, setAppointmentId] = useState<string | null>(null)
   const [confirmedClientData, setConfirmedClientData] = useState<ClientData | null>(null)
   const [bookingError, setBookingError] = useState<string | null>(null)
+  const [paymentChoice, setPaymentChoice] = useState<'none' | 'confirm' | 'prepay'>('none')
 
   // Pré-seleciona serviço quando vem da página do estabelecimento
   useEffect(() => {
@@ -140,10 +143,11 @@ export default function Booking() {
     defaultValues: { marketing_opt_in: false },
   })
 
-  // Auto-generate PIX when arriving at step 5
+  // Generate PIX only when client explicitly chooses prepay
   useEffect(() => {
     if (
       step === 5 &&
+      paymentChoice === 'prepay' &&
       appointmentId &&
       selectedService &&
       establishment &&
@@ -151,16 +155,17 @@ export default function Booking() {
       !pixData &&
       !pixLoading
     ) {
+      const discountedAmount = Math.round(selectedService.price * (1 - PREPAY_DISCOUNT))
       void generatePix({
         appointment_id: appointmentId,
-        amount: selectedService.price,
+        amount: discountedAmount,
         description: `${selectedService.name} - ${establishment.name}`,
         payer_email: confirmedClientData.email || 'cliente@atendente.app',
         payer_name: confirmedClientData.name,
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step])
+  }, [step, paymentChoice])
 
   const activeServices = services.filter((s) => s.active)
 
@@ -504,19 +509,64 @@ export default function Booking() {
               </div>
             )}
 
-            {selectedService && selectedService.price > 0 && (
+            {selectedService && selectedService.price > 0 && paymentChoice === 'none' && (
+              <div className="space-y-3 mb-4">
+                <button
+                  onClick={() => setPaymentChoice('prepay')}
+                  className="w-full flex items-center justify-between px-5 py-4 bg-purple-600 rounded-2xl hover:bg-purple-700 transition"
+                >
+                  <div className="text-left">
+                    <p className="font-semibold text-white">Pagar agora com desconto</p>
+                    <p className="text-sm text-purple-200">
+                      {formatCurrency(Math.round(selectedService.price * (1 - PREPAY_DISCOUNT)))}
+                      {' '}· {Math.round(PREPAY_DISCOUNT * 100)}% off via PIX antecipado
+                    </p>
+                  </div>
+                  <Tag size={20} className="text-purple-200 shrink-0" />
+                </button>
+                <button
+                  onClick={() => setPaymentChoice('confirm')}
+                  className="w-full flex items-center justify-between px-5 py-4 bg-white border border-gray-200 rounded-2xl hover:border-gray-300 transition"
+                >
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-900">Confirmar agendamento</p>
+                    <p className="text-sm text-gray-500">Pague no dia do atendimento</p>
+                  </div>
+                  <span className="text-gray-300 text-lg">→</span>
+                </button>
+              </div>
+            )}
+
+            {selectedService && selectedService.price > 0 && paymentChoice === 'confirm' && (
+              <div className="bg-green-50 border border-green-100 rounded-2xl p-4 mb-4 text-center">
+                <p className="text-sm text-green-700 font-medium">Tudo certo! Você paga no dia do atendimento.</p>
+                <a
+                  href={`/${establishment.slug}`}
+                  className="mt-3 inline-block text-sm text-purple-600 font-semibold hover:underline"
+                >
+                  Finalizar
+                </a>
+              </div>
+            )}
+
+            {selectedService && selectedService.price > 0 && paymentChoice === 'prepay' && (
               <div className="mb-4">
-                <p className="font-semibold text-gray-900 mb-3">Pagamento via PIX</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-semibold text-gray-900">Pagamento via PIX</p>
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                    {Math.round(PREPAY_DISCOUNT * 100)}% off
+                  </span>
+                </div>
                 {pixData ? (
                   <PixPayment
                     pixData={pixData}
-                    amount={selectedService.price}
+                    amount={Math.round(selectedService.price * (1 - PREPAY_DISCOUNT))}
                     loading={false}
                   />
                 ) : (
                   <PixPayment
                     pixData={{ qr_code: '', qr_code_base64: '', ticket_url: '', payment_id: '', status: 'pending' }}
-                    amount={selectedService.price}
+                    amount={Math.round(selectedService.price * (1 - PREPAY_DISCOUNT))}
                     loading={pixLoading}
                   />
                 )}
