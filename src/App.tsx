@@ -15,7 +15,14 @@ import Servicos from './pages/admin/Servicos'
 import Profissionais from './pages/admin/Profissionais'
 import Configuracoes from './pages/admin/Configuracoes'
 import SelecionarEstabelecimento from './pages/admin/SelecionarEstabelecimento'
+import SuperAdminLayout from './pages/superadmin/SuperAdminLayout'
+import SuperDashboard from './pages/superadmin/SuperDashboard'
+import SuperEstabelecimentos from './pages/superadmin/SuperEstabelecimentos'
+import SuperPlanos from './pages/superadmin/SuperPlanos'
+import SuperAssinaturas from './pages/superadmin/SuperAssinaturas'
 import './index.css'
+
+const SUPERADMIN_EMAIL = import.meta.env.VITE_SUPERADMIN_EMAIL as string | undefined
 
 function PrivateRoute() {
   const { session, loading } = useAuth()
@@ -27,6 +34,20 @@ function PrivateRoute() {
     )
   }
   if (!session) return <Navigate to="/login" replace />
+  return <Outlet />
+}
+
+function SuperAdminRoute() {
+  const { session, user, loading } = useAuth()
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
+      </div>
+    )
+  }
+  if (!session) return <Navigate to="/login" replace />
+  if (SUPERADMIN_EMAIL && user?.email !== SUPERADMIN_EMAIL) return <Navigate to="/admin" replace />
   return <Outlet />
 }
 
@@ -47,6 +68,14 @@ function AppRoutes() {
           <Route path="servicos" element={<Servicos />} />
           <Route path="profissionais" element={<Profissionais />} />
           <Route path="configuracoes" element={<Configuracoes />} />
+        </Route>
+      </Route>
+      <Route element={<SuperAdminRoute />}>
+        <Route path="/superadmin" element={<SuperAdminLayout />}>
+          <Route index element={<SuperDashboard />} />
+          <Route path="estabelecimentos" element={<SuperEstabelecimentos />} />
+          <Route path="planos" element={<SuperPlanos />} />
+          <Route path="assinaturas" element={<SuperAssinaturas />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFound />} />
