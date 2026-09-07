@@ -60,6 +60,11 @@ const categories = [
     img: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=75',
   },
   {
+    label: 'Serviços de Beleza',
+    examples: ['Unhas e nail design', 'Cílios, sobrancelhas e micropigmentação'],
+    img: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&auto=format&fit=crop&q=75',
+  },
+  {
     label: 'Centro de Estética',
     examples: ['Limpeza de pele e depilação', 'Massagem e drenagem'],
     img: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&auto=format&fit=crop&q=75',
@@ -68,6 +73,11 @@ const categories = [
     label: 'Estúdio de Pilates',
     examples: ['Pilates individual e em grupo', 'Avaliação postural'],
     img: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&auto=format&fit=crop&q=75',
+  },
+  {
+    label: 'Aulas Coletivas',
+    examples: ['Balé, dança e zumba', 'Jiu-jitsu, karatê e artes marciais'],
+    img: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=600&auto=format&fit=crop&q=75',
   },
   {
     label: 'Avaliação Física',
@@ -100,7 +110,7 @@ export default function Home() {
         </h1>
         <p className="text-lg sm:text-xl text-gray-600 max-w-xl mx-auto mb-8">
           Agendamento online, lembretes automáticos e gestão completa para salões, barbearias,
-          estética, pilates, avaliações físicas, nutricionais e academias.
+          estética, unhas, cílios, pilates, aulas coletivas, avaliações físicas, nutricionais e academias.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           {session ? (
