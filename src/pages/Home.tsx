@@ -93,10 +93,10 @@ export default function Home() {
     <div className="min-h-screen bg-white">
 
       {/* ── Hero ── */}
-      <section className="bg-gradient-to-br from-purple-50 to-indigo-100 py-20 px-6 text-center">
+      <section className="bg-gradient-to-br from-slate-50 to-indigo-100 py-20 px-6 text-center">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
           Seu negócio,{' '}
-          <span className="text-purple-600">sem complicações</span>
+          <span className="text-indigo-600">sem complicações</span>
         </h1>
         <p className="text-lg sm:text-xl text-gray-600 max-w-xl mx-auto mb-8">
           Agendamento online, lembretes automáticos e gestão completa para salões, barbearias,
@@ -106,7 +106,7 @@ export default function Home() {
           {session ? (
             <Link
               to="/selecionar"
-              className="bg-purple-600 text-white px-8 py-3 rounded-xl font-semibold text-base hover:bg-purple-700 transition shadow-md"
+              className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 transition shadow-md"
             >
               Acessar minha conta
             </Link>
@@ -114,13 +114,13 @@ export default function Home() {
             <>
               <Link
                 to="/login"
-                className="bg-purple-600 text-white px-8 py-3 rounded-xl font-semibold text-base hover:bg-purple-700 transition shadow-md"
+                className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 transition shadow-md"
               >
                 Entrar na plataforma
               </Link>
               <Link
                 to="/register"
-                className="border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-xl font-semibold text-base hover:bg-purple-50 transition"
+                className="border-2 border-indigo-600 text-indigo-700 px-8 py-3 rounded-xl font-semibold text-base hover:bg-indigo-50 transition"
               >
                 Criar minha conta
               </Link>
@@ -150,8 +150,8 @@ export default function Home() {
               </div>
               {/* Conteúdo */}
               <div className="p-5 flex flex-col gap-2">
-                <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <Icon className="w-4 h-4 text-purple-600" />
+                <div className="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center">
+                  <Icon className="w-4 h-4 text-indigo-600" />
                 </div>
                 <h3 className="font-semibold text-gray-900">{title}</h3>
                 <p className="text-sm text-gray-500">{description}</p>
@@ -190,7 +190,7 @@ export default function Home() {
                   <ul className="space-y-1.5">
                     {examples.map((ex) => (
                       <li key={ex} className="text-sm text-gray-500 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block shrink-0" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 inline-block shrink-0" />
                         {ex}
                       </li>
                     ))}
@@ -203,16 +203,16 @@ export default function Home() {
       </section>
 
       {/* ── CTA final ── */}
-      <section className="bg-purple-600 py-16 px-6 text-center">
+      <section className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 py-16 px-6 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
           Comece grátis hoje
         </h2>
-        <p className="text-purple-100 mb-8 max-w-sm mx-auto">
+        <p className="text-slate-300 mb-8 max-w-sm mx-auto">
           Sem cartão de crédito. Configure em menos de 5 minutos.
         </p>
         <Link
           to="/register"
-          className="bg-white text-purple-700 px-8 py-3 rounded-xl font-semibold text-base hover:bg-purple-50 transition shadow-md inline-block"
+          className="bg-indigo-500 hover:bg-indigo-400 text-white px-8 py-3 rounded-xl font-semibold text-base transition shadow-lg shadow-indigo-900/50 inline-block"
         >
           Criar minha conta grátis
         </Link>
