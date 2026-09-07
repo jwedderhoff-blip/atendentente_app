@@ -5,7 +5,10 @@ export interface Plan {
   id: string
   name: string
   description: string | null
+  billing_type: 'monthly' | 'package'
   price_monthly: number
+  price_package: number | null
+  package_days: number | null
   max_services: number | null
   max_professionals: number | null
   max_appointments_per_month: number | null
@@ -22,7 +25,7 @@ export interface Subscription {
   expires_at: string | null
   created_at: string
   establishments?: { name: string; category: string; owner_id: string }
-  plans?: { name: string }
+  plans?: { name: string; billing_type: string; package_days: number | null }
 }
 
 export interface SuperEstablishment {
@@ -67,7 +70,13 @@ export function usePlans() {
     return { error: error?.message ?? null }
   }
 
-  return { plans, loading, updatePlan, refetch: fetch }
+  const createPlan = async (data: Omit<Plan, 'id' | 'created_at'>) => {
+    const { error } = await supabase.from('plans').insert(data)
+    if (!error) await fetch()
+    return { error: error?.message ?? null }
+  }
+
+  return { plans, loading, updatePlan, createPlan, refetch: fetch }
 }
 
 export function useAllEstablishments() {
@@ -104,18 +113,24 @@ export function useAllSubscriptions() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    supabase
+  const fetch = async () => {
+    const { data } = await supabase
       .from('subscriptions')
-      .select('*, establishments(name, category), plans(name)')
+      .select('*, establishments(name, category), plans(name, billing_type, package_days)')
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        if (data) setSubscriptions(data as Subscription[])
-        setLoading(false)
-      })
-  }, [])
+    if (data) setSubscriptions(data as Subscription[])
+    setLoading(false)
+  }
 
-  return { subscriptions, loading }
+  useEffect(() => { fetch() }, [])
+
+  const updateSubscription = async (id: string, updates: Partial<Subscription>) => {
+    const { error } = await supabase.from('subscriptions').update(updates).eq('id', id)
+    if (!error) await fetch()
+    return { error: error?.message ?? null }
+  }
+
+  return { subscriptions, loading, updateSubscription, refetch: fetch }
 }
 
 export function useProfessionalsForEstablishment(establishmentId: string | null) {
