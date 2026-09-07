@@ -9,6 +9,7 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 const ZAPI_TOKEN = Deno.env.get('ZAPI_TOKEN') ?? ''
 const ZAPI_INSTANCE = Deno.env.get('ZAPI_INSTANCE') ?? ''
 const ZAPI_CLIENT_TOKEN = Deno.env.get('ZAPI_CLIENT_TOKEN') ?? ''
+// client-token é o token de segurança da conta Z-API (não o token da instância)
 
 /** Normaliza telefone para formato internacional sem + (ex: 5547999999999) */
 function normalizePhone(raw: string): string {
