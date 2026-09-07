@@ -175,10 +175,10 @@ function ServiceDetailModal({ service, slug, onClose }: ServiceDetailModalProps)
 
       {/* Sheet — desliza de baixo em mobile, centralizado em desktop */}
       <div className="fixed inset-x-0 bottom-0 z-50 sm:inset-0 sm:flex sm:items-center sm:justify-center sm:p-6">
-        <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md shadow-2xl overflow-hidden">
+        <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[85vh]">
 
-          {/* Imagem do serviço */}
-          <div className="relative h-52 sm:h-56 overflow-hidden">
+          {/* Imagem do serviço — fixa no topo, não rola */}
+          <div className="relative h-52 sm:h-56 overflow-hidden shrink-0 rounded-t-3xl sm:rounded-t-3xl">
             <img
               src={img}
               alt={service.name}
@@ -194,8 +194,8 @@ function ServiceDetailModal({ service, slug, onClose }: ServiceDetailModalProps)
             </button>
           </div>
 
-          {/* Conteúdo */}
-          <div className="p-6">
+          {/* Conteúdo rolável */}
+          <div className="overflow-y-auto flex-1 p-6">
             <div className="flex items-start gap-3 mb-4">
               <div className={`w-10 h-10 rounded-2xl ${bg} flex items-center justify-center shrink-0`}>
                 <Icon size={20} className={text} />
@@ -214,7 +214,7 @@ function ServiceDetailModal({ service, slug, onClose }: ServiceDetailModalProps)
             </div>
 
             {service.description ? (
-              <p className="text-sm text-gray-600 leading-relaxed mb-6">
+              <p className="text-sm text-gray-600 leading-relaxed mb-6 whitespace-pre-wrap">
                 {service.description}
               </p>
             ) : (
@@ -232,23 +232,23 @@ function ServiceDetailModal({ service, slug, onClose }: ServiceDetailModalProps)
                 {formatCurrency(service.price)}
               </span>
             </div>
+          </div>
 
-            {/* CTAs */}
-            <div className="flex flex-col gap-2.5">
-              <button
-                onClick={handleBook}
-                className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold py-4 rounded-2xl transition text-base shadow-md shadow-indigo-200"
-              >
-                <CalendarCheck size={20} />
-                Agendar este serviço
-              </button>
-              <button
-                onClick={onClose}
-                className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-semibold py-3.5 rounded-2xl transition text-base"
-              >
-                Escolher outro serviço
-              </button>
-            </div>
+          {/* CTAs — fixos no rodapé, não rolam */}
+          <div className="p-6 pt-0 flex flex-col gap-2.5 shrink-0">
+            <button
+              onClick={handleBook}
+              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold py-4 rounded-2xl transition text-base shadow-md shadow-indigo-200"
+            >
+              <CalendarCheck size={20} />
+              Agendar este serviço
+            </button>
+            <button
+              onClick={onClose}
+              className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 font-semibold py-3.5 rounded-2xl transition text-base"
+            >
+              Escolher outro serviço
+            </button>
           </div>
         </div>
       </div>

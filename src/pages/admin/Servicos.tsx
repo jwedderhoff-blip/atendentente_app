@@ -179,13 +179,13 @@ export default function Servicos() {
                     <button
                       onClick={() => openSchedules(s)}
                       title="Horários fixos"
-                      className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                      className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
                     >
                       <CalendarDays size={16} />
                     </button>
                     <button
                       onClick={() => openEdit(s)}
-                      className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                      className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
                     >
                       <Edit size={16} />
                     </button>
@@ -207,7 +207,18 @@ export default function Servicos() {
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Editar serviço' : 'Novo serviço'}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input label="Nome" placeholder="Ex: Pilates Iniciante" error={errors.name?.message} {...register('name')} />
-          <Input label="Descrição (opcional)" placeholder="Breve descrição..." error={errors.description?.message} {...register('description')} />
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Descrição (opcional)</label>
+            <textarea
+              rows={5}
+              placeholder={'Descreva o serviço em detalhes...\n\nVocê pode usar parágrafos separados para organizar melhor o conteúdo.'}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 resize-none leading-relaxed"
+              {...register('description')}
+            />
+            {errors.description?.message && (
+              <p className="text-xs text-red-500">{errors.description.message}</p>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Input
               label="Duração (min)"
@@ -236,8 +247,8 @@ export default function Servicos() {
                   key={value}
                   className={`flex flex-col gap-0.5 border rounded-xl p-3 cursor-pointer transition ${
                     scheduleType === value
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300'
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : 'border-gray-200 hover:border-indigo-300'
                   }`}
                 >
                   <input type="radio" value={value} {...register('schedule_type')} className="sr-only" />
@@ -306,8 +317,8 @@ export default function Servicos() {
                       }}
                       className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition ${
                         isOpen
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'bg-gray-100 text-gray-500 hover:bg-purple-50 hover:text-purple-600'
+                          ? 'bg-indigo-100 text-indigo-700'
+                          : 'bg-gray-100 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600'
                       }`}
                     >
                       <Plus size={12} />
@@ -317,14 +328,14 @@ export default function Servicos() {
 
                   {/* Formulário inline */}
                   {isOpen && (
-                    <div className="flex items-end gap-2 mb-2 bg-purple-50 rounded-lg p-2">
+                    <div className="flex items-end gap-2 mb-2 bg-indigo-50 rounded-lg p-2">
                       <div className="flex-1">
                         <label className="text-xs text-gray-500 mb-1 block">Horário</label>
                         <input
                           type="time"
                           value={dayEntry.time}
                           onChange={(e) => setDayEntry((prev) => ({ ...prev, time: e.target.value }))}
-                          className="w-full rounded-lg border border-gray-200 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-white"
+                          className="w-full rounded-lg border border-gray-200 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white"
                         />
                       </div>
                       <div className="w-20">
@@ -334,13 +345,13 @@ export default function Servicos() {
                           min={1}
                           value={dayEntry.spots}
                           onChange={(e) => setDayEntry((prev) => ({ ...prev, spots: Number(e.target.value) }))}
-                          className="w-full rounded-lg border border-gray-200 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-white"
+                          className="w-full rounded-lg border border-gray-200 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white"
                         />
                       </div>
                       <button
                         onClick={addSchedule}
                         disabled={savingSchedule}
-                        className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+                        className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-lg transition disabled:opacity-50"
                       >
                         {savingSchedule ? '...' : 'OK'}
                       </button>
@@ -355,14 +366,14 @@ export default function Servicos() {
                       {daySlots.map((sch) => (
                         <div
                           key={sch.id}
-                          className="flex items-center gap-1 bg-purple-50 text-purple-700 text-xs px-2 py-1 rounded-lg"
+                          className="flex items-center gap-1 bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded-lg"
                         >
                           <span className="font-semibold">{sch.time.slice(0, 5)}</span>
-                          <span className="text-purple-400">·</span>
+                          <span className="text-indigo-400">·</span>
                           <span>{sch.max_spots}v</span>
                           <button
                             onClick={() => removeSchedule(sch.id)}
-                            className="ml-1 text-purple-300 hover:text-red-500 transition"
+                            className="ml-1 text-indigo-300 hover:text-red-500 transition"
                           >
                             <X size={11} />
                           </button>
