@@ -9,7 +9,7 @@ export default function DemoBanner() {
         Modo demonstração — configure o Supabase para ativar todas as funcionalidades
       </span>
       <a
-        href="https://github.com/jwedderhoff-blip/atendentente_app#readme"
+        href="https://github.com/jwedderhoff-blip/meridio-app#readme"
         target="_blank"
         rel="noopener noreferrer"
         className="ml-4 shrink-0 bg-yellow-900 text-yellow-100 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-yellow-800 transition"
