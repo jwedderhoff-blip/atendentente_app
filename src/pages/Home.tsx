@@ -218,12 +218,12 @@ export default function Home() {
           </div>
         ))}
 
-        {/* Overlay gradiente */}
+        {/* Overlay gradiente — mais escuro para contraste do texto */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(to bottom, rgba(10,8,30,0.55) 0%, rgba(10,8,30,0.65) 50%, rgba(10,8,30,0.85) 100%)',
+              'linear-gradient(to bottom, rgba(5,4,20,0.70) 0%, rgba(5,4,20,0.78) 50%, rgba(5,4,20,0.92) 100%)',
             zIndex: 1,
           }}
         />
@@ -239,21 +239,25 @@ export default function Home() {
             Plataforma de agendamento nº 1 do Brasil
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-tight mb-6">
+          <h1
+            className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-tight mb-6"
+            style={{ textShadow: '0 2px 16px rgba(0,0,0,0.7)' }}
+          >
             Seu negócio,{' '}
             <span
               style={{
-                background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%)',
+                background: 'linear-gradient(135deg, #a5b4fc 0%, #d8b4fe 50%, #f9a8d4 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
+                filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))',
               }}
             >
               sem complicações
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-10 leading-relaxed" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.6)' }}>
             Agendamento online, lembretes automáticos e gestão completa para salões,
             barbearias, estética, pilates, aulas coletivas e muito mais.
           </p>
@@ -314,9 +318,10 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <p className="text-slate-300 text-sm">
+            <p className="text-white/80 text-sm" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.7)' }}>
               <span className="text-white font-semibold">+2.400 negócios</span> já usam o MeuToki
             </p>
+
           </div>
         </div>
 
