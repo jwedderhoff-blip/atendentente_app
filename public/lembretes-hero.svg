@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 310" fill="none">
+  <!-- Fundo gradiente suave -->
+  <rect width="360" height="310" fill="#EEF2FF"/>
+
+  <!-- Círculo de fundo central -->
+  <circle cx="180" cy="155" r="130" fill="white" fill-opacity="0.5"/>
+  <circle cx="180" cy="155" r="105" stroke="#C7D2FE" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+  <!-- WhatsApp (esquerda-cima) -->
+  <g transform="translate(52, 42)">
+    <circle cx="56" cy="56" r="56" fill="#25D366"/>
+    <!-- Ícone telefone WhatsApp simplificado -->
+    <path d="M56 20C36.1 20 20 36.1 20 56C20 62.8 21.9 69.2 25.2 74.7L20 92L37.7 86.9C43 90 49.3 91.8 56 91.8C75.9 91.8 92 75.7 92 55.8C92 36.1 75.9 20 56 20ZM75.4 70.6C74.4 73.3 70 75.6 67.6 75.9C65.5 76.2 62.8 76.3 59.8 75.3C57.9 74.7 55.5 73.9 52.4 72.5C41.3 67.5 34.2 56.3 33.6 55.5C33.1 54.7 29.2 49.5 29.2 44.1C29.2 38.7 32.1 36.1 33.2 35C34.1 33.9 35.3 33.7 36.1 33.7C36.9 33.7 37.7 33.7 38.4 33.7C39.2 33.7 40.2 33.4 41.2 35.8C42.2 38.2 44.7 43.6 45 44.2C45.3 44.8 45.5 45.5 45.1 46.3C43.4 49.8 41.6 49.6 42.6 51.3C46 57.2 49.5 59.5 55 62.1C56 62.6 56.6 62.5 57.2 61.8C57.8 61.1 60.2 58.3 60.9 57.3C61.6 56.3 62.3 56.5 63.3 56.9C64.3 57.3 69.7 60 70.8 60.6C71.9 61.2 72.6 61.5 72.9 61.9C73.2 62.5 73.2 65.1 72.2 67.8L75.4 70.6Z" fill="white" fill-opacity="0.95"/>
+  </g>
+
+  <!-- Email (centro-baixo) -->
+  <g transform="translate(122, 178)">
+    <circle cx="58" cy="58" r="58" fill="url(#emailGrad)"/>
+    <!-- Envelope -->
+    <rect x="18" y="32" width="80" height="54" rx="6" fill="white" fill-opacity="0.2" stroke="white" stroke-width="3"/>
+    <path d="M18 38L58 66L98 38" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- @ -->
+    <text x="58" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="white">@</text>
+  </g>
+
+  <!-- Mensagens/Chat (direita-cima) -->
+  <g transform="translate(218, 54)">
+    <circle cx="52" cy="52" r="52" fill="url(#chatGrad)"/>
+    <!-- Balão de chat maior -->
+    <rect x="14" y="16" width="62" height="44" rx="10" fill="white" fill-opacity="0.3"/>
+    <!-- Balão de chat menor (sobreposto) -->
+    <rect x="26" y="36" width="56" height="38" rx="10" fill="white" fill-opacity="0.5"/>
+    <!-- Ponta do balão -->
+    <path d="M26 74L18 86L38 74" fill="white" fill-opacity="0.5"/>
+    <!-- Linhas de texto simuladas -->
+    <rect x="34" y="46" width="32" height="4" rx="2" fill="white" fill-opacity="0.8"/>
+    <rect x="34" y="56" width="22" height="4" rx="2" fill="white" fill-opacity="0.6"/>
+  </g>
+
+  <!-- Linha conectora WhatsApp -> Email -->
+  <path d="M130 118C140 140 150 158 178 184" stroke="#A5B4FC" stroke-width="2" stroke-dasharray="5 4"/>
+  <!-- Linha conectora Chat -> Email -->
+  <path d="M230 118C220 140 210 158 202 183" stroke="#A5B4FC" stroke-width="2" stroke-dasharray="5 4"/>
+
+  <defs>
+    <linearGradient id="emailGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="chatGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+</svg>

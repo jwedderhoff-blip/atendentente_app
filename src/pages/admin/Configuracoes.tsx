@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Save, Copy, Check, ExternalLink, CalendarDays, Building2, AlertCircle, Tag } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { Save, Copy, Check, ExternalLink, CalendarDays, Building2, AlertCircle, Tag, ImageIcon, Upload, X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { supabase } from '../../lib/supabase'
@@ -46,6 +46,12 @@ export default function Configuracoes() {
   const [savedData, setSavedData]   = useState(false)
   const [dataError, setDataError]   = useState<string | null>(null)
 
+  // ── Imagem de capa ──
+  const [coverUrl, setCoverUrl]       = useState<string | null>(null)
+  const [uploading, setUploading]     = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     if (!establishment) return
     setName(establishment.name ?? '')
@@ -56,6 +62,7 @@ export default function Configuracoes() {
     setSlug(establishment.slug ?? '')
     setTagline(establishment.tagline ?? '')
     setPrepayDiscount(establishment.prepay_discount ?? 10)
+    setCoverUrl(establishment.logo_url ?? null)
   }, [establishment])
 
   const handleSaveData = async () => {
@@ -75,6 +82,30 @@ export default function Configuracoes() {
     if (error) setDataError(error)
     else setSavedData(true)
     setSavingData(false)
+  }
+
+  const handleUploadCover = async (file: File) => {
+    if (!establishment) return
+    setUploading(true)
+    setUploadError(null)
+    const ext = file.name.split('.').pop() ?? 'jpg'
+    const path = `${establishment.id}/cover.${ext}`
+    const { error: upErr } = await supabase.storage
+      .from('establishment-covers')
+      .upload(path, file, { upsert: true, contentType: file.type })
+    if (upErr) { setUploadError(upErr.message); setUploading(false); return }
+    const { data } = supabase.storage.from('establishment-covers').getPublicUrl(path)
+    const url = `${data.publicUrl}?t=${Date.now()}`
+    const { error: saveErr } = await updateEstablishment({ logo_url: url })
+    if (saveErr) { setUploadError(saveErr); setUploading(false); return }
+    setCoverUrl(url)
+    setUploading(false)
+  }
+
+  const handleRemoveCover = async () => {
+    if (!establishment) return
+    await updateEstablishment({ logo_url: null as never })
+    setCoverUrl(null)
   }
 
   // ── Link de agendamento ──
@@ -248,6 +279,74 @@ export default function Configuracoes() {
             <Save size={15} />
             {savedData ? 'Salvo!' : 'Salvar dados'}
           </Button>
+        </div>
+      </div>
+
+      {/* ── Imagem de capa ── */}
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+          <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center">
+            <ImageIcon size={16} className="text-indigo-600" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-gray-900 text-sm">Imagem de capa</h2>
+            <p className="text-xs text-gray-400">Foto exibida no topo da sua página pública de agendamento</p>
+          </div>
+        </div>
+        <div className="p-5 space-y-4">
+          {coverUrl ? (
+            <div className="relative rounded-xl overflow-hidden h-40 bg-gray-100">
+              <img src={coverUrl} alt="Capa" className="w-full h-full object-cover" />
+              <button
+                onClick={handleRemoveCover}
+                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition"
+              >
+                <X size={15} />
+              </button>
+            </div>
+          ) : (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="h-40 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition"
+            >
+              <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+                <Upload size={18} className="text-indigo-600" />
+              </div>
+              <p className="text-sm text-gray-500">Clique para fazer upload</p>
+              <p className="text-xs text-gray-400">JPG, PNG ou WEBP · máx. 5 MB</p>
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) void handleUploadCover(file)
+              e.target.value = ''
+            }}
+          />
+
+          {uploading && (
+            <p className="text-xs text-indigo-600 flex items-center gap-1.5">
+              <span className="w-3.5 h-3.5 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin inline-block" />
+              Enviando imagem…
+            </p>
+          )}
+          {uploadError && (
+            <p className="text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2">{uploadError}</p>
+          )}
+
+          {coverUrl && (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 text-sm text-indigo-600 hover:underline"
+            >
+              <Upload size={14} /> Trocar imagem
+            </button>
+          )}
         </div>
       </div>
 

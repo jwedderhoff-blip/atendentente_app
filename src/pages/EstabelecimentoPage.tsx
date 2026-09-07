@@ -265,7 +265,7 @@ export default function EstabelecimentoPage() {
 
   const activeServices = services.filter((s) => s.active)
   const categoryLabel = CATEGORY_LABELS[establishment?.category ?? 'outro']
-  const heroImage = CATEGORY_HERO[establishment?.category ?? 'outro']
+  const heroImage = establishment?.logo_url ?? CATEGORY_HERO[establishment?.category ?? 'outro']
   const whatsappUrl = establishment?.phone
     ? `https://wa.me/55${formatPhone(establishment.phone)}`
     : null
