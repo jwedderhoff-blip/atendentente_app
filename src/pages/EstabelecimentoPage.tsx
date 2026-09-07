@@ -39,19 +39,19 @@ const CATEGORY_LABELS: Record<Establishment['category'], string> = {
   outro: 'Estabelecimento',
 }
 
-// cor de destaque por categoria: [bg-button, shadow-button, bg-icon, text-icon, bg-badge, text-badge, gradient-from]
-type CategoryColor = { btn: string; btnHover: string; shadow: string; iconBg: string; iconText: string; badge: string; badgeText: string; gradientFrom: string }
+// Cores por categoria — usando hex para evitar purge do Tailwind em classes dinâmicas
+type CategoryColor = { hex: string; dark: string; gradient: string }
 const CATEGORY_COLORS: Record<Establishment['category'], CategoryColor> = {
-  salao:               { btn: 'bg-pink-500',    btnHover: 'hover:bg-pink-600',    shadow: 'shadow-pink-300',    iconBg: 'bg-pink-500',    iconText: 'text-white', badge: 'bg-pink-500/20',    badgeText: 'text-pink-100',  gradientFrom: 'from-pink-900/80' },
-  barbearia:           { btn: 'bg-slate-700',   btnHover: 'hover:bg-slate-800',   shadow: 'shadow-slate-400',   iconBg: 'bg-slate-700',   iconText: 'text-white', badge: 'bg-slate-600/30',   badgeText: 'text-slate-100', gradientFrom: 'from-slate-900/90' },
-  estetica:            { btn: 'bg-fuchsia-500', btnHover: 'hover:bg-fuchsia-600', shadow: 'shadow-fuchsia-300', iconBg: 'bg-fuchsia-500', iconText: 'text-white', badge: 'bg-fuchsia-500/20', badgeText: 'text-fuchsia-100', gradientFrom: 'from-fuchsia-900/80' },
-  beleza:              { btn: 'bg-rose-500',    btnHover: 'hover:bg-rose-600',    shadow: 'shadow-rose-300',    iconBg: 'bg-rose-500',    iconText: 'text-white', badge: 'bg-rose-500/20',    badgeText: 'text-rose-100',  gradientFrom: 'from-rose-900/80' },
-  pilates:             { btn: 'bg-violet-600',  btnHover: 'hover:bg-violet-700',  shadow: 'shadow-violet-300',  iconBg: 'bg-violet-600',  iconText: 'text-white', badge: 'bg-violet-500/20',  badgeText: 'text-violet-100', gradientFrom: 'from-violet-900/80' },
-  aulas_coletivas:     { btn: 'bg-orange-500',  btnHover: 'hover:bg-orange-600',  shadow: 'shadow-orange-300',  iconBg: 'bg-orange-500',  iconText: 'text-white', badge: 'bg-orange-500/20',  badgeText: 'text-orange-100', gradientFrom: 'from-orange-900/80' },
-  avaliacao_fisica:    { btn: 'bg-blue-600',    btnHover: 'hover:bg-blue-700',    shadow: 'shadow-blue-300',    iconBg: 'bg-blue-600',    iconText: 'text-white', badge: 'bg-blue-500/20',    badgeText: 'text-blue-100',  gradientFrom: 'from-blue-900/80' },
-  avaliacao_nutricional:{ btn: 'bg-green-600',  btnHover: 'hover:bg-green-700',   shadow: 'shadow-green-300',   iconBg: 'bg-green-600',   iconText: 'text-white', badge: 'bg-green-500/20',   badgeText: 'text-green-100', gradientFrom: 'from-green-900/80' },
-  academia:            { btn: 'bg-gray-800',    btnHover: 'hover:bg-gray-900',    shadow: 'shadow-gray-400',    iconBg: 'bg-gray-800',    iconText: 'text-white', badge: 'bg-gray-600/30',    badgeText: 'text-gray-100',  gradientFrom: 'from-gray-900/90' },
-  outro:               { btn: 'bg-indigo-600',  btnHover: 'hover:bg-indigo-700',  shadow: 'shadow-indigo-300',  iconBg: 'bg-indigo-600',  iconText: 'text-white', badge: 'bg-indigo-500/20',  badgeText: 'text-indigo-100', gradientFrom: 'from-indigo-900/80' },
+  salao:                { hex: '#ec4899', dark: '#9d174d', gradient: 'rgba(131,24,67,0.88)' },
+  barbearia:            { hex: '#334155', dark: '#0f172a', gradient: 'rgba(15,23,42,0.92)' },
+  estetica:             { hex: '#d946ef', dark: '#701a75', gradient: 'rgba(112,26,117,0.88)' },
+  beleza:               { hex: '#f43f5e', dark: '#881337', gradient: 'rgba(136,19,55,0.88)' },
+  pilates:              { hex: '#7c3aed', dark: '#2e1065', gradient: 'rgba(46,16,101,0.88)' },
+  aulas_coletivas:      { hex: '#f97316', dark: '#7c2d12', gradient: 'rgba(124,45,18,0.88)' },
+  avaliacao_fisica:     { hex: '#2563eb', dark: '#1e3a8a', gradient: 'rgba(23,37,84,0.88)' },
+  avaliacao_nutricional:{ hex: '#16a34a', dark: '#14532d', gradient: 'rgba(20,83,45,0.88)' },
+  academia:             { hex: '#374151', dark: '#030712', gradient: 'rgba(3,7,18,0.92)' },
+  outro:                { hex: '#4f46e5', dark: '#1e1b4b', gradient: 'rgba(30,27,75,0.88)' },
 }
 
 const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
@@ -302,7 +302,7 @@ export default function EstabelecimentoPage() {
   const category = establishment?.category ?? 'outro'
   const categoryLabel = CATEGORY_LABELS[category]
   const heroImage = establishment?.logo_url ?? CATEGORY_HERO[category]
-  const colors = CATEGORY_COLORS[category]
+  const { hex, gradient } = CATEGORY_COLORS[category]
   const CategoryIcon = CATEGORY_ICONS[category]
   const whatsappUrl = establishment?.phone
     ? `https://wa.me/55${formatPhone(establishment.phone)}`
@@ -330,31 +330,39 @@ export default function EstabelecimentoPage() {
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* ── Hero ── */}
+      {/* ── Banner / Hero com imagem temática ── */}
       <div className="relative h-72 sm:h-96 overflow-hidden">
         <img
           src={heroImage}
           alt={categoryLabel}
           className="w-full h-full object-cover"
         />
-        {/* gradiente duplo: cor da categoria em baixo, escuro no topo */}
-        <div className={`absolute inset-0 bg-gradient-to-t ${colors.gradientFrom} via-black/20 to-black/40`} />
+        {/* Gradiente: cor da categoria sobe de baixo, escurecimento suave no topo */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(to top, ${gradient} 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.35) 100%)`,
+          }}
+        />
 
         {/* Badge de categoria no topo */}
         <div className="absolute top-4 left-0 right-0 flex justify-center">
-          <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${colors.badge} ${colors.badgeText} backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20`}>
+          <span
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/30"
+            style={{ backgroundColor: `${hex}55` }}
+          >
             <CategoryIcon size={11} />
             {categoryLabel}
           </span>
         </div>
 
-        {/* Nome + tagline no rodapé do hero */}
-        <div className="absolute bottom-14 left-0 right-0 px-5 max-w-lg mx-auto text-center">
+        {/* Nome + tagline no rodapé do banner */}
+        <div className="absolute bottom-16 left-0 right-0 px-5 text-center">
           <h1 className="text-2xl sm:text-4xl font-extrabold text-white leading-tight drop-shadow-lg">
             {establishment.name}
           </h1>
           {establishment.tagline && (
-            <p className="mt-1 text-sm sm:text-base text-white/80 drop-shadow">
+            <p className="mt-1.5 text-sm sm:text-base text-white/80 drop-shadow">
               {establishment.tagline}
             </p>
           )}
@@ -362,11 +370,14 @@ export default function EstabelecimentoPage() {
       </div>
 
       {/* ── Ícone flutuante + card de infos ── */}
-      <div className="max-w-lg mx-auto px-4 -mt-6 relative z-10">
+      <div className="max-w-lg mx-auto px-4 relative z-10" style={{ marginTop: '-2.5rem' }}>
 
-        {/* Ícone da categoria flutuando sobre o hero */}
-        <div className="flex justify-center -mt-8 mb-4">
-          <div className={`w-16 h-16 rounded-2xl ${colors.iconBg} ${colors.iconText} flex items-center justify-center shadow-xl ring-4 ring-white`}>
+        {/* Ícone da categoria saindo do banner */}
+        <div className="flex justify-center mb-3">
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl ring-4 ring-white text-white"
+            style={{ backgroundColor: hex }}
+          >
             <CategoryIcon size={30} />
           </div>
         </div>
@@ -398,7 +409,8 @@ export default function EstabelecimentoPage() {
           <div className="flex flex-col gap-2.5">
             <Link
               to={`/agendar/${slug}/agendar`}
-              className={`flex items-center justify-center gap-2 ${colors.btn} ${colors.btnHover} active:scale-95 text-white font-bold py-4 rounded-2xl transition text-base shadow-lg ${colors.shadow}`}
+              className="flex items-center justify-center gap-2 active:scale-95 text-white font-bold py-4 rounded-2xl transition text-base shadow-lg"
+              style={{ backgroundColor: hex, boxShadow: `0 8px 24px ${hex}55` }}
             >
               <CalendarCheck size={20} />
               Agendar agora
@@ -476,7 +488,8 @@ export default function EstabelecimentoPage() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur border-t border-gray-100 lg:hidden z-20">
         <Link
           to={`/agendar/${slug}/agendar`}
-          className={`flex items-center justify-center gap-2 ${colors.btn} ${colors.btnHover} text-white font-bold py-3.5 rounded-2xl transition text-base w-full shadow-lg ${colors.shadow}`}
+          className="flex items-center justify-center gap-2 text-white font-bold py-3.5 rounded-2xl transition text-base w-full"
+          style={{ backgroundColor: hex, boxShadow: `0 6px 20px ${hex}55` }}
         >
           <CalendarCheck size={20} />
           Agendar agora
