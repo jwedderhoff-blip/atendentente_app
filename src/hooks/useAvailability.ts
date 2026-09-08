@@ -49,7 +49,7 @@ export function useAvailability({
         .filter(
           (a) =>
             a.professional_id === professionalId &&
-            a.status !== 'cancelado' &&
+            a.status === 'confirmado' &&
             a.starts_at.startsWith(dateStr)
         )
         .map((a) => ({
@@ -106,7 +106,7 @@ export function useAvailability({
           .select('starts_at, service_id')
           .eq('establishment_id', establishmentId)
           .eq('service_id', serviceId)
-          .neq('status', 'cancelado')
+          .eq('status', 'confirmado')
           .gte('starts_at', `${dateStr}T00:00:00`)
           .lte('starts_at', `${dateStr}T23:59:59`)
 
@@ -143,7 +143,7 @@ export function useAvailability({
         .from('appointments')
         .select('starts_at, ends_at')
         .eq('establishment_id', establishmentId)
-        .neq('status', 'cancelado')
+        .eq('status', 'confirmado')
         .gte('starts_at', `${dateStr}T00:00:00`)
         .lte('starts_at', `${dateStr}T23:59:59`)
 
