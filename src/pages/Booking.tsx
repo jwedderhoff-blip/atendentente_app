@@ -622,7 +622,7 @@ export default function Booking() {
               <div className="bg-green-50 border border-green-100 rounded-2xl p-4 mb-4 text-center">
                 <p className="text-sm text-green-700 font-medium">Reserva aguardando confirmação — você paga no dia do atendimento.</p>
                 <a
-                  href={`/${establishment.slug}`}
+                  href={`/agendar/${establishment.slug}`}
                   className="mt-3 inline-block text-sm text-purple-600 font-semibold hover:underline"
                 >
                   Finalizar
