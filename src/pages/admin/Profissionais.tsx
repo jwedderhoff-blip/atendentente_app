@@ -27,7 +27,6 @@ export default function Profissionais() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Professional | null>(null)
-  const [selectedServices, setSelectedServices] = useState<string[]>([])
 
   const {
     register,
@@ -38,30 +37,22 @@ export default function Profissionais() {
 
   const openCreate = () => {
     setEditing(null)
-    setSelectedServices([])
     reset({ name: '' })
     setModalOpen(true)
   }
 
   const openEdit = (p: Professional) => {
     setEditing(p)
-    setSelectedServices(p.services)
     reset({ name: p.name })
     setModalOpen(true)
-  }
-
-  const toggleService = (id: string) => {
-    setSelectedServices((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    )
   }
 
   const onSubmit = async (data: FormData) => {
     if (!establishment) return
     if (editing) {
-      await updateProfessional(editing.id, data.name, selectedServices)
+      await updateProfessional(editing.id, data.name, editing.services)
     } else {
-      await createProfessional(data.name, selectedServices, establishment.id)
+      await createProfessional(data.name, [], establishment.id)
     }
     setModalOpen(false)
   }
@@ -103,7 +94,7 @@ export default function Profissionais() {
                       <p className="text-xs text-gray-500 truncate">
                         {proServices.length > 0
                           ? proServices.map((s) => s.name).join(', ')
-                          : 'Sem serviços associados'}
+                          : 'Sem serviços associados — associe pelo serviço'}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
@@ -125,6 +116,11 @@ export default function Profissionais() {
               })}
             </ul>
           )}
+          {professionals.length > 0 && (
+            <p className="p-4 border-t border-gray-50 text-xs text-gray-400">
+              Para associar profissionais a serviços, edite o serviço na aba Serviços.
+            </p>
+          )}
         </div>
       )}
 
@@ -140,25 +136,6 @@ export default function Profissionais() {
             error={errors.name?.message}
             {...register('name')}
           />
-
-          {services.length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Serviços realizados</p>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {services.map((s) => (
-                  <label key={s.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedServices.includes(s.id)}
-                      onChange={() => toggleService(s.id)}
-                      className="rounded"
-                    />
-                    {s.name}
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="flex gap-3 pt-2">
             <Button variant="ghost" type="button" className="flex-1" onClick={() => setModalOpen(false)}>
