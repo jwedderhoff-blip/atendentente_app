@@ -180,7 +180,10 @@ export default function Booking() {
   const goBack = () => {
     if (step === 2) setStep(1)
     else if (step === 3) {
-      if (selectedService && skipsProfessional(selectedService)) setStep(1)
+      const eligible = selectedService
+        ? professionals.filter((p) => p.services.includes(selectedService.id))
+        : professionals
+      if (selectedService && (skipsProfessional(selectedService) || eligible.length === 0)) setStep(1)
       else setStep(2)
     }
     else if (step === 4) setStep(3)
@@ -193,8 +196,11 @@ export default function Booking() {
       setStep(3)
       return
     }
-    // Para serviços de vaga única: sempre exibe seleção de profissional
-    // (a grade de horários é gerada a partir do profissional escolhido)
+    const eligible = professionals.filter((p) => p.services.includes(s.id))
+    if (eligible.length === 0) {
+      setStep(3)
+      return
+    }
     setStep(2)
   }
 
