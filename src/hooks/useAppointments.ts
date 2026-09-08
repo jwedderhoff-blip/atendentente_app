@@ -53,6 +53,7 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
     service_id: string
     starts_at: string
     ends_at: string
+    recurring_group_id?: string
   }) => {
     if (isDemo) {
       const newApt: Appointment = {
@@ -73,6 +74,71 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
       .single()
     if (!error && data) setAppointments((prev) => [...prev, data as Appointment])
     return { appointment: data as Appointment | null, error: error?.message ?? null }
+  }
+
+  const createRecurringAppointments = async (
+    base: {
+      establishment_id: string
+      client_id: string
+      professional_id?: string
+      service_id: string
+    },
+    occurrences: { starts_at: string; ends_at: string }[],
+  ) => {
+    const groupId = crypto.randomUUID()
+    if (isDemo) {
+      const newApts: Appointment[] = occurrences.map((o) => ({
+        ...base,
+        ...o,
+        id: crypto.randomUUID(),
+        recurring_group_id: groupId,
+        status: 'pendente' as const,
+        payment_status: 'pendente' as const,
+        created_at: new Date().toISOString(),
+      }))
+      setAppointments((prev) => [...prev, ...newApts])
+      return { appointments: newApts, error: null }
+    }
+
+    const rows = occurrences.map((o) => ({
+      ...base,
+      ...o,
+      recurring_group_id: groupId,
+      status: 'pendente' as const,
+      payment_status: 'pendente' as const,
+    }))
+    const { data, error } = await supabase.from('appointments').insert(rows).select()
+    if (!error && data) setAppointments((prev) => [...prev, ...(data as Appointment[])])
+    return { appointments: (data ?? []) as Appointment[], error: error?.message ?? null }
+  }
+
+  const cancelFutureInGroup = async (recurringGroupId: string) => {
+    const now = new Date().toISOString()
+    if (isDemo) {
+      setAppointments((prev) =>
+        prev.map((a) =>
+          a.recurring_group_id === recurringGroupId && a.starts_at >= now
+            ? { ...a, status: 'cancelado' as const }
+            : a,
+        ),
+      )
+      return { error: null }
+    }
+    const { error } = await supabase
+      .from('appointments')
+      .update({ status: 'cancelado' })
+      .eq('recurring_group_id', recurringGroupId)
+      .gte('starts_at', now)
+    if (!error) {
+      setAppointments((prev) =>
+        prev.map((a) =>
+          a.recurring_group_id === recurringGroupId && a.starts_at >= now
+            ? { ...a, status: 'cancelado' as const }
+            : a,
+        ),
+      )
+    }
+    return { error: error?.message ?? null }
   }
 
   const updateStatus = async (id: string, status: Appointment['status']) => {
@@ -99,5 +165,15 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
     return { error: error?.message ?? null }
   }
 
-  return { appointments, loading, error, refetch: fetchAppointments, createAppointment, updateStatus, updatePaymentStatus }
+  const deleteAppointment = async (id: string) => {
+    if (isDemo) {
+      setAppointments((prev) => prev.filter((a) => a.id !== id))
+      return { error: null }
+    }
+    const { error } = await supabase.from('appointments').delete().eq('id', id)
+    if (!error) setAppointments((prev) => prev.filter((a) => a.id !== id))
+    return { error: error?.message ?? null }
+  }
+
+  return { appointments, loading, error, refetch: fetchAppointments, createAppointment, createRecurringAppointments, cancelFutureInGroup, updateStatus, updatePaymentStatus, deleteAppointment }
 }
