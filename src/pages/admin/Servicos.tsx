@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useServices } from '../../hooks/useServices'
 import { useProfessionals } from '../../hooks/useProfessionals'
+import { useWorkingHours } from '../../hooks/useWorkingHours'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -47,6 +48,7 @@ export default function Servicos() {
   const { establishment } = useEstablishment(user?.id)
   const { services, loading, createService, updateService, deleteService } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
+  const { workingHours } = useWorkingHours(establishment?.id)
   const [modalOpen, setModalOpen] = useState(false)
   const [schedulesModal, setSchedulesModal] = useState<Service | null>(null)
   const [editing, setEditing] = useState<Service | null>(null)
@@ -56,6 +58,7 @@ export default function Servicos() {
   const [dayEntry, setDayEntry] = useState<DayEntry>({ time: '08:00', spots: 1 })
   const [savingSchedule, setSavingSchedule] = useState(false)
   const [scheduleError, setScheduleError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const {
     register,
@@ -103,8 +106,24 @@ export default function Servicos() {
 
   const addSchedule = async () => {
     if (!schedulesModal || activeDay === null) return
-    setSavingSchedule(true)
     setScheduleError(null)
+    // Valida se o horário está dentro do funcionamento do estabelecimento nesse dia
+    const wh = workingHours.find((h) => h.day_of_week === activeDay)
+    if (!wh || !wh.is_open) {
+      setScheduleError(`O estabelecimento não funciona ${DAY_FULL[activeDay]}.`)
+      return
+    }
+    const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
+    const scheduleMin = toMin(dayEntry.time)
+    const openMin = toMin(wh.open_time)
+    const closeMin = toMin(wh.close_time)
+    if (scheduleMin < openMin || scheduleMin >= closeMin) {
+      setScheduleError(
+        `Horário fora do funcionamento ${DAY_FULL[activeDay]}: ${wh.open_time.slice(0, 5)}–${wh.close_time.slice(0, 5)}.`,
+      )
+      return
+    }
+    setSavingSchedule(true)
     const { data, error } = await supabase
       .from('service_schedules')
       .insert({
@@ -155,8 +174,16 @@ export default function Servicos() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Excluir este serviço?')) return
-    await deleteService(id)
+    if (!confirm('Excluir este serviço? Esta ação não pode ser desfeita.')) return
+    setDeleteError(null)
+    const { error } = await deleteService(id)
+    if (error) {
+      if (error.includes('foreign key') || error.includes('violates') || error.includes('referenced')) {
+        setDeleteError('Não é possível excluir: este serviço possui agendamentos vinculados. Desative-o em vez de excluir.')
+      } else {
+        setDeleteError(`Erro ao excluir: ${error}`)
+      }
+    }
   }
 
   const schedulesByDay = (day: number) => schedules.filter((s) => s.day_of_week === day)
@@ -170,6 +197,12 @@ export default function Servicos() {
           Novo serviço
         </Button>
       </div>
+
+      {deleteError && (
+        <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          {deleteError}
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-gray-400 text-sm">Carregando...</div>
