@@ -105,6 +105,7 @@ export default function Booking() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [recurrenceWeeks, setRecurrenceWeeks] = useState<0 | 4 | 8 | 12>(0)
+  const [recurringTermAccepted, setRecurringTermAccepted] = useState(false)
   const [appointmentId, setAppointmentId] = useState<string | null>(null)
   const [recurringCount, setRecurringCount] = useState<number>(1)
   const [confirmedClientData, setConfirmedClientData] = useState<ClientData | null>(null)
@@ -444,7 +445,7 @@ export default function Booking() {
                   {([0, 4, 8, 12] as const).map((w) => (
                     <button
                       key={w}
-                      onClick={() => setRecurrenceWeeks(w)}
+                      onClick={() => { setRecurrenceWeeks(w); setRecurringTermAccepted(false) }}
                       className={`py-2 rounded-xl text-sm font-semibold transition border ${
                         recurrenceWeeks === w
                           ? 'bg-purple-600 text-white border-purple-600'
@@ -455,11 +456,31 @@ export default function Booking() {
                     </button>
                   ))}
                 </div>
+
+                {recurrenceWeeks > 0 && (
+                  <label className="mt-3 flex items-start gap-3 cursor-pointer bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <input
+                      type="checkbox"
+                      checked={recurringTermAccepted}
+                      onChange={(e) => setRecurringTermAccepted(e.target.checked)}
+                      className="mt-0.5 shrink-0 accent-purple-600"
+                    />
+                    <span className="text-xs text-amber-800 leading-relaxed">
+                      <strong>Estou ciente</strong> de que ao me matricular, os horários ficam reservados exclusivamente para mim durante {recurrenceWeeks} semanas.
+                      A ausência a uma aula não implica reembolso nem reposição, pois o horário foi bloqueado para meu atendimento.
+                    </span>
+                  </label>
+                )}
               </div>
             )}
 
             {selectedDate && selectedTime && (
-              <Button className="w-full mt-4" size="lg" onClick={() => setStep(4)}>
+              <Button
+                className="w-full mt-4"
+                size="lg"
+                onClick={() => setStep(4)}
+                disabled={recurrenceWeeks > 0 && !recurringTermAccepted}
+              >
                 Continuar
               </Button>
             )}
