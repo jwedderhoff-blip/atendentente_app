@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { format, addMinutes } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
-  Clock, User, CheckCircle, ChevronLeft, Tag,
+  Clock, User, CheckCircle, ChevronLeft, Tag, RefreshCw,
   Scissors, Droplets, Palette, Sparkles, Dumbbell, Activity,
   Apple, Heart, Star, Eye, Zap, Leaf, ClipboardList, Wind,
   Baby, Sun, type LucideIcon,
@@ -104,7 +104,9 @@ export default function Booking() {
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [recurrenceWeeks, setRecurrenceWeeks] = useState<0 | 4 | 8 | 12>(0)
   const [appointmentId, setAppointmentId] = useState<string | null>(null)
+  const [recurringCount, setRecurringCount] = useState<number>(1)
   const [confirmedClientData, setConfirmedClientData] = useState<ClientData | null>(null)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [paymentChoice, setPaymentChoice] = useState<'none' | 'confirm' | 'prepay'>('none')
@@ -133,7 +135,7 @@ export default function Booking() {
   })
 
   const { createClient } = useClients(establishment?.id)
-  const { createAppointment } = useAppointments(establishment?.id)
+  const { createAppointment, createRecurringAppointments } = useAppointments(establishment?.id)
   const { pixData, loading: pixLoading, generatePix } = usePixPayment()
 
   const {
@@ -222,15 +224,42 @@ export default function Booking() {
     }
 
     const [h, m] = selectedTime.split(':').map(Number)
+    const base = {
+      establishment_id: establishment.id,
+      client_id: client.id,
+      ...(selectedProfessional ? { professional_id: selectedProfessional.id } : {}),
+      service_id: selectedService.id,
+    }
+
+    if (recurrenceWeeks > 0 && selectedService.schedule_type === 'fixed') {
+      // Gera ocorrências semanais (mesmo dia da semana) pelas próximas N semanas
+      const occurrences = Array.from({ length: recurrenceWeeks }, (_, i) => {
+        const d = new Date(selectedDate)
+        d.setDate(d.getDate() + i * 7)
+        d.setHours(h, m, 0, 0)
+        const endsAt = addMinutes(d, selectedService.duration_minutes)
+        return { starts_at: d.toISOString(), ends_at: endsAt.toISOString() }
+      })
+
+      const { appointments: created, error: apptError } = await createRecurringAppointments(base, occurrences)
+      if (!created.length) {
+        setBookingError(apptError ?? 'Erro ao criar matrícula. Tente novamente.')
+        return
+      }
+      setAppointmentId(created[0].id)
+      setRecurringCount(created.length)
+      setConfirmedClientData(clientData)
+      setStep(5)
+      return
+    }
+
+    // Agendamento único
     const startsAt = new Date(selectedDate)
     startsAt.setHours(h, m, 0, 0)
     const endsAt = addMinutes(startsAt, selectedService.duration_minutes)
 
     const { appointment, error: apptError } = await createAppointment({
-      establishment_id: establishment.id,
-      client_id: client.id,
-      ...(selectedProfessional ? { professional_id: selectedProfessional.id } : {}),
-      service_id: selectedService.id,
+      ...base,
       starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),
     })
@@ -241,6 +270,7 @@ export default function Booking() {
     }
 
     setAppointmentId(appointment.id)
+    setRecurringCount(1)
     setConfirmedClientData(clientData)
     setStep(5)
   }
@@ -403,6 +433,31 @@ export default function Booking() {
               </div>
             )}
 
+            {selectedDate && selectedTime && selectedService?.schedule_type === 'fixed' && (
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <RefreshCw size={16} className="text-purple-600" />
+                  <p className="text-sm font-semibold text-gray-700">Matrícula recorrente</p>
+                </div>
+                <p className="text-xs text-gray-400 mb-3">Repete toda semana no mesmo dia e horário</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {([0, 4, 8, 12] as const).map((w) => (
+                    <button
+                      key={w}
+                      onClick={() => setRecurrenceWeeks(w)}
+                      className={`py-2 rounded-xl text-sm font-semibold transition border ${
+                        recurrenceWeeks === w
+                          ? 'bg-purple-600 text-white border-purple-600'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300'
+                      }`}
+                    >
+                      {w === 0 ? 'Só esta' : `${w} sem.`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {selectedDate && selectedTime && (
               <Button className="w-full mt-4" size="lg" onClick={() => setStep(4)}>
                 Continuar
@@ -466,9 +521,13 @@ export default function Booking() {
           <div className="py-4">
             <div className="text-center mb-6">
               <CheckCircle size={56} className="text-green-500 mx-auto mb-3" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">Reserva recebida!</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                {recurringCount > 1 ? 'Matrícula recebida!' : 'Reserva recebida!'}
+              </h2>
               <p className="text-sm text-gray-500">
-                Sua reserva está aguardando confirmação do estabelecimento. Você receberá um lembrete por WhatsApp.
+                {recurringCount > 1
+                  ? `${recurringCount} aulas criadas, toda ${selectedDate ? format(selectedDate, 'EEEE', { locale: ptBR }) : ''} às ${selectedTime}. Aguardando confirmação do estabelecimento.`
+                  : 'Sua reserva está aguardando confirmação do estabelecimento. Você receberá um lembrete por WhatsApp.'}
               </p>
             </div>
 
