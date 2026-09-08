@@ -125,3 +125,7 @@ RLS ativado em todas as tabelas; dono do estabelecimento acessa tudo via `owner_
 ## Autonomia de deploy
 
 O usuário autoriza commit, merge e deploy sem aguardar confirmação prévia. Sempre que uma mudança estiver pronta: fazer commit, criar PR, mesclar e fazer deploy automaticamente.
+
+## Gestão de contexto
+
+Usar `/compact` sempre que o contexto estiver crescendo para economizar tokens e manter a sessão eficiente.
