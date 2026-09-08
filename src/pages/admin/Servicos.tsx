@@ -53,6 +53,7 @@ export default function Servicos() {
   const [dayEntry, setDayEntry] = useState<DayEntry>({ time: '08:00', spots: 1 })
   const [savingSchedule, setSavingSchedule] = useState(false)
   const [scheduleError, setScheduleError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const {
     register,
@@ -131,8 +132,16 @@ export default function Servicos() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Excluir este serviço?')) return
-    await deleteService(id)
+    if (!confirm('Excluir este serviço? Esta ação não pode ser desfeita.')) return
+    setDeleteError(null)
+    const { error } = await deleteService(id)
+    if (error) {
+      if (error.includes('foreign key') || error.includes('violates') || error.includes('referenced')) {
+        setDeleteError('Não é possível excluir: este serviço possui agendamentos vinculados. Desative-o em vez de excluir.')
+      } else {
+        setDeleteError(`Erro ao excluir: ${error}`)
+      }
+    }
   }
 
   const schedulesByDay = (day: number) => schedules.filter((s) => s.day_of_week === day)
@@ -146,6 +155,13 @@ export default function Servicos() {
           Novo serviço
         </Button>
       </div>
+
+      {deleteError && (
+        <div className="mb-4 bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-700 flex items-start justify-between gap-3">
+          <span>{deleteError}</span>
+          <button onClick={() => setDeleteError(null)} className="shrink-0 text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-gray-400 text-sm">Carregando...</div>
