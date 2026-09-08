@@ -178,28 +178,21 @@ export default function Booking() {
     if (step === 2) setStep(1)
     else if (step === 3) {
       if (selectedService && skipsProfessional(selectedService)) setStep(1)
-      else setStep(eligibleProfessionals.length > 1 ? 2 : 1)
+      else setStep(2)
     }
     else if (step === 4) setStep(3)
   }
 
   const selectService = (s: Service) => {
     setSelectedService(s)
+    setSelectedProfessional(null)
     if (skipsProfessional(s)) {
-      setSelectedProfessional(null)
       setStep(3)
       return
     }
-    const eligible = professionals.filter((p) => p.services.includes(s.id))
-    if (eligible.length === 1) {
-      setSelectedProfessional(eligible[0])
-      setStep(3)
-    } else if (eligible.length === 0) {
-      setSelectedProfessional(professionals[0] ?? null)
-      setStep(3)
-    } else {
-      setStep(2)
-    }
+    // Para serviços de vaga única: sempre exibe seleção de profissional
+    // (a grade de horários é gerada a partir do profissional escolhido)
+    setStep(2)
   }
 
   const selectProfessional = (p: Professional) => {
@@ -473,9 +466,9 @@ export default function Booking() {
           <div className="py-4">
             <div className="text-center mb-6">
               <CheckCircle size={56} className="text-green-500 mx-auto mb-3" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">Agendamento confirmado!</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Reserva recebida!</h2>
               <p className="text-sm text-gray-500">
-                Você receberá um lembrete por WhatsApp antes do horário.
+                Sua reserva está aguardando confirmação do estabelecimento. Você receberá um lembrete por WhatsApp.
               </p>
             </div>
 
@@ -531,7 +524,7 @@ export default function Booking() {
                   className="w-full flex items-center justify-between px-5 py-4 bg-white border border-gray-200 rounded-2xl hover:border-gray-300 transition"
                 >
                   <div className="text-left">
-                    <p className="font-semibold text-gray-900">Confirmar agendamento</p>
+                    <p className="font-semibold text-gray-900">Aguardar confirmação</p>
                     <p className="text-sm text-gray-500">Pague no dia do atendimento</p>
                   </div>
                   <span className="text-gray-300 text-lg">→</span>
@@ -541,7 +534,7 @@ export default function Booking() {
 
             {selectedService && selectedService.price > 0 && paymentChoice === 'confirm' && (
               <div className="bg-green-50 border border-green-100 rounded-2xl p-4 mb-4 text-center">
-                <p className="text-sm text-green-700 font-medium">Tudo certo! Você paga no dia do atendimento.</p>
+                <p className="text-sm text-green-700 font-medium">Reserva aguardando confirmação — você paga no dia do atendimento.</p>
                 <a
                   href={`/${establishment.slug}`}
                   className="mt-3 inline-block text-sm text-purple-600 font-semibold hover:underline"
