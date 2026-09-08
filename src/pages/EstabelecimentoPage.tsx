@@ -407,14 +407,6 @@ export default function EstabelecimentoPage() {
 
           {/* CTAs */}
           <div className="flex flex-col gap-2.5">
-            <Link
-              to={`/agendar/${slug}/agendar`}
-              className="flex items-center justify-center gap-2 active:scale-95 text-white font-bold py-4 rounded-2xl transition text-base shadow-lg"
-              style={{ backgroundColor: hex, boxShadow: `0 8px 24px ${hex}55` }}
-            >
-              <CalendarCheck size={20} />
-              Agendar agora
-            </Link>
             {whatsappUrl && (
               <a
                 href={whatsappUrl}
@@ -432,7 +424,7 @@ export default function EstabelecimentoPage() {
 
       {/* ── Lista de serviços ── */}
       <div className="max-w-lg mx-auto px-4 py-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-1">Nossos serviços</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Serviços Oferecidos</h2>
         <p className="text-sm text-gray-400 mb-5">Toque em um serviço para ver detalhes e agendar</p>
 
         {activeServices.length === 0 ? (
@@ -484,19 +476,6 @@ export default function EstabelecimentoPage() {
         )}
       </div>
 
-      {/* ── Botão fixo em mobile ── */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur border-t border-gray-100 lg:hidden z-20">
-        <Link
-          to={`/agendar/${slug}/agendar`}
-          className="flex items-center justify-center gap-2 text-white font-bold py-3.5 rounded-2xl transition text-base w-full"
-          style={{ backgroundColor: hex, boxShadow: `0 6px 20px ${hex}55` }}
-        >
-          <CalendarCheck size={20} />
-          Agendar agora
-        </Link>
-      </div>
-
-      <div className="h-24 lg:hidden" />
 
       {/* ── Rodapé ── */}
       <div className="max-w-lg mx-auto px-4 pb-6 text-center">
