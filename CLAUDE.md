@@ -121,3 +121,7 @@ RLS ativado em todas as tabelas; dono do estabelecimento acessa tudo via `owner_
 ## Branch padrão de desenvolvimento
 
 `main` — enviar PRs diretamente para `main` neste estágio inicial.
+
+## Autonomia de deploy
+
+O usuário autoriza commit, merge e deploy sem aguardar confirmação prévia. Sempre que uma mudança estiver pronta: fazer commit, criar PR, mesclar e fazer deploy automaticamente.
