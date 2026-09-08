@@ -165,5 +165,15 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
     return { error: error?.message ?? null }
   }
 
-  return { appointments, loading, error, refetch: fetchAppointments, createAppointment, createRecurringAppointments, cancelFutureInGroup, updateStatus, updatePaymentStatus }
+  const deleteAppointment = async (id: string) => {
+    if (isDemo) {
+      setAppointments((prev) => prev.filter((a) => a.id !== id))
+      return { error: null }
+    }
+    const { error } = await supabase.from('appointments').delete().eq('id', id)
+    if (!error) setAppointments((prev) => prev.filter((a) => a.id !== id))
+    return { error: error?.message ?? null }
+  }
+
+  return { appointments, loading, error, refetch: fetchAppointments, createAppointment, createRecurringAppointments, cancelFutureInGroup, updateStatus, updatePaymentStatus, deleteAppointment }
 }

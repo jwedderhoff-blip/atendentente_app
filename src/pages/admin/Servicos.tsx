@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, Edit, Trash2, Clock, DollarSign, CalendarDays, X } from 'lucide-react'
+import { Plus, Edit, Trash2, Clock, DollarSign, CalendarDays, X, User } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useServices } from '../../hooks/useServices'
+import { useProfessionals } from '../../hooks/useProfessionals'
 import { useWorkingHours } from '../../hooks/useWorkingHours'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
@@ -46,10 +47,12 @@ export default function Servicos() {
   const { user } = useAuth()
   const { establishment } = useEstablishment(user?.id)
   const { services, loading, createService, updateService, deleteService } = useServices(establishment?.id)
+  const { professionals } = useProfessionals(establishment?.id)
   const { workingHours } = useWorkingHours(establishment?.id)
   const [modalOpen, setModalOpen] = useState(false)
   const [schedulesModal, setSchedulesModal] = useState<Service | null>(null)
   const [editing, setEditing] = useState<Service | null>(null)
+  const [selectedProfIds, setSelectedProfIds] = useState<string[]>([])
   const [schedules, setSchedules] = useState<ServiceSchedule[]>([])
   const [activeDay, setActiveDay] = useState<number | null>(null)
   const [dayEntry, setDayEntry] = useState<DayEntry>({ time: '08:00', spots: 1 })
@@ -69,15 +72,25 @@ export default function Servicos() {
 
   const openCreate = () => {
     setEditing(null)
+    setSelectedProfIds([])
     reset({ name: '', description: '', duration_minutes: 60, price: 0, active: true, schedule_type: 'flexible', max_spots: 1 })
     setModalOpen(true)
   }
 
-  const openEdit = (s: Service) => {
+  const openEdit = async (s: Service) => {
     setEditing(s)
     reset({ ...s, schedule_type: s.schedule_type ?? 'flexible', max_spots: s.max_spots ?? 1 })
+    // Carrega profissionais já associados ao serviço
+    const { data } = await supabase
+      .from('professional_services')
+      .select('professional_id')
+      .eq('service_id', s.id)
+    setSelectedProfIds((data ?? []).map((r: { professional_id: string }) => r.professional_id))
     setModalOpen(true)
   }
+
+  const toggleProf = (id: string) =>
+    setSelectedProfIds((prev) => prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id])
 
   const openSchedules = async (s: Service) => {
     setSchedulesModal(s)
@@ -94,7 +107,6 @@ export default function Servicos() {
   const addSchedule = async () => {
     if (!schedulesModal || activeDay === null) return
     setScheduleError(null)
-
     // Valida se o horário está dentro do funcionamento do estabelecimento nesse dia
     const wh = workingHours.find((h) => h.day_of_week === activeDay)
     if (!wh || !wh.is_open) {
@@ -107,11 +119,10 @@ export default function Servicos() {
     const closeMin = toMin(wh.close_time)
     if (scheduleMin < openMin || scheduleMin >= closeMin) {
       setScheduleError(
-        `Horário fora do funcionamento ${DAY_FULL[activeDay]}: ${wh.open_time.slice(0,5)}–${wh.close_time.slice(0,5)}.`,
+        `Horário fora do funcionamento ${DAY_FULL[activeDay]}: ${wh.open_time.slice(0, 5)}–${wh.close_time.slice(0, 5)}.`,
       )
       return
     }
-
     setSavingSchedule(true)
     const { data, error } = await supabase
       .from('service_schedules')
@@ -143,10 +154,21 @@ export default function Servicos() {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     if (!establishment) return
+    let serviceId: string
     if (editing) {
       await updateService(editing.id, data)
+      serviceId = editing.id
     } else {
-      await createService({ ...data, establishment_id: establishment.id })
+      const { service, error } = await createService({ ...data, establishment_id: establishment.id })
+      if (error || !service) return
+      serviceId = service.id
+    }
+    // Salva associação profissional ↔ serviço
+    await supabase.from('professional_services').delete().eq('service_id', serviceId)
+    if (selectedProfIds.length > 0) {
+      await supabase.from('professional_services').insert(
+        selectedProfIds.map((professional_id) => ({ professional_id, service_id: serviceId }))
+      )
     }
     setModalOpen(false)
   }
@@ -177,9 +199,8 @@ export default function Servicos() {
       </div>
 
       {deleteError && (
-        <div className="mb-4 bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-700 flex items-start justify-between gap-3">
-          <span>{deleteError}</span>
-          <button onClick={() => setDeleteError(null)} className="shrink-0 text-red-400 hover:text-red-600">✕</button>
+        <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          {deleteError}
         </div>
       )}
 
@@ -191,7 +212,9 @@ export default function Servicos() {
             <div className="p-10 text-center text-gray-400 text-sm">Nenhum serviço cadastrado.</div>
           ) : (
             <ul className="divide-y divide-gray-50">
-              {services.map((s) => (
+              {services.map((s) => {
+                const linkedPros = professionals.filter((p) => p.services.includes(s.id))
+                return (
                 <li key={s.id} className="flex items-center gap-4 p-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -202,13 +225,18 @@ export default function Servicos() {
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 mt-1">
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
                       <span className="flex items-center gap-1 text-xs text-gray-500">
                         <Clock size={12} /> {s.duration_minutes}min
                       </span>
                       <span className="flex items-center gap-1 text-xs text-gray-500">
                         <DollarSign size={12} /> {formatCurrency(s.price)}
                       </span>
+                      {linkedPros.length > 0 && (
+                        <span className="flex items-center gap-1 text-xs text-indigo-600">
+                          <User size={12} /> {linkedPros.map((p) => p.name).join(', ')}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
@@ -233,7 +261,8 @@ export default function Servicos() {
                     </button>
                   </div>
                 </li>
-              ))}
+                )
+              })}
             </ul>
           )}
         </div>
@@ -304,6 +333,25 @@ export default function Servicos() {
                 error={errors.max_spots?.message}
                 {...register('max_spots', { valueAsNumber: true })}
               />
+            </div>
+          )}
+          {professionals.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Profissionais que realizam este serviço</p>
+              <p className="text-xs text-gray-400 mb-2">Se houver mais de um, o cliente poderá escolher na hora do agendamento.</p>
+              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-100 rounded-xl p-3">
+                {professionals.map((p) => (
+                  <label key={p.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={selectedProfIds.includes(p.id)}
+                      onChange={() => toggleProf(p.id)}
+                      className="rounded accent-indigo-600"
+                    />
+                    {p.name}
+                  </label>
+                ))}
+              </div>
             </div>
           )}
           <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">

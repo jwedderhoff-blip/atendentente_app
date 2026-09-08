@@ -39,11 +39,11 @@ export function useServices(establishmentId: string | undefined) {
     if (isDemo) {
       const newService: Service = { ...payload, id: crypto.randomUUID() }
       setServices((prev) => [...prev, newService])
-      return { error: null }
+      return { service: newService, error: null }
     }
     const { data, error } = await supabase.from('services').insert(payload).select().single()
     if (!error && data) setServices((prev) => [...prev, data as Service])
-    return { error: error?.message ?? null }
+    return { service: (data as Service | null), error: error?.message ?? null }
   }
 
   const updateService = async (id: string, updates: Partial<Service>) => {

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Check, X, CheckCheck, RefreshCw } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, X, CheckCheck, RefreshCw, Trash2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useAppointments } from '../../hooks/useAppointments'
@@ -21,7 +21,7 @@ export default function Agenda() {
   const [updating, setUpdating] = useState(false)
 
   const { professionals } = useProfessionals(establishment?.id)
-  const { appointments, loading, updateStatus, updatePaymentStatus, cancelFutureInGroup } = useAppointments(establishment?.id)
+  const { appointments, loading, updateStatus, updatePaymentStatus, cancelFutureInGroup, deleteAppointment } = useAppointments(establishment?.id)
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -55,6 +55,15 @@ export default function Agenda() {
     await cancelFutureInGroup(selectedAppt.recurring_group_id)
     setSelectedAppt((prev) => prev ? { ...prev, status: 'cancelado' } : prev)
     setUpdating(false)
+  }
+
+  const handleDelete = async () => {
+    if (!selectedAppt) return
+    if (!confirm('Excluir esta reserva permanentemente? Esta ação não pode ser desfeita.')) return
+    setUpdating(true)
+    await deleteAppointment(selectedAppt.id)
+    setUpdating(false)
+    setSelectedAppt(null)
   }
 
   const apptClient = selectedAppt?.client as { name?: string; phone?: string } | undefined
@@ -292,6 +301,17 @@ export default function Agenda() {
                 >
                   <RefreshCw size={16} />
                   Cancelar esta e todas as próximas
+                </Button>
+              )}
+              {(selectedAppt.status === 'cancelado' || selectedAppt.status === 'concluido') && (
+                <Button
+                  variant="ghost"
+                  onClick={handleDelete}
+                  loading={updating}
+                  className="w-full text-red-500 hover:bg-red-50 border border-red-200 mt-2"
+                >
+                  <Trash2 size={16} />
+                  Excluir reserva
                 </Button>
               )}
             </div>
