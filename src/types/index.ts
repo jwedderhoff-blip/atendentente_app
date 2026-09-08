@@ -55,6 +55,7 @@ export interface Appointment {
   status: 'pendente' | 'confirmado' | 'cancelado' | 'concluido'
   payment_status: 'pendente' | 'pago' | 'reembolsado'
   notes?: string
+  recurring_group_id?: string
   created_at: string
   client?: Client
   service?: Service

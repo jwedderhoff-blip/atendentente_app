@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2, Clock, DollarSign, CalendarDays, X } from 'lucide-r
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useServices } from '../../hooks/useServices'
+import { useWorkingHours } from '../../hooks/useWorkingHours'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -45,6 +46,7 @@ export default function Servicos() {
   const { user } = useAuth()
   const { establishment } = useEstablishment(user?.id)
   const { services, loading, createService, updateService, deleteService } = useServices(establishment?.id)
+  const { workingHours } = useWorkingHours(establishment?.id)
   const [modalOpen, setModalOpen] = useState(false)
   const [schedulesModal, setSchedulesModal] = useState<Service | null>(null)
   const [editing, setEditing] = useState<Service | null>(null)
@@ -91,8 +93,26 @@ export default function Servicos() {
 
   const addSchedule = async () => {
     if (!schedulesModal || activeDay === null) return
-    setSavingSchedule(true)
     setScheduleError(null)
+
+    // Valida se o horário está dentro do funcionamento do estabelecimento nesse dia
+    const wh = workingHours.find((h) => h.day_of_week === activeDay)
+    if (!wh || !wh.is_open) {
+      setScheduleError(`O estabelecimento não funciona ${DAY_FULL[activeDay]}.`)
+      return
+    }
+    const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
+    const scheduleMin = toMin(dayEntry.time)
+    const openMin = toMin(wh.open_time)
+    const closeMin = toMin(wh.close_time)
+    if (scheduleMin < openMin || scheduleMin >= closeMin) {
+      setScheduleError(
+        `Horário fora do funcionamento ${DAY_FULL[activeDay]}: ${wh.open_time.slice(0,5)}–${wh.close_time.slice(0,5)}.`,
+      )
+      return
+    }
+
+    setSavingSchedule(true)
     const { data, error } = await supabase
       .from('service_schedules')
       .insert({
