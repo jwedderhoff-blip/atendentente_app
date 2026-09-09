@@ -13,9 +13,13 @@
 --    LEITURA pra quem não está logado (visitante agendando).
 -- ----------------------------------------------------------------------------
 
+drop policy if exists "public_read" on establishments;
 create policy "public_read" on establishments for select using (true);
+drop policy if exists "public_read" on professionals;
 create policy "public_read" on professionals for select using (true);
+drop policy if exists "public_read" on services;
 create policy "public_read" on services for select using (true);
+drop policy if exists "public_read" on professional_services;
 create policy "public_read" on professional_services for select using (true);
 
 -- working_hours: tabela usada por useWorkingHours.ts / useAvailability.ts,
@@ -34,9 +38,11 @@ create table if not exists working_hours (
   unique (establishment_id, day_of_week)
 );
 alter table working_hours enable row level security;
+drop policy if exists "owner_all" on working_hours;
 create policy "owner_all" on working_hours for all using (
   establishment_id in (select id from establishments where owner_id = auth.uid())
 );
+drop policy if exists "public_read" on working_hours;
 create policy "public_read" on working_hours for select using (true);
 
 -- ----------------------------------------------------------------------------
@@ -76,9 +82,11 @@ grant execute on function get_busy_slots(uuid, date, uuid, uuid) to anon, authen
 --    arbitrário na criação.
 -- ----------------------------------------------------------------------------
 
+drop policy if exists "public_insert" on clients;
 create policy "public_insert" on clients for insert
   with check (true);
 
+drop policy if exists "public_insert" on appointments;
 create policy "public_insert" on appointments for insert
   with check (status = 'pendente' and payment_status = 'pendente');
 
@@ -138,17 +146,21 @@ alter table plans enable row level security;
 alter table subscriptions enable row level security;
 
 -- Leitura pública dos planos ativos (pra mostrar preço no site, por ex.)
+drop policy if exists "public_read_active" on plans;
 create policy "public_read_active" on plans for select using (is_active = true);
 
 -- Só admin (tabela admins) mexe em plano e assinatura
+drop policy if exists "admin_all" on plans;
 create policy "admin_all" on plans for all using (
   exists (select 1 from admins where user_id = auth.uid())
 );
+drop policy if exists "admin_all" on subscriptions;
 create policy "admin_all" on subscriptions for all using (
   exists (select 1 from admins where user_id = auth.uid())
 );
 
 -- Dono do estabelecimento pode ao menos VER a própria assinatura (não editar)
+drop policy if exists "owner_read_own" on subscriptions;
 create policy "owner_read_own" on subscriptions for select using (
   establishment_id in (select id from establishments where owner_id = auth.uid())
 );
