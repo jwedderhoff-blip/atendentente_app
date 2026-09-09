@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Outlet, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { supabase } from './lib/supabase'
@@ -17,12 +17,21 @@ import Servicos from './pages/admin/Servicos'
 import Profissionais from './pages/admin/Profissionais'
 import Configuracoes from './pages/admin/Configuracoes'
 import SelecionarEstabelecimento from './pages/admin/SelecionarEstabelecimento'
-import SuperAdminLayout from './pages/superadmin/SuperAdminLayout'
-import SuperDashboard from './pages/superadmin/SuperDashboard'
-import SuperEstabelecimentos from './pages/superadmin/SuperEstabelecimentos'
-import SuperPlanos from './pages/superadmin/SuperPlanos'
-import SuperAssinaturas from './pages/superadmin/SuperAssinaturas'
 import './index.css'
+
+const SuperAdminLayout = lazy(() => import('./pages/superadmin/SuperAdminLayout'))
+const SuperDashboard = lazy(() => import('./pages/superadmin/SuperDashboard'))
+const SuperEstabelecimentos = lazy(() => import('./pages/superadmin/SuperEstabelecimentos'))
+const SuperPlanos = lazy(() => import('./pages/superadmin/SuperPlanos'))
+const SuperAssinaturas = lazy(() => import('./pages/superadmin/SuperAssinaturas'))
+
+function SuperAdminFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
+    </div>
+  )
+}
 
 function PrivateRoute() {
   const { session, loading } = useAuth()
@@ -90,7 +99,7 @@ function AppRoutes() {
         </Route>
       </Route>
       <Route element={<SuperAdminRoute />}>
-        <Route path="/superadmin" element={<SuperAdminLayout />}>
+        <Route path="/superadmin" element={<Suspense fallback={<SuperAdminFallback />}><SuperAdminLayout /></Suspense>}>
           <Route index element={<SuperDashboard />} />
           <Route path="estabelecimentos" element={<SuperEstabelecimentos />} />
           <Route path="planos" element={<SuperPlanos />} />

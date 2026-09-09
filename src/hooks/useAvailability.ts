@@ -138,20 +138,15 @@ export function useAvailability({
         return
       }
 
-      // Monta query de agendamentos: por profissional (exclusivo) ou por serviço (turma)
-      let apptQuery = supabase
-        .from('appointments')
-        .select('starts_at, ends_at')
-        .eq('establishment_id', establishmentId)
-        .eq('status', 'confirmado')
-        .gte('starts_at', `${dateStr}T00:00:00`)
-        .lte('starts_at', `${dateStr}T23:59:59`)
-
-      if (maxSpots === 1 && professionalId) {
-        apptQuery = apptQuery.eq('professional_id', professionalId)
-      } else {
-        apptQuery = apptQuery.eq('service_id', serviceId)
-      }
+      // Busca horários de disponibilidade via função no banco (get_busy_slots) —
+      // não lê a tabela appointments diretamente, pra nunca expor nome/telefone
+      // de outros clientes a quem está fazendo o agendamento.
+      const busyQuery = supabase.rpc('get_busy_slots', {
+        p_establishment_id: establishmentId,
+        p_date: dateStr,
+        p_professional_id: maxSpots === 1 && professionalId ? professionalId : null,
+        p_service_id: maxSpots > 1 ? serviceId : null,
+      })
 
       const [hoursRes, apptRes] = await Promise.all([
         supabase
@@ -160,7 +155,7 @@ export function useAvailability({
           .eq('establishment_id', establishmentId)
           .eq('day_of_week', dayOfWeek)
           .single(),
-        apptQuery,
+        busyQuery,
       ])
 
       const wh = hoursRes.data as WorkingHours | null
@@ -227,7 +222,7 @@ export function useAvailability({
     }
 
     void fetchSlots()
-  }, [establishmentId, professionalId, serviceId, date, durationMinutes])
+  }, [establishmentId, professionalId, serviceId, date, durationMinutes, maxSpots])
 
   return { slots, loading }
 }

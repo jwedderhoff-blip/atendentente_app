@@ -337,9 +337,10 @@ export default function SuperEstabelecimentos() {
 
   // sincroniza o item em edição se o refetch atualizar os dados
   useEffect(() => {
-    if (!editing) return
-    const fresh = establishments.find((e) => e.id === editing.id)
-    if (fresh) setEditing(fresh)
+    setEditing((prev) => {
+      if (!prev) return prev
+      return establishments.find((e) => e.id === prev.id) ?? prev
+    })
   }, [establishments])
 
   const filtered = establishments.filter((e) =>

@@ -166,7 +166,7 @@ async function processWindow(hoursAhead: number, windowLabel: string) {
       } else {
         const ok = await sendWhatsApp(client.phone, whatsappMsg)
         await recordNotification(appt.id, 'whatsapp', ok ? 'enviado' : 'falhou', whatsappMsg)
-        ok ? sent++ : failed++
+        if (ok) { sent++ } else { failed++ }
       }
     }
 
@@ -180,7 +180,7 @@ async function processWindow(hoursAhead: number, windowLabel: string) {
           client.email, client.name, service.name, estab.name, dateStr, timeStr, hoursAhead,
         )
         await recordNotification(appt.id, 'email', ok ? 'enviado' : 'falhou', emailMsg)
-        ok ? sent++ : failed++
+        if (ok) { sent++ } else { failed++ }
       }
     }
   }
