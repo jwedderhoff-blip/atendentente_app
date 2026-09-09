@@ -1,5 +1,7 @@
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Outlet, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { supabase } from './lib/supabase'
 import AdminLayout from './components/layout/AdminLayout'
 import DemoBanner from './components/ui/DemoBanner'
 import Login from './pages/Login'
@@ -15,14 +17,21 @@ import Servicos from './pages/admin/Servicos'
 import Profissionais from './pages/admin/Profissionais'
 import Configuracoes from './pages/admin/Configuracoes'
 import SelecionarEstabelecimento from './pages/admin/SelecionarEstabelecimento'
-import SuperAdminLayout from './pages/superadmin/SuperAdminLayout'
-import SuperDashboard from './pages/superadmin/SuperDashboard'
-import SuperEstabelecimentos from './pages/superadmin/SuperEstabelecimentos'
-import SuperPlanos from './pages/superadmin/SuperPlanos'
-import SuperAssinaturas from './pages/superadmin/SuperAssinaturas'
 import './index.css'
 
-const SUPERADMIN_EMAIL = import.meta.env.VITE_SUPERADMIN_EMAIL as string | undefined
+const SuperAdminLayout = lazy(() => import('./pages/superadmin/SuperAdminLayout'))
+const SuperDashboard = lazy(() => import('./pages/superadmin/SuperDashboard'))
+const SuperEstabelecimentos = lazy(() => import('./pages/superadmin/SuperEstabelecimentos'))
+const SuperPlanos = lazy(() => import('./pages/superadmin/SuperPlanos'))
+const SuperAssinaturas = lazy(() => import('./pages/superadmin/SuperAssinaturas'))
+
+function SuperAdminFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
+    </div>
+  )
+}
 
 function PrivateRoute() {
   const { session, loading } = useAuth()
@@ -39,7 +48,26 @@ function PrivateRoute() {
 
 function SuperAdminRoute() {
   const { session, user, loading } = useAuth()
-  if (loading) {
+  const [checkingAdmin, setCheckingAdmin] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    if (!session || !user) {
+      setCheckingAdmin(false)
+      return
+    }
+    supabase
+      .from('admins')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setIsAdmin(!!data)
+        setCheckingAdmin(false)
+      })
+  }, [session, user])
+
+  if (loading || checkingAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
@@ -47,7 +75,7 @@ function SuperAdminRoute() {
     )
   }
   if (!session) return <Navigate to="/login" replace />
-  if (SUPERADMIN_EMAIL && user?.email !== SUPERADMIN_EMAIL) return <Navigate to="/admin" replace />
+  if (!isAdmin) return <Navigate to="/admin" replace />
   return <Outlet />
 }
 
@@ -71,7 +99,7 @@ function AppRoutes() {
         </Route>
       </Route>
       <Route element={<SuperAdminRoute />}>
-        <Route path="/superadmin" element={<SuperAdminLayout />}>
+        <Route path="/superadmin" element={<Suspense fallback={<SuperAdminFallback />}><SuperAdminLayout /></Suspense>}>
           <Route index element={<SuperDashboard />} />
           <Route path="estabelecimentos" element={<SuperEstabelecimentos />} />
           <Route path="planos" element={<SuperPlanos />} />

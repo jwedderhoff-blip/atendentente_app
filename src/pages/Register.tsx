@@ -58,7 +58,7 @@ export default function Register() {
     }
 
     const user = loginData.user
-    const slug = `${slugify(data.name)}-${Math.random().toString(36).slice(2, 6)}`
+    const slug = `${slugify(data.name)}-${Date.now().toString(36).slice(-4)}`
 
     const { error: dbError } = await supabase.from('establishments').insert({
       owner_id: user.id,
