@@ -1,18 +1,34 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
-import { useAuth } from './AuthContext'
+import { getSelectedEstablishmentId } from '../hooks/useEstablishment'
+import { resolveBrand, DEFAULT_BRAND } from '../lib/brand'
+import type { Establishment } from '../types'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
 
-export const DEFAULT_BRAND = '#4f46e5'
+export { DEFAULT_BRAND }
 
 /**
- * A preferência de tema é por usuário, não por navegador: dois logins no mesmo
- * computador (o barbeiro e a nutricionista) precisam de escolhas separadas.
+ * Aparência é setup do estabelecimento, não preferência de navegador.
+ *
+ * O banco é a fonte da verdade (establishments.theme_mode). Este cache existe
+ * só para o primeiro instante da tela: sem ele, o painel de quem trabalha no
+ * escuro piscaria claro até o estabelecimento carregar. A chave leva o id do
+ * estabelecimento justamente para que a escolha de um nunca alcance o outro.
  */
-const themeKey = (userId: string | undefined) =>
-  userId ? `meridio:theme:${userId}` : null
+const themeCacheKey = (establishmentId: string | null | undefined) =>
+  establishmentId ? `meridio:theme:${establishmentId}` : null
 
-/** Presets prontos. O dono também pode escolher qualquer hex. */
+function readCachedTheme(establishmentId: string | null | undefined): ThemeMode | null {
+  const key = themeCacheKey(establishmentId)
+  if (!key) return null
+  try {
+    const v = localStorage.getItem(key)
+    return v === 'light' || v === 'dark' || v === 'system' ? v : null
+  } catch {
+    return null
+  }
+}
+
 export const BRAND_PRESETS: { name: string; hex: string }[] = [
   { name: 'Índigo', hex: '#4f46e5' },
   { name: 'Azul', hex: '#2563eb' },
@@ -29,19 +45,17 @@ export const BRAND_PRESETS: { name: string; hex: string }[] = [
 export const isValidHex = (v: string) => /^#[0-9a-fA-F]{6}$/.test(v.trim())
 
 interface ThemeContextValue {
-  /** O que o usuário escolheu, incluindo "seguir o sistema". */
   mode: ThemeMode
-  /** O que está de fato aplicado agora. */
   resolved: 'light' | 'dark'
-  /** Cor da marca em vigor na tela atual. */
   brand: string
+  /** Troca o tema do estabelecimento em vigor. Persistir no banco é com quem chama. */
   setMode: (m: ThemeMode) => void
-  /**
-   * Aplica a cor da marca da tela atual. Não persiste de propósito: a cor é
-   * do estabelecimento e mora no banco. Guardá-la no navegador faria a cor de
-   * um vazar para o outro quando o mesmo navegador abre dois estabelecimentos.
-   */
-  applyBrand: (hex: string | null | undefined) => void
+  /** Painel: adota tema e cor do estabelecimento ativo. */
+  applyEstablishment: (est: Establishment | null | undefined) => void
+  /** Página pública: adota só a cor. O cliente final nunca herda o tema do dono. */
+  applyPublic: (est: Establishment | null | undefined) => void
+  /** Aplica cor avulsa, para a prévia enquanto o dono experimenta. */
+  previewBrand: (hex: string) => void
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
@@ -50,25 +64,14 @@ const systemPrefersDark = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
-  const [mode, setModeState] = useState<ThemeMode>('light')
+  // No primeiro paint ainda não sabemos o estabelecimento pelo banco, mas
+  // sabemos qual estava selecionado — o bastante para não piscar.
+  const [scopeId, setScopeId] = useState<string | null>(() => {
+    try { return getSelectedEstablishmentId() } catch { return null }
+  })
+  const [mode, setModeState] = useState<ThemeMode>(() => readCachedTheme(scopeId) ?? 'light')
   const [brand, setBrandState] = useState<string>(DEFAULT_BRAND)
   const [systemDark, setSystemDark] = useState(systemPrefersDark)
-
-  // Recarrega a preferência ao trocar de usuário — inclusive no logout,
-  // que precisa voltar ao padrão em vez de manter o tema do anterior.
-  useEffect(() => {
-    const key = themeKey(user?.id)
-    if (!key) {
-      setModeState('light')
-      return
-    }
-    try {
-      setModeState((localStorage.getItem(key) as ThemeMode) || 'light')
-    } catch {
-      setModeState('light')
-    }
-  }, [user?.id])
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
@@ -87,20 +90,48 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty('--brand-base', brand)
   }, [brand])
 
-  const setMode = useCallback((m: ThemeMode) => {
-    setModeState(m)
-    const key = themeKey(user?.id)
-    if (!key) return
-    try { localStorage.setItem(key, m) } catch { /* armazenamento bloqueado */ }
-  }, [user?.id])
+  const applyEstablishment = useCallback((est: Establishment | null | undefined) => {
+    const id = est?.id ?? null
+    setScopeId(id)
+    setBrandState(resolveBrand(est).hex)
 
-  const applyBrand = useCallback((hex: string | null | undefined) => {
-    // Sem cor definida volta ao padrão, e não à cor de quem passou antes
-    setBrandState(hex && isValidHex(hex) ? hex : DEFAULT_BRAND)
+    // Banco manda; o cache só cobre o intervalo até ele chegar. Sem nenhum dos
+    // dois volta ao claro — nunca ao tema do estabelecimento anterior.
+    const fromDb = est?.theme_mode
+    const next: ThemeMode =
+      fromDb === 'light' || fromDb === 'dark' || fromDb === 'system'
+        ? fromDb
+        : readCachedTheme(id) ?? 'light'
+
+    setModeState(next)
+
+    const key = themeCacheKey(id)
+    if (key) {
+      try { localStorage.setItem(key, next) } catch { /* armazenamento bloqueado */ }
+    }
   }, [])
 
+  const applyPublic = useCallback((est: Establishment | null | undefined) => {
+    setScopeId(null)
+    setBrandState(resolveBrand(est).hex)
+    setModeState('light')
+  }, [])
+
+  const previewBrand = useCallback((hex: string) => {
+    setBrandState(isValidHex(hex) ? hex : DEFAULT_BRAND)
+  }, [])
+
+  const setMode = useCallback((m: ThemeMode) => {
+    setModeState(m)
+    const key = themeCacheKey(scopeId)
+    if (!key) return
+    try { localStorage.setItem(key, m) } catch { /* armazenamento bloqueado */ }
+  }, [scopeId])
+
   return (
-    <ThemeContext.Provider value={{ mode, resolved, brand, setMode, applyBrand }}>
+    <ThemeContext.Provider
+      value={{ mode, resolved, brand, setMode, applyEstablishment, applyPublic, previewBrand }}
+    >
       {children}
     </ThemeContext.Provider>
   )

@@ -283,7 +283,7 @@ export default function EstabelecimentoPage() {
   const { slug } = useParams<{ slug: string }>()
   const { establishment, loading } = useEstablishmentBySlug(slug)
   const { services } = useServices(establishment?.id)
-  const { applyBrand } = useTheme()
+  const { applyPublic } = useTheme()
   const [selectedService, setSelectedService] = useState<Service | null>(null)
 
   const activeServices = services.filter((s) => s.active)
@@ -296,8 +296,8 @@ export default function EstabelecimentoPage() {
 
   // Botões e preços desta página seguem a marca do estabelecimento
   useEffect(() => {
-    applyBrand(hex)
-  }, [hex, applyBrand])
+    applyPublic(establishment)
+  }, [establishment, applyPublic])
   const whatsappUrl = establishment?.phone
     ? `https://wa.me/55${formatPhone(establishment.phone)}`
     : null

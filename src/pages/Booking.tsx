@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { useEstablishmentBySlug } from '../hooks/useEstablishment'
 import { useTheme } from '../context/ThemeContext'
-import { resolveBrand } from '../lib/brand'
 import { useServices } from '../hooks/useServices'
 import { useProfessionals } from '../hooks/useProfessionals'
 import { useAvailability } from '../hooks/useAvailability'
@@ -104,10 +103,10 @@ export default function Booking() {
   // Segue a marca do estabelecimento pela mesma regra da página dele, senão a
   // cor mudaria no meio do fluxo do cliente. Sempre aplica, inclusive sem cor
   // definida: caso contrário a cor do estabelecimento anterior ficaria grudada.
-  const { applyBrand } = useTheme()
+  const { applyPublic } = useTheme()
   useEffect(() => {
-    applyBrand(resolveBrand(establishment).hex)
-  }, [establishment, applyBrand])
+    applyPublic(establishment)
+  }, [establishment, applyPublic])
   const { services } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
   const { closedDays } = useWorkingHours(establishment?.id)

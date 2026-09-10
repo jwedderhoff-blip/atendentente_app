@@ -12,6 +12,11 @@ export interface Establishment {
   prepay_discount?: number
   /** Cor da marca escolhida pelo dono. Nulo = usa a cor padrão da categoria. */
   brand_color?: string | null
+  /**
+   * Tema do painel deste estabelecimento. Fica aqui, e não no navegador,
+   * para que um mesmo dono com dois negócios tenha um escuro e outro claro.
+   */
+  theme_mode?: 'light' | 'dark' | 'system' | null
   created_at: string
 }
 

@@ -23,7 +23,7 @@ function normalizeHex(raw: string): string {
 }
 
 export default function AparenciaCard({ establishment }: Props) {
-  const { mode, resolved, brand, setMode, applyBrand } = useTheme()
+  const { mode, resolved, brand, setMode, previewBrand, applyEstablishment } = useTheme()
   const [custom, setCustom] = useState('')
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
@@ -31,35 +31,55 @@ export default function AparenciaCard({ establishment }: Props) {
   const normalized = normalizeHex(custom)
   const customIsValid = isValidHex(normalized)
 
-  const persist = async (hex: string) => {
-    applyBrand(hex)
+  /**
+   * Grava a personalização no estabelecimento. O filtro por id somado ao RLS
+   * (owner_id = auth.uid()) garante que um dono só altera o próprio — o
+   * barbeiro não alcança a linha da nutricionista nem forçando.
+   */
+  const persist = async (patch: { brand_color?: string; theme_mode?: ThemeMode }) => {
     setMsg(null)
     if (!establishment || isDemo) return
 
     setSaving(true)
-    // O filtro por id somado ao RLS (owner_id = auth.uid()) garante que um
-    // dono só altera o próprio estabelecimento.
     const { data, error } = await supabase
       .from('establishments')
-      .update({ brand_color: hex })
+      .update(patch)
       .eq('id', establishment.id)
       .select()
 
-    if (error) {
-      setMsg({ text: `Não foi possível salvar: ${error.message}`, ok: false })
-      applyBrand(establishment.brand_color)
-    } else if (!data || data.length === 0) {
-      setMsg({ text: 'Nenhuma linha alterada — verifique suas permissões.', ok: false })
-      applyBrand(establishment.brand_color)
+    if (error || !data || data.length === 0) {
+      setMsg({
+        text: error
+          ? `Não foi possível salvar: ${error.message}`
+          : 'Nenhuma linha alterada — verifique suas permissões.',
+        ok: false,
+      })
+      // Volta ao que está gravado, para a tela não mentir sobre o que foi salvo
+      applyEstablishment(establishment)
     } else {
-      setMsg({ text: 'Cor salva. Sua página de agendamento já usa ela.', ok: true })
+      setMsg({
+        text: patch.theme_mode
+          ? 'Tema salvo para este estabelecimento.'
+          : 'Cor salva. Sua página de agendamento já usa ela.',
+        ok: true,
+      })
     }
     setSaving(false)
   }
 
+  const changeBrand = (hex: string) => {
+    previewBrand(hex)
+    void persist({ brand_color: hex })
+  }
+
+  const changeMode = (m: ThemeMode) => {
+    setMode(m)
+    void persist({ theme_mode: m })
+  }
+
   const applyCustom = () => {
     if (!customIsValid) return
-    void persist(normalized)
+    changeBrand(normalized)
   }
 
   return (
@@ -85,7 +105,7 @@ export default function AparenciaCard({ establishment }: Props) {
         <div>
           <label className="text-sm font-medium text-gray-700 block mb-1">Tema do painel</label>
           <p className="text-xs text-gray-400 mb-3">
-            Vale só para você, neste navegador. Não muda o que seus clientes veem.
+            Vale para este estabelecimento. Não muda o que seus clientes veem na página de agendamento.
           </p>
           <div className="flex gap-2 flex-wrap">
             {MODES.map(({ value, label, icon: Icon }) => {
@@ -93,7 +113,7 @@ export default function AparenciaCard({ establishment }: Props) {
               return (
                 <button
                   key={value}
-                  onClick={() => setMode(value)}
+                  onClick={() => changeMode(value)}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition"
                   style={{
                     borderColor: on ? 'var(--t-brand)' : 'var(--t-line)',
@@ -126,7 +146,7 @@ export default function AparenciaCard({ establishment }: Props) {
               return (
                 <button
                   key={hex}
-                  onClick={() => void persist(hex)}
+                  onClick={() => changeBrand(hex)}
                   disabled={saving}
                   title={name}
                   aria-label={name}
@@ -181,7 +201,7 @@ export default function AparenciaCard({ establishment }: Props) {
 
             {brand.toLowerCase() !== DEFAULT_BRAND && (
               <button
-                onClick={() => void persist(DEFAULT_BRAND)}
+                onClick={() => changeBrand(DEFAULT_BRAND)}
                 disabled={saving}
                 className="mt-3 text-sm transition text-gray-500 hover:text-gray-900 underline"
               >

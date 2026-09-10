@@ -67,14 +67,14 @@ export default function AdminLayout() {
   const { user, signOut } = useAuth()
   const { establishment } = useEstablishment(user?.id)
   const { establishments } = useEstablishments(user?.id)
-  const { applyBrand } = useTheme()
+  const { applyEstablishment } = useTheme()
   const navigate = useNavigate()
 
-  // O painel inteiro segue a marca do estabelecimento ativo. Quem tem mais de
-  // um vê a cor trocar ao alternar entre eles, sem sobra do anterior.
+  // Tema e cor vêm do estabelecimento ativo. Quem administra mais de um vê os
+  // dois trocarem ao alternar, sem nada do anterior sobrando.
   useEffect(() => {
-    applyBrand(establishment?.brand_color)
-  }, [establishment?.brand_color, applyBrand])
+    applyEstablishment(establishment)
+  }, [establishment, applyEstablishment])
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [switcherOpen, setSwitcherOpen] = useState(false)
 
