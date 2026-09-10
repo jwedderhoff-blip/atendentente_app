@@ -57,8 +57,11 @@ function PrivateRoute() {
   return <Outlet />
 }
 
-const SUPER_ADMIN_EMAILS = ['jwedderhoff@gmail.com']
-
+/**
+ * Quem é super admin sai da tabela admins, e só dela. Já houve aqui uma lista
+ * de e-mails no código como alternativa: além de exigir deploy para mudar quem
+ * tem acesso, ela ia junto no bundle que qualquer visitante baixa.
+ */
 function SuperAdminRoute() {
   const { session, user, loading } = useAuth()
   const [checkingAdmin, setCheckingAdmin] = useState(true)
@@ -67,12 +70,6 @@ function SuperAdminRoute() {
 
   useEffect(() => {
     if (!session || !user) {
-      setCheckingAdmin(false)
-      return
-    }
-    const email = (user.email ?? '').trim().toLowerCase()
-    if (SUPER_ADMIN_EMAILS.includes(email)) {
-      setIsAdmin(true)
       setCheckingAdmin(false)
       return
     }
