@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useServices } from '../../hooks/useServices'
 import { useProfessionals } from '../../hooks/useProfessionals'
-import { useWorkingHours } from '../../hooks/useWorkingHours'
+
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -48,7 +48,7 @@ export default function Servicos() {
   const { establishment } = useEstablishment(user?.id)
   const { services, loading, createService, updateService, deleteService } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
-  const { workingHours, loadingWorkingHours } = useWorkingHours(establishment?.id)
+
   const [modalOpen, setModalOpen] = useState(false)
   const [schedulesModal, setSchedulesModal] = useState<Service | null>(null)
   const [editing, setEditing] = useState<Service | null>(null)
@@ -106,27 +106,36 @@ export default function Servicos() {
   }
 
   const addSchedule = async (forceException = false) => {
-    if (!schedulesModal || activeDay === null) return
+    if (!schedulesModal || activeDay === null || !establishment) return
     setScheduleError(null)
 
-    if (!forceException && !loadingWorkingHours && workingHours.length > 0) {
-      // Só valida contra horário de funcionamento se houver dados configurados
-      const wh = workingHours.find((h) => h.day_of_week === activeDay)
+    if (!forceException) {
       const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
-      if (!wh || !wh.is_open) {
-        setScheduleWarning(
-          `O estabelecimento não funciona ${DAY_FULL[activeDay]}. Deseja adicionar este horário mesmo assim como exceção?`,
-        )
-        return
-      }
-      const scheduleMin = toMin(dayEntry.time)
-      const openMin = toMin(wh.open_time)
-      const closeMin = toMin(wh.close_time)
-      if (scheduleMin < openMin || scheduleMin >= closeMin) {
-        setScheduleWarning(
-          `Horário ${dayEntry.time} fora do funcionamento ${DAY_FULL[activeDay]} (${wh.open_time.slice(0, 5)}–${wh.close_time.slice(0, 5)}). Deseja adicionar como exceção?`,
-        )
-        return
+
+      // Busca fresh do horário de funcionamento para o dia selecionado
+      const { data: whData } = await supabase
+        .from('working_hours')
+        .select('*')
+        .eq('establishment_id', establishment.id)
+        .eq('day_of_week', activeDay)
+        .single()
+
+      if (whData) {
+        if (!whData.is_open) {
+          setScheduleWarning(
+            `O estabelecimento não funciona ${DAY_FULL[activeDay]}. Deseja adicionar este horário mesmo assim como exceção?`,
+          )
+          return
+        }
+        const scheduleMin = toMin(dayEntry.time)
+        const openMin = toMin(whData.open_time)
+        const closeMin = toMin(whData.close_time)
+        if (scheduleMin < openMin || scheduleMin >= closeMin) {
+          setScheduleWarning(
+            `Horário ${dayEntry.time} fora do funcionamento ${DAY_FULL[activeDay]} (${(whData.open_time as string).slice(0, 5)}–${(whData.close_time as string).slice(0, 5)}). Deseja adicionar como exceção?`,
+          )
+          return
+        }
       }
     }
 
