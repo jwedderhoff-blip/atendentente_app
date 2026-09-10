@@ -46,6 +46,8 @@ function PrivateRoute() {
   return <Outlet />
 }
 
+const SUPER_ADMIN_EMAILS = ['jwedderhoff@gmail.com']
+
 function SuperAdminRoute() {
   const { session, user, loading } = useAuth()
   const [checkingAdmin, setCheckingAdmin] = useState(true)
@@ -53,6 +55,12 @@ function SuperAdminRoute() {
 
   useEffect(() => {
     if (!session || !user) {
+      setCheckingAdmin(false)
+      return
+    }
+    // Fallback por email enquanto tabela admins é configurada
+    if (user.email && SUPER_ADMIN_EMAILS.includes(user.email)) {
+      setIsAdmin(true)
       setCheckingAdmin(false)
       return
     }
