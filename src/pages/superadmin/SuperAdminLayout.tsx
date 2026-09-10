@@ -5,7 +5,7 @@ import {
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../context/AuthContext'
 
-const navItems = [
+const tabs = [
   { to: '/superadmin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/superadmin/estabelecimentos', label: 'Estabelecimentos', icon: Building2, end: false },
   { to: '/superadmin/planos', label: 'Planos', icon: CreditCard, end: false },
@@ -21,69 +21,54 @@ export default function SuperAdminLayout() {
     navigate('/login')
   }
 
-  const sidebar = (
-    <div className="flex flex-col h-full">
-      <div className="p-5 border-b border-gray-100">
-        <div className="flex items-center gap-2">
+  return (
+    <div className="superadmin-theme min-h-screen bg-gray-50">
+      <header className="sticky top-0 z-20 bg-white border-b border-gray-200">
+        {/* Identificação */}
+        <div className="flex items-center gap-3 px-4 sm:px-6 h-14">
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0">
             <ShieldCheck size={16} className="text-white" />
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900">Painel da Plataforma</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-gray-900 leading-tight">Painel da Plataforma</p>
             <p className="text-xs text-gray-400 truncate">{user?.email}</p>
           </div>
-        </div>
-      </div>
-
-      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-        {navItems.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition',
-                isActive
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              )
-            }
+          <button
+            onClick={handleSignOut}
+            title="Sair"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-700 transition shrink-0"
           >
-            <Icon size={18} />
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+            <LogOut size={16} />
+            <span className="hidden sm:inline">Sair</span>
+          </button>
+        </div>
 
-      <div className="p-3 border-t border-gray-100">
-        <button
-          onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-700 transition w-full"
-        >
-          <LogOut size={18} />
-          Sair
-        </button>
-      </div>
-    </div>
-  )
+        {/* Abas */}
+        <nav className="flex gap-1 px-2 sm:px-4 overflow-x-auto" aria-label="Seções do painel">
+          {tabs.map(({ to, label, icon: Icon, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-2 px-3 sm:px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition',
+                  isActive
+                    ? 'border-indigo-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:text-gray-900'
+                )
+              }
+            >
+              <Icon size={16} />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      </header>
 
-  return (
-    <div className="superadmin-theme min-h-screen bg-gray-50">
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:flex lg:flex-col bg-white border-r border-gray-200">
-        {sidebar}
-      </aside>
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 bg-white border-b border-gray-200 flex items-center gap-3 px-4 h-14">
-          <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
-            Super Admin
-          </span>
-          <span className="text-sm text-gray-400 truncate">{user?.email}</span>
-        </header>
-        <main className="p-4 sm:p-6 lg:p-8">
-          <Outlet />
-        </main>
-      </div>
+      <main className="p-4 sm:p-6 lg:p-8">
+        <Outlet />
+      </main>
     </div>
   )
 }
