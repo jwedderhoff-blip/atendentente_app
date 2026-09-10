@@ -305,8 +305,8 @@ export default function Servicos() {
             <p className="text-sm text-gray-700 mb-2 font-medium">Tipo de horário</p>
             <div className="grid grid-cols-2 gap-2">
               {([
-                { value: 'flexible', label: 'Horário livre', desc: 'Cliente escolhe entre os disponíveis' },
-                { value: 'fixed', label: 'Horário fixo', desc: 'Turnos pré-definidos pela semana' },
+                { value: 'flexible', label: 'Atendimento individual', desc: '1 cliente por horário — bloqueado após reserva' },
+                { value: 'fixed', label: 'Turma com vagas', desc: 'Múltiplos clientes por turno — você define as vagas' },
               ] as const).map(({ value, label, desc }) => (
                 <label
                   key={value}
@@ -326,7 +326,7 @@ export default function Servicos() {
           {scheduleType === 'flexible' && (
             <div>
               <p className="text-sm text-gray-700 mb-1 font-medium">Vagas por horário</p>
-              <p className="text-xs text-gray-400 mb-2">1 = exclusivo por profissional (barbearia). Mais de 1 = turma compartilhada (pilates).</p>
+              <p className="text-xs text-gray-400 mb-2">1 = individual (horário bloqueado após reserva). Mais de 1 = turma — vagas restantes exibidas no agendamento.</p>
               <Input
                 type="number"
                 placeholder="1"

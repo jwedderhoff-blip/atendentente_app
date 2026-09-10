@@ -16,26 +16,57 @@ export function TimeSlotGrid({ slots, selected, onSelect }: TimeSlotGridProps) {
     )
   }
 
+  const hasSpots = slots.some((s) => s.remaining_spots !== undefined)
+
   return (
     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-      {slots.map((slot) => (
-        <button
-          key={slot.time}
-          type="button"
-          disabled={!slot.available}
-          onClick={() => slot.available && onSelect(slot.time)}
-          className={cn(
-            'py-2.5 rounded-xl text-sm font-medium transition border',
-            slot.available
-              ? selected === slot.time
-                ? 'bg-purple-600 text-white border-purple-600'
-                : 'bg-white text-gray-700 border-gray-200 hover:border-purple-400 hover:text-purple-700'
-              : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed line-through'
-          )}
-        >
-          {slot.time}
-        </button>
-      ))}
+      {slots.map((slot) => {
+        const isSelected = selected === slot.time
+        const spotsLabel =
+          slot.remaining_spots !== undefined
+            ? slot.remaining_spots === 0
+              ? 'Esgotado'
+              : slot.remaining_spots === 1
+              ? '1 vaga'
+              : `${slot.remaining_spots} vagas`
+            : null
+
+        return (
+          <button
+            key={slot.time}
+            type="button"
+            disabled={!slot.available}
+            onClick={() => slot.available && onSelect(slot.time)}
+            className={cn(
+              'flex flex-col items-center justify-center rounded-xl text-sm font-medium transition border',
+              hasSpots ? 'py-2 px-1 gap-0.5' : 'py-2.5',
+              slot.available
+                ? isSelected
+                  ? 'bg-purple-600 text-white border-purple-600'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-purple-400 hover:text-purple-700'
+                : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed line-through'
+            )}
+          >
+            <span>{slot.time}</span>
+            {spotsLabel && (
+              <span
+                className={cn(
+                  'text-[10px] font-normal leading-tight',
+                  slot.available
+                    ? isSelected
+                      ? 'text-purple-200'
+                      : slot.remaining_spots === 1
+                      ? 'text-amber-500'
+                      : 'text-gray-400'
+                    : 'text-gray-300'
+                )}
+              >
+                {spotsLabel}
+              </span>
+            )}
+          </button>
+        )
+      })}
     </div>
   )
 }

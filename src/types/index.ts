@@ -76,4 +76,5 @@ export interface WorkingHours {
 export interface TimeSlot {
   time: string
   available: boolean
+  remaining_spots?: number
 }

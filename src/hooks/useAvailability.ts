@@ -121,7 +121,12 @@ export function useAvailability({
           (sch: { time: string; max_spots: number }) => {
             const t = sch.time.slice(0, 5)
             const booked = bookedCounts.get(t) ?? 0
-            return { time: t, available: booked < sch.max_spots }
+            const remaining = sch.max_spots - booked
+            return {
+              time: t,
+              available: remaining > 0,
+              ...(sch.max_spots > 1 ? { remaining_spots: Math.max(0, remaining) } : {}),
+            }
           }
         )
         setSlots(generatedSlots)
@@ -209,9 +214,11 @@ export function useAvailability({
             : bookedRanges.some((r) => cursor < r.end && slotEnd > r.start)
         if (!inBreak) {
           const slotDate = addMinutes(new Date(date.setHours(0, 0, 0, 0)), cursor)
+          const remaining = maxSpots > 1 ? maxSpots - (bookedCounts.get(cursor) ?? 0) : undefined
           generatedSlots.push({
             time: format(slotDate, 'HH:mm'),
             available: !isUnavailable,
+            ...(remaining !== undefined ? { remaining_spots: Math.max(0, remaining) } : {}),
           })
         }
         cursor += 30
