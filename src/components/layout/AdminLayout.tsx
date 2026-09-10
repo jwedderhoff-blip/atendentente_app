@@ -75,6 +75,16 @@ export default function AdminLayout() {
   useEffect(() => {
     applyEstablishment(establishment)
   }, [establishment, applyEstablishment])
+
+  // Marca o painel no body para escalar a tipografia (ver index.css). Fica no
+  // body — e não numa div — para alcançar também os modais, que são portados
+  // para fora da árvore do layout. O site de vendas e o demo não recebem a
+  // marca, então continuam com o tamanho atual.
+  useEffect(() => {
+    document.body.setAttribute('data-app', 'panel')
+    return () => document.body.removeAttribute('data-app')
+  }, [])
+
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [switcherOpen, setSwitcherOpen] = useState(false)
 

@@ -125,6 +125,23 @@
 }
 
 /* ==========================================================================
+   Tipografia do painel — um degrau maior
+   --------------------------------------------------------------------------
+   O app é usado o dia todo e o texto padrão estava pequeno demais. Em vez de
+   trocar text-sm por text-base em dezenas de telas, aumentamos o que cada
+   utility de tamanho vale, mas só dentro do painel (body[data-app='panel'],
+   marcado pelo AdminLayout — cobre também os modais, que são portados para o
+   body). O site de vendas e o demo não recebem a marca e ficam como estão.
+   ========================================================================== */
+body[data-app='panel'] .text-xs   { font-size: 0.8125rem; line-height: 1.15rem; }
+body[data-app='panel'] .text-sm   { font-size: 1rem;      line-height: 1.4rem; }
+body[data-app='panel'] .text-base { font-size: 1.0625rem; line-height: 1.6rem; }
+body[data-app='panel'] .text-lg   { font-size: 1.1875rem; line-height: 1.7rem; }
+body[data-app='panel'] .text-xl   { font-size: 1.375rem;  line-height: 1.85rem; }
+body[data-app='panel'] .text-2xl  { font-size: 1.625rem;  line-height: 2.1rem; }
+body[data-app='panel'] .text-3xl  { font-size: 2rem;      line-height: 2.35rem; }
+
+/* ==========================================================================
    Landing page — tipografia de display e revelação por scroll
    ========================================================================== */
 .font-display {
