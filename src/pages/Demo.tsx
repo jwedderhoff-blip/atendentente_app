@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   ArrowLeft, ArrowUpRight, Check, ChevronLeft, Clock, User, Users,
   Calendar as CalendarIcon, Bell, Sparkles, RotateCcw, Phone, Store, Smartphone, Settings2,
+  Play, Pause, MousePointer2,
 } from 'lucide-react'
 import { formatCurrency, cn } from '../lib/utils'
 import { useTheme } from '../context/ThemeContext'
@@ -130,6 +131,126 @@ export default function Demo() {
 
   const activeSteps = isTurma ? [1, 3, 4] : [1, 2, 3, 4]
 
+  /* ══════════════════════════════════════════════════════════════════════
+     Tour automático (auto-play)
+     ----------------------------------------------------------------------
+     O palco do ato 2 se agenda sozinho, em loop: escolhe serviço, dia e
+     horário livre, digita o nome e confirma — e o visitante vê cair no
+     painel do dono. Ao tocar no celular, o tour pausa e a pessoa assume.
+     A lógica de cada passo é reproduzida aqui (não chamamos os onClick da
+     tela) para trabalhar com valores locais e evitar closures defasadas.
+     ══════════════════════════════════════════════════════════════════════ */
+  const prefersReduced =
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const [autoplay, setAutoplay] = useState(!prefersReduced)
+  const [tourMsg, setTourMsg] = useState<string | null>(null)
+
+  // Refs espelhando valores derivados, para lê-los dentro do loop assíncrono
+  // depois que o React re-renderiza (o closure do efeito ficaria defasado).
+  const slotsRef = useRef(slots); slotsRef.current = slots
+  const eligRef = useRef(eligibleProfessionals); eligRef.current = eligibleProfessionals
+  const stepRef = useRef(step); stepRef.current = step
+
+  useEffect(() => {
+    if (!autoplay || act !== 2) { setTourMsg(null); return }
+    let cancelled = false
+    const sleep = (ms: number) =>
+      new Promise<void>((r) => { const id = setTimeout(r, ms); timers.push(id) })
+    const timers: ReturnType<typeof setTimeout>[] = []
+    const name = isTurma ? 'Marina Alves' : 'Bruno Costa'
+
+    const run = async () => {
+      while (!cancelled) {
+        // Recomeça do zero a cada volta: fluxo do celular e a agenda do dono,
+        // para o loop mostrar sempre a mesma demonstração limpa.
+        resetFlow()
+        setBookings(seedIndividual())
+        setEnrolled({})
+        await sleep(prefersReduced ? 200 : 850); if (cancelled) return
+
+        const s = services[0]
+        if (!s) return
+        setTourMsg(isTurma ? 'Escolhendo a turma…' : 'Escolhendo o serviço…')
+        setService(s); setProfessional(null); setDate(null); setTime(null)
+        let pro: DemoProfessional | null = null
+        if (isTurma) {
+          setStep(3)
+        } else {
+          const elig = scenario.professionals.filter((p) => s.professionals?.includes(p.id))
+          if (elig.length === 1) { pro = elig[0]; setProfessional(pro); setStep(3) } else setStep(2)
+        }
+        await sleep(1150); if (cancelled) return
+
+        // Passo do profissional (individual com mais de um)
+        if (!isTurma && stepRef.current === 2) {
+          setTourMsg('Escolhendo o profissional…')
+          pro = eligRef.current[0] ?? null
+          if (pro) setProfessional(pro)
+          setDate(null); setTime(null); setStep(3)
+          await sleep(1150); if (cancelled) return
+        }
+
+        // Dia + horário: percorre os dias válidos até achar um com vaga livre
+        setTourMsg('Escolhendo o melhor dia…')
+        const candidates = days.filter((d) => {
+          const closedDay = scenario.closedDays.includes(d.getDay())
+          const noClass = isTurma && !(s.fixed ?? []).some((f) => f.day === d.getDay())
+          return !(isTurma ? noClass : closedDay)
+        })
+        let chosenDate: Date | null = null
+        let chosenTime: string | null = null
+        for (const d of candidates) {
+          setDate(d); setTime(null)
+          await sleep(prefersReduced ? 150 : 700); if (cancelled) return
+          const free = slotsRef.current.find((x) => x.free)
+          if (free) { chosenDate = d; chosenTime = free.time; break }
+        }
+        if (!chosenDate || !chosenTime) { await sleep(1200); continue }
+
+        setTourMsg(isTurma ? 'Pegando uma vaga…' : 'Pegando um horário livre…')
+        setTime(chosenTime)
+        await sleep(950); if (cancelled) return
+        setStep(4)
+        await sleep(850); if (cancelled) return
+
+        // Digita o nome, letra por letra
+        setTourMsg('Preenchendo os dados…')
+        setClientName('')
+        for (let i = 1; i <= name.length; i++) {
+          if (cancelled) return
+          setClientName(name.slice(0, i))
+          await sleep(prefersReduced ? 0 : 65)
+        }
+        await sleep(650); if (cancelled) return
+
+        // Confirma (mesma lógica de confirm(), com valores locais)
+        setTourMsg(isTurma ? 'Garantindo a vaga…' : 'Confirmando…')
+        if (isTurma) {
+          const key = `${s.id}|${chosenDate.toDateString()}|${chosenTime}`
+          setEnrolled((prev) => ({ ...prev, [key]: [...(prev[key] ?? []), name] }))
+          setJustBooked(`${s.id}|${chosenTime}`)
+        } else {
+          const [h, m] = chosenTime.split(':').map(Number)
+          const start = new Date(chosenDate); start.setHours(h, m, 0, 0)
+          const id = `novo-${Date.now()}`
+          setBookings((prev) => [...prev, {
+            id, serviceId: s.id, clientName: name, serviceName: s.name,
+            withName: pro?.name ?? '', start,
+            end: new Date(start.getTime() + s.duration * 60000),
+            duration: s.duration, price: s.price,
+          }])
+          setJustBooked(id)
+        }
+        setStep(5)
+        setTourMsg(isTurma ? 'Vaga na lista do dono →' : 'Caiu no painel do dono →')
+        await sleep(prefersReduced ? 900 : 3400); if (cancelled) return
+      }
+    }
+    run()
+    return () => { cancelled = true; timers.forEach(clearTimeout) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoplay, act, modeIdx, isTurma])
+
   const back = () => {
     const i = activeSteps.indexOf(step)
     if (i > 0) setStep(activeSteps[i - 1])
@@ -192,6 +313,7 @@ export default function Demo() {
         @keyframes ring-pulse { 0%{box-shadow:0 0 0 0 rgba(79,70,229,.45)} 70%{box-shadow:0 0 0 14px rgba(79,70,229,0)} 100%{box-shadow:0 0 0 0 rgba(79,70,229,0)} }
         @keyframes slide-in-right { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:none} }
         @keyframes chip-in { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:none} }
+        @keyframes ping-dot { 75%,100%{transform:scale(2.2);opacity:0} }
         .step-pane { animation: pop-in .5s cubic-bezier(.16,1,.3,1); }
         @media (prefers-reduced-motion: reduce) {
           .step-pane, [style*="pop-in"], [style*="ring-pulse"], [style*="slide-in-right"], [style*="chip-in"] { animation: none !important; }
@@ -301,14 +423,51 @@ export default function Demo() {
 
             {/* Celular */}
             <div className="lg:sticky lg:top-24">
-              <div className="flex items-center gap-2 mb-4">
-                <Smartphone size={15} style={{ color: HUES.rose }} />
-                <span className="text-xs uppercase tracking-[0.18em] font-medium" style={{ color: HUES.rose }}>
-                  {isTurma ? 'O aluno se matricula' : 'O cliente agenda'}
-                </span>
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <Smartphone size={15} style={{ color: HUES.rose }} />
+                  <span className="text-xs uppercase tracking-[0.18em] font-medium" style={{ color: HUES.rose }}>
+                    {isTurma ? 'O aluno se matricula' : 'O cliente agenda'}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setAutoplay((v) => !v)}
+                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition"
+                  style={{
+                    background: autoplay ? HUES.indigo : '#fff',
+                    color: autoplay ? '#fff' : INK_SOFT,
+                    border: `1px solid ${autoplay ? HUES.indigo : LINE}`,
+                  }}
+                >
+                  {autoplay ? <Pause size={13} /> : <Play size={13} />}
+                  {autoplay ? 'Automático' : 'Assistir sozinho'}
+                </button>
               </div>
 
-              <div className="rounded-[2.25rem] p-3 mx-auto" style={{ background: INK, boxShadow: '0 30px 70px rgba(20,19,28,.28)', maxWidth: 380 }}>
+              {/* Legenda do tour — mostra o que está acontecendo na tela */}
+              <div
+                className="mb-3 h-9 flex items-center gap-2 px-3 rounded-xl overflow-hidden transition-all"
+                style={{
+                  background: autoplay && tourMsg ? `${HUES.indigo}0f` : 'transparent',
+                  border: `1px solid ${autoplay && tourMsg ? `${HUES.indigo}33` : 'transparent'}`,
+                  opacity: autoplay && tourMsg ? 1 : 0,
+                }}
+              >
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: HUES.indigo, animation: 'ping-dot 1.4s cubic-bezier(0,0,.2,1) infinite' }} />
+                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: HUES.indigo }} />
+                </span>
+                <span className="text-xs font-medium truncate" style={{ color: HUES.indigo }}>{tourMsg}</span>
+              </div>
+
+              <div
+                onPointerDownCapture={() => { if (autoplay) setAutoplay(false) }}
+                className="rounded-[2.25rem] p-3 mx-auto relative" style={{ background: INK, boxShadow: '0 30px 70px rgba(20,19,28,.28)', maxWidth: 380 }}>
+                {autoplay && (
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium text-white pointer-events-none" style={{ background: HUES.rose }}>
+                    <MousePointer2 size={10} /> toque para assumir
+                  </div>
+                )}
                 <div className="rounded-[1.75rem] overflow-hidden" style={{ background: '#fff' }}>
                   <div className="px-5 pt-4 pb-3" style={{ background: HUES.indigo }}>
                     <div className="w-20 h-1 rounded-full mx-auto mb-3" style={{ background: 'rgba(255,255,255,.35)' }} />
