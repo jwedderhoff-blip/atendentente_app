@@ -138,7 +138,7 @@ export default function Servicos() {
         service_id: schedulesModal.id,
         day_of_week: activeDay,
         time: dayEntry.time,
-        max_spots: dayEntry.spots,
+        max_spots: schedulesModal.max_spots ?? 1,
       })
       .select()
       .single()
@@ -455,16 +455,11 @@ export default function Servicos() {
                           className="w-full rounded-lg border border-gray-200 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white"
                         />
                       </div>
-                      <div className="w-20">
-                        <label className="text-xs text-gray-500 mb-1 block">Vagas</label>
-                        <input
-                          type="number"
-                          min={1}
-                          value={dayEntry.spots}
-                          onChange={(e) => setDayEntry((prev) => ({ ...prev, spots: Number(e.target.value) }))}
-                          className="w-full rounded-lg border border-gray-200 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white"
-                        />
-                      </div>
+                      {schedulesModal && (schedulesModal.max_spots ?? 1) > 1 && (
+                        <span className="text-xs text-indigo-600 font-medium pb-2">
+                          {schedulesModal.max_spots} vagas
+                        </span>
+                      )}
                       <button
                         onClick={() => addSchedule()}
                         disabled={savingSchedule}
