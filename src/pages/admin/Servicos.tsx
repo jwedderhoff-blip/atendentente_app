@@ -112,27 +112,30 @@ export default function Servicos() {
     if (!forceException) {
       const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
 
-      // Busca fresh do horário de funcionamento para o dia selecionado
-      const { data: whData } = await supabase
+      // Busca todos os horários do estabelecimento para saber se há configuração
+      const { data: allWh } = await supabase
         .from('working_hours')
         .select('*')
         .eq('establishment_id', establishment.id)
-        .eq('day_of_week', activeDay)
-        .single()
 
-      if (whData) {
-        if (!whData.is_open) {
+      // Só valida se o estabelecimento tem horários configurados
+      if (allWh && allWh.length > 0) {
+        const wh = allWh.find((h: { day_of_week: number }) => h.day_of_week === activeDay)
+
+        // Sem linha para este dia OU dia marcado como fechado
+        if (!wh || !wh.is_open) {
           setScheduleWarning(
             `O estabelecimento não funciona ${DAY_FULL[activeDay]}. Deseja adicionar este horário mesmo assim como exceção?`,
           )
           return
         }
+
         const scheduleMin = toMin(dayEntry.time)
-        const openMin = toMin(whData.open_time)
-        const closeMin = toMin(whData.close_time)
+        const openMin = toMin(wh.open_time as string)
+        const closeMin = toMin(wh.close_time as string)
         if (scheduleMin < openMin || scheduleMin >= closeMin) {
           setScheduleWarning(
-            `Horário ${dayEntry.time} fora do funcionamento ${DAY_FULL[activeDay]} (${(whData.open_time as string).slice(0, 5)}–${(whData.close_time as string).slice(0, 5)}). Deseja adicionar como exceção?`,
+            `Horário ${dayEntry.time} fora do funcionamento ${DAY_FULL[activeDay]} (${(wh.open_time as string).slice(0, 5)}–${(wh.close_time as string).slice(0, 5)}). Deseja adicionar como exceção?`,
           )
           return
         }
