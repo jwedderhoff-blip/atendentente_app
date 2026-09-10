@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useServices } from '../../hooks/useServices'
 import { useProfessionals } from '../../hooks/useProfessionals'
-
+import { useWorkingHours } from '../../hooks/useWorkingHours'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -48,6 +48,7 @@ export default function Servicos() {
   const { establishment } = useEstablishment(user?.id)
   const { services, loading, createService, updateService, deleteService } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
+  const { workingHours, loadingWorkingHours } = useWorkingHours(establishment?.id)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [schedulesModal, setSchedulesModal] = useState<Service | null>(null)
@@ -106,39 +107,26 @@ export default function Servicos() {
   }
 
   const addSchedule = async (forceException = false) => {
-    if (!schedulesModal || activeDay === null || !establishment) return
+    if (!schedulesModal || activeDay === null) return
     setScheduleError(null)
 
     if (!forceException) {
       const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
-
-      // Busca todos os horários do estabelecimento para saber se há configuração
-      const { data: allWh } = await supabase
-        .from('working_hours')
-        .select('*')
-        .eq('establishment_id', establishment.id)
-
-      // Só valida se o estabelecimento tem horários configurados
-      if (allWh && allWh.length > 0) {
-        const wh = allWh.find((h: { day_of_week: number }) => h.day_of_week === activeDay)
-
-        // Sem linha para este dia OU dia marcado como fechado
-        if (!wh || !wh.is_open) {
-          setScheduleWarning(
-            `O estabelecimento não funciona ${DAY_FULL[activeDay]}. Deseja adicionar este horário mesmo assim como exceção?`,
-          )
-          return
-        }
-
-        const scheduleMin = toMin(dayEntry.time)
-        const openMin = toMin(wh.open_time as string)
-        const closeMin = toMin(wh.close_time as string)
-        if (scheduleMin < openMin || scheduleMin >= closeMin) {
-          setScheduleWarning(
-            `Horário ${dayEntry.time} fora do funcionamento ${DAY_FULL[activeDay]} (${(wh.open_time as string).slice(0, 5)}–${(wh.close_time as string).slice(0, 5)}). Deseja adicionar como exceção?`,
-          )
-          return
-        }
+      const wh = workingHours.find((h) => h.day_of_week === activeDay)
+      if (!wh || !wh.is_open) {
+        setScheduleWarning(
+          `O estabelecimento não funciona ${DAY_FULL[activeDay]}. Deseja adicionar este horário mesmo assim como exceção?`,
+        )
+        return
+      }
+      const scheduleMin = toMin(dayEntry.time)
+      const openMin = toMin(wh.open_time)
+      const closeMin = toMin(wh.close_time)
+      if (scheduleMin < openMin || scheduleMin >= closeMin) {
+        setScheduleWarning(
+          `Horário ${dayEntry.time} fora do funcionamento ${DAY_FULL[activeDay]} (${wh.open_time.slice(0, 5)}–${wh.close_time.slice(0, 5)}). Deseja adicionar como exceção?`,
+        )
+        return
       }
     }
 
@@ -477,10 +465,10 @@ export default function Servicos() {
                       )}
                       <button
                         onClick={() => addSchedule()}
-                        disabled={savingSchedule}
+                        disabled={savingSchedule || loadingWorkingHours}
                         className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-lg transition disabled:opacity-50"
                       >
-                        {savingSchedule ? '...' : 'OK'}
+                        {savingSchedule || loadingWorkingHours ? '...' : 'OK'}
                       </button>
                     </div>
                   )}
