@@ -262,15 +262,13 @@ export default function Servicos() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    {(s.schedule_type === 'fixed' || !s.schedule_type) && (
-                      <button
-                        onClick={() => openSchedules(s)}
-                        title="Horários fixos"
-                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                      >
-                        <CalendarDays size={16} />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => openSchedules(s)}
+                      title="Horários fixos"
+                      className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                    >
+                      <CalendarDays size={16} />
+                    </button>
                     <button
                       onClick={() => openEdit(s)}
                       className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
@@ -401,7 +399,10 @@ export default function Servicos() {
       >
         <div className="space-y-3">
           <p className="text-sm text-gray-500">
-            Clique em <strong>+</strong> ao lado do dia para adicionar um horário. Cada turma pode ter vários horários por semana.
+            Clique em <strong>+</strong> ao lado do dia para adicionar um horário fixo.
+            {schedulesModal && (schedulesModal.max_spots ?? 1) > 1
+              ? ` Cada turma pode ter vários horários por semana (${schedulesModal.max_spots} vagas por horário).`
+              : ' Serviço individual: 1 vaga por horário.'}
           </p>
 
           {scheduleError && (
