@@ -52,14 +52,15 @@ function SuperAdminRoute() {
   const { session, user, loading } = useAuth()
   const [checkingAdmin, setCheckingAdmin] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [denyReason, setDenyReason] = useState<string | null>(null)
 
   useEffect(() => {
     if (!session || !user) {
       setCheckingAdmin(false)
       return
     }
-    // Fallback por email enquanto tabela admins é configurada
-    if (user.email && SUPER_ADMIN_EMAILS.includes(user.email)) {
+    const email = (user.email ?? '').trim().toLowerCase()
+    if (SUPER_ADMIN_EMAILS.includes(email)) {
       setIsAdmin(true)
       setCheckingAdmin(false)
       return
@@ -69,8 +70,15 @@ function SuperAdminRoute() {
       .select('user_id')
       .eq('user_id', user.id)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         setIsAdmin(!!data)
+        if (!data) {
+          setDenyReason(
+            error
+              ? `Erro ao consultar tabela admins: ${error.message}`
+              : `Usuário não encontrado na tabela admins (id: ${user.id})`,
+          )
+        }
         setCheckingAdmin(false)
       })
   }, [session, user])
@@ -83,7 +91,34 @@ function SuperAdminRoute() {
     )
   }
   if (!session) return <Navigate to="/login" replace />
-  if (!isAdmin) return <Navigate to="/admin" replace />
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+          <h1 className="text-lg font-semibold text-gray-900">Acesso negado ao Super Admin</h1>
+          <dl className="text-sm space-y-2">
+            <div>
+              <dt className="text-gray-500">E-mail da sessão</dt>
+              <dd className="font-mono text-gray-900 break-all">{user?.email ?? '(vazio)'}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">User ID</dt>
+              <dd className="font-mono text-xs text-gray-900 break-all">{user?.id ?? '(vazio)'}</dd>
+            </div>
+            {denyReason && (
+              <div>
+                <dt className="text-gray-500">Motivo</dt>
+                <dd className="text-gray-900">{denyReason}</dd>
+              </div>
+            )}
+          </dl>
+          <a href="/admin" className="block text-center bg-indigo-600 text-white text-sm py-2 rounded-xl">
+            Voltar ao painel
+          </a>
+        </div>
+      </div>
+    )
+  }
   return <Outlet />
 }
 
