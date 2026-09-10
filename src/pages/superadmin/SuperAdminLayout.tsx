@@ -69,7 +69,7 @@ export default function SuperAdminLayout() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="superadmin-theme min-h-screen bg-gray-50">
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:flex lg:flex-col bg-white border-r border-gray-200">
         {sidebar}
       </aside>
