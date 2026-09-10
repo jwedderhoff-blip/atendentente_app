@@ -109,8 +109,8 @@ export default function Servicos() {
     if (!schedulesModal || activeDay === null) return
     setScheduleError(null)
 
-    if (!forceException) {
-      // Verifica se o horário está dentro do funcionamento do estabelecimento nesse dia
+    if (!forceException && workingHours.length > 0) {
+      // Só valida contra horário de funcionamento se houver dados configurados
       const wh = workingHours.find((h) => h.day_of_week === activeDay)
       const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
       if (!wh || !wh.is_open) {
