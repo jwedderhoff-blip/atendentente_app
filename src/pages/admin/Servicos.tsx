@@ -58,6 +58,7 @@ export default function Servicos() {
   const [dayEntry, setDayEntry] = useState<DayEntry>({ time: '08:00', spots: 1 })
   const [savingSchedule, setSavingSchedule] = useState(false)
   const [scheduleError, setScheduleError] = useState<string | null>(null)
+  const [scheduleWarning, setScheduleWarning] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const {
@@ -104,25 +105,32 @@ export default function Servicos() {
     setSchedules((data ?? []) as ServiceSchedule[])
   }
 
-  const addSchedule = async () => {
+  const addSchedule = async (forceException = false) => {
     if (!schedulesModal || activeDay === null) return
     setScheduleError(null)
-    // Valida se o horário está dentro do funcionamento do estabelecimento nesse dia
-    const wh = workingHours.find((h) => h.day_of_week === activeDay)
-    if (!wh || !wh.is_open) {
-      setScheduleError(`O estabelecimento não funciona ${DAY_FULL[activeDay]}.`)
-      return
+
+    if (!forceException) {
+      // Verifica se o horário está dentro do funcionamento do estabelecimento nesse dia
+      const wh = workingHours.find((h) => h.day_of_week === activeDay)
+      const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
+      if (!wh || !wh.is_open) {
+        setScheduleWarning(
+          `O estabelecimento não funciona ${DAY_FULL[activeDay]}. Deseja adicionar este horário mesmo assim como exceção?`,
+        )
+        return
+      }
+      const scheduleMin = toMin(dayEntry.time)
+      const openMin = toMin(wh.open_time)
+      const closeMin = toMin(wh.close_time)
+      if (scheduleMin < openMin || scheduleMin >= closeMin) {
+        setScheduleWarning(
+          `Horário ${dayEntry.time} fora do funcionamento ${DAY_FULL[activeDay]} (${wh.open_time.slice(0, 5)}–${wh.close_time.slice(0, 5)}). Deseja adicionar como exceção?`,
+        )
+        return
+      }
     }
-    const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
-    const scheduleMin = toMin(dayEntry.time)
-    const openMin = toMin(wh.open_time)
-    const closeMin = toMin(wh.close_time)
-    if (scheduleMin < openMin || scheduleMin >= closeMin) {
-      setScheduleError(
-        `Horário fora do funcionamento ${DAY_FULL[activeDay]}: ${wh.open_time.slice(0, 5)}–${wh.close_time.slice(0, 5)}.`,
-      )
-      return
-    }
+
+    setScheduleWarning(null)
     setSavingSchedule(true)
     const { data, error } = await supabase
       .from('service_schedules')
@@ -386,6 +394,27 @@ export default function Servicos() {
             <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{scheduleError}</p>
           )}
 
+          {scheduleWarning && (
+            <div className="text-sm bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-3">
+              <p className="text-amber-800">{scheduleWarning}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => addSchedule(true)}
+                  disabled={savingSchedule}
+                  className="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+                >
+                  Sim, adicionar como exceção
+                </button>
+                <button
+                  onClick={() => setScheduleWarning(null)}
+                  className="flex-1 bg-white border border-amber-300 text-amber-700 text-xs font-medium px-3 py-1.5 rounded-lg transition hover:bg-amber-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-50">
             {DAY_NAMES.map((_dayName, day) => {
               const daySlots = schedulesByDay(day)
@@ -400,6 +429,8 @@ export default function Servicos() {
                       onClick={() => {
                         setActiveDay(isOpen ? null : day)
                         setDayEntry({ time: '08:00', spots: 1 })
+                        setScheduleWarning(null)
+                        setScheduleError(null)
                       }}
                       className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition ${
                         isOpen
