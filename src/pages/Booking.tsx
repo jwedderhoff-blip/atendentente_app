@@ -269,6 +269,7 @@ export default function Booking() {
       ...base,
       starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),
+      max_spots: selectedService.max_spots ?? 1,
     })
 
     if (!appointment) {

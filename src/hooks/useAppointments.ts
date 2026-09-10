@@ -54,6 +54,7 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
     starts_at: string
     ends_at: string
     recurring_group_id?: string
+    max_spots?: number
   }) => {
     if (isDemo) {
       const newApt: Appointment = {
@@ -67,9 +68,33 @@ export function useAppointments(establishmentId: string | undefined, date?: stri
       return { appointment: newApt, error: null }
     }
 
+    // Verifica disponibilidade imediatamente antes de inserir para evitar dupla reserva
+    const startsDate = payload.starts_at.slice(0, 10)
+    const { data: busySlots } = await supabase.rpc('get_busy_slots', {
+      p_establishment_id: payload.establishment_id,
+      p_date: startsDate,
+      p_professional_id: payload.professional_id ?? null,
+      p_service_id: payload.service_id,
+    }) as { data: { starts_at: string; ends_at: string }[] | null }
+
+    const maxSpots = payload.max_spots ?? 1
+    const startsMs = new Date(payload.starts_at).getTime()
+    const endsMs   = new Date(payload.ends_at).getTime()
+
+    const overlapping = (busySlots ?? []).filter((s) => {
+      const sStart = new Date(s.starts_at).getTime()
+      const sEnd   = new Date(s.ends_at).getTime()
+      return startsMs < sEnd && endsMs > sStart
+    })
+
+    if (overlapping.length >= maxSpots) {
+      return { appointment: null, error: 'Horário indisponível: todas as vagas já foram preenchidas.' }
+    }
+
+    const { max_spots: _ms, ...insertPayload } = payload
     const { data, error } = await supabase
       .from('appointments')
-      .insert({ ...payload, status: 'pendente', payment_status: 'pendente' })
+      .insert({ ...insertPayload, status: 'pendente', payment_status: 'pendente' })
       .select()
       .single()
     if (!error && data) setAppointments((prev) => [...prev, data as Appointment])

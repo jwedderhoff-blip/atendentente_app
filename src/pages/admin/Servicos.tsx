@@ -154,6 +154,8 @@ export default function Servicos() {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     if (!establishment) return
+    // Atendimento individual sempre tem exatamente 1 vaga
+    if (data.schedule_type === 'flexible') data.max_spots = 1
     let serviceId: string
     if (editing) {
       await updateService(editing.id, data)
@@ -323,13 +325,13 @@ export default function Servicos() {
               ))}
             </div>
           </div>
-          {scheduleType === 'flexible' && (
+          {scheduleType === 'fixed' && (
             <div>
-              <p className="text-sm text-gray-700 mb-1 font-medium">Vagas por horário</p>
-              <p className="text-xs text-gray-400 mb-2">1 = individual (horário bloqueado após reserva). Mais de 1 = turma — vagas restantes exibidas no agendamento.</p>
+              <p className="text-sm text-gray-700 mb-1 font-medium">Vagas por turno</p>
+              <p className="text-xs text-gray-400 mb-2">Quantos clientes podem reservar o mesmo horário. Quando todas as vagas forem preenchidas, o horário é bloqueado automaticamente.</p>
               <Input
                 type="number"
-                placeholder="1"
+                placeholder="10"
                 error={errors.max_spots?.message}
                 {...register('max_spots', { valueAsNumber: true })}
               />
