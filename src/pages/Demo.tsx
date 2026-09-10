@@ -25,7 +25,8 @@ export default function Demo() {
   useEffect(() => { applyPublic(null) }, [applyPublic])
 
   const [modeIdx, setModeIdx] = useState(0)
-  const [act, setAct] = useState<1 | 2>(1)
+  // Abre já no Ato 2 (cliente agenda) para o tour automático rodar de cara.
+  const [act, setAct] = useState<1 | 2>(2)
   const scenario = SCENARIOS[modeIdx]
   const isTurma = scenario.mode === 'turma'
 
