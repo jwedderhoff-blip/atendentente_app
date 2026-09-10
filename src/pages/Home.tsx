@@ -377,11 +377,11 @@ export default function Home() {
                     Começar grátis agora <ArrowRight size={17} />
                   </Link>
                   <Link
-                    to="/login"
-                    className="inline-flex items-center justify-center px-8 py-4 rounded-full font-medium text-[15px] text-white transition-all duration-300 hover:bg-white/10"
+                    to="/demo"
+                    className="link-arrow inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full font-medium text-[15px] text-white transition-all duration-300 hover:bg-white/10 hover:gap-4"
                     style={{ border: '1px solid rgba(255,255,255,0.3)' }}
                   >
-                    Já tenho conta
+                    Ver demonstração <ArrowRight size={17} />
                   </Link>
                 </>
               )}

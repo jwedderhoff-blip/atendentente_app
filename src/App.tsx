@@ -25,6 +25,15 @@ const SuperEstabelecimentos = lazy(() => import('./pages/superadmin/SuperEstabel
 const SuperPlanos = lazy(() => import('./pages/superadmin/SuperPlanos'))
 const SuperAssinaturas = lazy(() => import('./pages/superadmin/SuperAssinaturas'))
 const SuperNotificacoes = lazy(() => import('./pages/superadmin/SuperNotificacoes'))
+const Demo = lazy(() => import('./pages/Demo'))
+
+function DemoFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#fbfaf8' }}>
+      <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
+    </div>
+  )
+}
 
 function SuperAdminFallback() {
   return (
@@ -129,6 +138,7 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/demo" element={<Suspense fallback={<DemoFallback />}><Demo /></Suspense>} />
       <Route path="/agendar/:slug" element={<EstabelecimentoPage />} />
       <Route path="/agendar/:slug/agendar" element={<Booking />} />
       <Route element={<PrivateRoute />}>
