@@ -466,7 +466,7 @@ export default function Servicos() {
                         />
                       </div>
                       <button
-                        onClick={addSchedule}
+                        onClick={() => addSchedule()}
                         disabled={savingSchedule}
                         className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-lg transition disabled:opacity-50"
                       >
