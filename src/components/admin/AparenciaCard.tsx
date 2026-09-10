@@ -15,11 +15,21 @@ interface Props {
   establishment: Establishment | null
 }
 
+/** Aceita colar sem o "#", que é como a maioria das paletas mostra o valor. */
+function normalizeHex(raw: string): string {
+  const v = raw.trim().toLowerCase()
+  if (!v) return ''
+  return v.startsWith('#') ? v : `#${v}`
+}
+
 export default function AparenciaCard({ establishment }: Props) {
   const { mode, resolved, brand, setMode, applyBrand } = useTheme()
   const [custom, setCustom] = useState('')
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
+
+  const normalized = normalizeHex(custom)
+  const customIsValid = isValidHex(normalized)
 
   const persist = async (hex: string) => {
     applyBrand(hex)
@@ -48,12 +58,8 @@ export default function AparenciaCard({ establishment }: Props) {
   }
 
   const applyCustom = () => {
-    const hex = custom.trim().toLowerCase()
-    if (!isValidHex(hex)) {
-      setMsg({ text: 'Use um hex de 6 dígitos, como #b5476b.', ok: false })
-      return
-    }
-    void persist(hex)
+    if (!customIsValid) return
+    void persist(normalized)
   }
 
   return (
@@ -137,40 +143,49 @@ export default function AparenciaCard({ establishment }: Props) {
             })}
           </div>
 
-          <div className="flex flex-wrap items-end gap-2">
-            <div className="flex-1 min-w-[180px]">
-              <label className="text-xs text-gray-500 block mb-1.5">Outra cor (hex)</label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={isValidHex(custom) ? custom : brand}
-                  onChange={(e) => setCustom(e.target.value)}
-                  className="w-11 h-10 rounded-lg border border-gray-200 bg-transparent cursor-pointer p-1"
-                  aria-label="Escolher cor"
-                />
-                <input
-                  value={custom}
-                  onChange={(e) => setCustom(e.target.value)}
-                  placeholder="#b5476b"
-                  className="flex-1 rounded-xl border border-gray-200 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand/20"
-                />
-              </div>
+          <div>
+            <label className="text-xs text-gray-500 block mb-1.5">Outra cor</label>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="color"
+                value={customIsValid ? normalized : brand}
+                // A roleta nativa preenche o campo ao lado; aplicar continua
+                // sendo um passo explícito, senão arrastar salvaria a cada tom.
+                onChange={(e) => { setCustom(e.target.value); setMsg(null) }}
+                className="w-11 h-10 rounded-lg border border-gray-200 bg-transparent cursor-pointer p-1 shrink-0"
+                aria-label="Escolher cor"
+              />
+              <input
+                value={custom}
+                onChange={(e) => { setCustom(e.target.value); setMsg(null) }}
+                onKeyDown={(e) => { if (e.key === 'Enter') applyCustom() }}
+                placeholder="b5476b"
+                spellCheck={false}
+                className="flex-1 min-w-[130px] rounded-xl border border-gray-200 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand/20"
+              />
+              <button
+                onClick={applyCustom}
+                disabled={saving || !customIsValid}
+                className="px-5 py-2.5 rounded-full text-white text-sm font-medium transition disabled:opacity-35 disabled:cursor-not-allowed"
+                style={{ background: 'var(--t-brand)' }}
+              >
+                {saving ? 'Salvando…' : 'Aplicar'}
+              </button>
             </div>
-            <button
-              onClick={applyCustom}
-              disabled={saving}
-              className="px-5 py-2.5 rounded-full text-white text-sm font-medium transition disabled:opacity-40"
-              style={{ background: 'var(--t-brand)' }}
-            >
-              {saving ? 'Salvando…' : 'Aplicar'}
-            </button>
+
+            <p className="text-xs mt-2" style={{ color: custom && !customIsValid ? '#f87171' : undefined }}>
+              {custom && !customIsValid
+                ? 'Faltam dígitos — o código tem 6, como b5476b.'
+                : <span className="text-gray-400">Escolha na roleta ou cole o código da sua marca.</span>}
+            </p>
+
             {brand.toLowerCase() !== DEFAULT_BRAND && (
               <button
                 onClick={() => void persist(DEFAULT_BRAND)}
                 disabled={saving}
-                className="px-4 py-2.5 rounded-full text-sm transition text-gray-500 hover:text-gray-900"
+                className="mt-3 text-sm transition text-gray-500 hover:text-gray-900 underline"
               >
-                Restaurar padrão
+                Restaurar cor padrão
               </button>
             )}
           </div>
