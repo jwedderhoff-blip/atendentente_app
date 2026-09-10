@@ -1,4 +1,11 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
 const MP_ACCESS_TOKEN = Deno.env.get('MP_ACCESS_TOKEN')
+
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+)
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -51,6 +58,8 @@ Deno.serve(async (req) => {
       email: payer_email,
       first_name: payer_name,
     },
+    external_reference: appointment_id,
+    notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/payment-webhook`,
   }
 
   const mpRes = await fetch('https://api.mercadopago.com/v1/payments', {
@@ -85,6 +94,21 @@ Deno.serve(async (req) => {
   }
 
   const txData = mpData.point_of_interaction?.transaction_data ?? {}
+
+  if (mpData.id) {
+    // Pix do MP expira em 30 minutos por padrão — grava para exibir/validar no front se preciso.
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+    const { error: updateError } = await supabase
+      .from('appointments')
+      .update({ pix_payment_id: String(mpData.id), pix_expires_at: expiresAt })
+      .eq('id', appointment_id)
+
+    if (updateError) {
+      console.error('Erro ao salvar pix_payment_id no agendamento:', updateError)
+      // Não bloqueia a resposta ao cliente — o QR code já foi gerado no MP.
+      // Mas sem isso salvo, o webhook não vai conseguir casar o pagamento com o agendamento.
+    }
+  }
 
   return new Response(
     JSON.stringify({
