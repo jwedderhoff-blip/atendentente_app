@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
+import AparenciaCard from '../../components/admin/AparenciaCard'
 import type { WorkingHours } from '../../types'
 
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
@@ -293,6 +294,12 @@ export default function Configuracoes() {
           </Button>
         </div>
       </div>
+
+      {/* ── Aparência ── */}
+      <AparenciaCard
+        establishmentId={establishment?.id}
+        savedBrand={(establishment as { brand_color?: string | null } | null)?.brand_color}
+      />
 
       {/* ── Imagem de capa ── */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">

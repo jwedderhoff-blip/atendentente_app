@@ -98,6 +98,13 @@ export default function Booking() {
   const location = useLocation()
   const preselectedServiceId = (location.state as { preselectedServiceId?: string } | null)?.preselectedServiceId
   const { establishment, loading: estLoading } = useEstablishmentBySlug(slug)
+
+  // Esta página é do estabelecimento, então segue a marca dele
+  useEffect(() => {
+    if (establishment?.brand_color) {
+      document.documentElement.style.setProperty('--brand-base', establishment.brand_color)
+    }
+  }, [establishment?.brand_color])
   const { services } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
   const { closedDays } = useWorkingHours(establishment?.id)

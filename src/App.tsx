@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Outlet, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import { supabase } from './lib/supabase'
 import AdminLayout from './components/layout/AdminLayout'
 import DemoBanner from './components/ui/DemoBanner'
@@ -168,11 +169,13 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <DemoBanner />
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <DemoBanner />
+        <Router>
+          <AppRoutes />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }

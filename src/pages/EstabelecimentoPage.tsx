@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   MapPin, Phone, Clock, ChevronRight, MessageCircle, X,
@@ -304,8 +304,19 @@ export default function EstabelecimentoPage() {
   const category = establishment?.category ?? 'outro'
   const categoryLabel = CATEGORY_LABELS[category]
   const heroImage = establishment?.logo_url ?? CATEGORY_HERO[category]
-  const { hex, gradient } = CATEGORY_COLORS[category]
+  // A cor escolhida pelo dono manda; a da categoria é só o ponto de partida
+  // de quem ainda não personalizou.
+  const categoryColor = CATEGORY_COLORS[category]
+  const hex = establishment?.brand_color ?? categoryColor.hex
+  const gradient = establishment?.brand_color
+    ? `color-mix(in oklab, ${establishment.brand_color}, black 55%)`
+    : categoryColor.gradient
   const CategoryIcon = CATEGORY_ICONS[category]
+
+  // Botões e preços desta página seguem a marca do estabelecimento
+  useEffect(() => {
+    document.documentElement.style.setProperty('--brand-base', hex)
+  }, [hex])
   const whatsappUrl = establishment?.phone
     ? `https://wa.me/55${formatPhone(establishment.phone)}`
     : null

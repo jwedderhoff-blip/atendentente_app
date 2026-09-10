@@ -10,6 +10,8 @@ export interface Establishment {
   logo_url?: string
   tagline?: string
   prepay_discount?: number
+  /** Cor da marca escolhida pelo dono. Nulo = usa a cor padrão da categoria. */
+  brand_color?: string | null
   created_at: string
 }
 
