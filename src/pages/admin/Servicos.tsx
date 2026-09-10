@@ -250,13 +250,15 @@ export default function Servicos() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openSchedules(s)}
-                      title="Horários fixos"
-                      className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                    >
-                      <CalendarDays size={16} />
-                    </button>
+                    {(s.schedule_type === 'fixed' || !s.schedule_type) && (
+                      <button
+                        onClick={() => openSchedules(s)}
+                        title="Horários fixos"
+                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                      >
+                        <CalendarDays size={16} />
+                      </button>
+                    )}
                     <button
                       onClick={() => openEdit(s)}
                       className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
