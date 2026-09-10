@@ -106,7 +106,7 @@ export function useAvailability({
           .select('starts_at, service_id')
           .eq('establishment_id', establishmentId)
           .eq('service_id', serviceId)
-          .eq('status', 'confirmado')
+          .in('status', ['confirmado', 'pendente'])
           .gte('starts_at', `${dateStr}T00:00:00`)
           .lte('starts_at', `${dateStr}T23:59:59`)
 

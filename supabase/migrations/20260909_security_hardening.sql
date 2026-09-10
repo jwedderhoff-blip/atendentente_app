@@ -68,7 +68,7 @@ as $$
   select starts_at, ends_at
   from appointments
   where establishment_id = p_establishment_id
-    and status = 'confirmado'
+    and status in ('confirmado', 'pendente')
     and starts_at::date = p_date
     and (p_professional_id is null or professional_id = p_professional_id)
     and (p_service_id is null or service_id = p_service_id);
