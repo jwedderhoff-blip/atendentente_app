@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   CalendarDays,
@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import { useEstablishment, setSelectedEstablishmentId } from '../../hooks/useEstablishment'
 import { useEstablishments } from '../../hooks/useEstablishments'
 import type { Establishment } from '../../types'
@@ -66,7 +67,14 @@ export default function AdminLayout() {
   const { user, signOut } = useAuth()
   const { establishment } = useEstablishment(user?.id)
   const { establishments } = useEstablishments(user?.id)
+  const { applyBrand } = useTheme()
   const navigate = useNavigate()
+
+  // O painel inteiro segue a marca do estabelecimento ativo. Quem tem mais de
+  // um vê a cor trocar ao alternar entre eles, sem sobra do anterior.
+  useEffect(() => {
+    applyBrand(establishment?.brand_color)
+  }, [establishment?.brand_color, applyBrand])
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [switcherOpen, setSwitcherOpen] = useState(false)
 

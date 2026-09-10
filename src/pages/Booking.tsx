@@ -12,6 +12,8 @@ import {
   Baby, Sun, type LucideIcon,
 } from 'lucide-react'
 import { useEstablishmentBySlug } from '../hooks/useEstablishment'
+import { useTheme } from '../context/ThemeContext'
+import { resolveBrand } from '../lib/brand'
 import { useServices } from '../hooks/useServices'
 import { useProfessionals } from '../hooks/useProfessionals'
 import { useAvailability } from '../hooks/useAvailability'
@@ -99,12 +101,13 @@ export default function Booking() {
   const preselectedServiceId = (location.state as { preselectedServiceId?: string } | null)?.preselectedServiceId
   const { establishment, loading: estLoading } = useEstablishmentBySlug(slug)
 
-  // Esta página é do estabelecimento, então segue a marca dele
+  // Segue a marca do estabelecimento pela mesma regra da página dele, senão a
+  // cor mudaria no meio do fluxo do cliente. Sempre aplica, inclusive sem cor
+  // definida: caso contrário a cor do estabelecimento anterior ficaria grudada.
+  const { applyBrand } = useTheme()
   useEffect(() => {
-    if (establishment?.brand_color) {
-      document.documentElement.style.setProperty('--brand-base', establishment.brand_color)
-    }
-  }, [establishment?.brand_color])
+    applyBrand(resolveBrand(establishment).hex)
+  }, [establishment, applyBrand])
   const { services } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
   const { closedDays } = useWorkingHours(establishment?.id)

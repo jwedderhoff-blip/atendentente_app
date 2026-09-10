@@ -296,10 +296,7 @@ export default function Configuracoes() {
       </div>
 
       {/* ── Aparência ── */}
-      <AparenciaCard
-        establishmentId={establishment?.id}
-        savedBrand={(establishment as { brand_color?: string | null } | null)?.brand_color}
-      />
+      <AparenciaCard establishment={establishment} />
 
       {/* ── Imagem de capa ── */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">

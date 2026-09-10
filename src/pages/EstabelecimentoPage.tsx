@@ -7,6 +7,8 @@ import {
   Baby, Sun, CalendarCheck, type LucideIcon,
 } from 'lucide-react'
 import { useEstablishmentBySlug } from '../hooks/useEstablishment'
+import { useTheme } from '../context/ThemeContext'
+import { resolveBrand } from '../lib/brand'
 import { useServices } from '../hooks/useServices'
 import { formatCurrency } from '../lib/utils'
 import type { Establishment } from '../types'
@@ -37,23 +39,6 @@ const CATEGORY_LABELS: Record<Establishment['category'], string> = {
   avaliacao_nutricional: 'Avaliação Nutricional',
   academia: 'Academia',
   outro: 'Estabelecimento',
-}
-
-// Cada categoria tem sua cor de identidade, tirada da família de acentos do
-// produto — não de um tom novo por categoria. Hex direto porque o Tailwind
-// remove classes montadas em tempo de execução.
-type CategoryColor = { hex: string; dark: string; gradient: string }
-const CATEGORY_COLORS: Record<Establishment['category'], CategoryColor> = {
-  salao:                { hex: '#b5476b', dark: '#6d2740', gradient: 'rgba(109,39,64,0.88)' },
-  barbearia:            { hex: '#a8843c', dark: '#5c4718', gradient: 'rgba(92,71,24,0.90)' },
-  estetica:             { hex: '#7e3f8f', dark: '#46204f', gradient: 'rgba(70,32,79,0.88)' },
-  beleza:               { hex: '#b5476b', dark: '#6d2740', gradient: 'rgba(109,39,64,0.88)' },
-  pilates:              { hex: '#5a7d64', dark: '#2c4234', gradient: 'rgba(44,66,52,0.88)' },
-  aulas_coletivas:      { hex: '#c26a3c', dark: '#6b3818', gradient: 'rgba(107,56,24,0.88)' },
-  avaliacao_fisica:     { hex: '#4f46e5', dark: '#241f6b', gradient: 'rgba(36,31,107,0.88)' },
-  avaliacao_nutricional:{ hex: '#5a7d64', dark: '#2c4234', gradient: 'rgba(44,66,52,0.88)' },
-  academia:             { hex: '#4f46e5', dark: '#241f6b', gradient: 'rgba(36,31,107,0.88)' },
-  outro:                { hex: '#4f46e5', dark: '#241f6b', gradient: 'rgba(36,31,107,0.88)' },
 }
 
 const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
@@ -298,25 +283,21 @@ export default function EstabelecimentoPage() {
   const { slug } = useParams<{ slug: string }>()
   const { establishment, loading } = useEstablishmentBySlug(slug)
   const { services } = useServices(establishment?.id)
+  const { applyBrand } = useTheme()
   const [selectedService, setSelectedService] = useState<Service | null>(null)
 
   const activeServices = services.filter((s) => s.active)
   const category = establishment?.category ?? 'outro'
   const categoryLabel = CATEGORY_LABELS[category]
   const heroImage = establishment?.logo_url ?? CATEGORY_HERO[category]
-  // A cor escolhida pelo dono manda; a da categoria é só o ponto de partida
-  // de quem ainda não personalizou.
-  const categoryColor = CATEGORY_COLORS[category]
-  const hex = establishment?.brand_color ?? categoryColor.hex
-  const gradient = establishment?.brand_color
-    ? `color-mix(in oklab, ${establishment.brand_color}, black 55%)`
-    : categoryColor.gradient
+  // Regra única de cor, compartilhada com a tela de agendamento
+  const { hex, gradient } = resolveBrand(establishment)
   const CategoryIcon = CATEGORY_ICONS[category]
 
   // Botões e preços desta página seguem a marca do estabelecimento
   useEffect(() => {
-    document.documentElement.style.setProperty('--brand-base', hex)
-  }, [hex])
+    applyBrand(hex)
+  }, [hex, applyBrand])
   const whatsappUrl = establishment?.phone
     ? `https://wa.me/55${formatPhone(establishment.phone)}`
     : null

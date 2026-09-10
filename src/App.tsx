@@ -169,13 +169,15 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
+    // ThemeProvider por dentro: a preferência de tema é por usuário, então
+    // ele precisa saber quem está logado.
+    <AuthProvider>
+      <ThemeProvider>
         <DemoBanner />
         <Router>
           <AppRoutes />
         </Router>
-      </AuthProvider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </AuthProvider>
   )
 }

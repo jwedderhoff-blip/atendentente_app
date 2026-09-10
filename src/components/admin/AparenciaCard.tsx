@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Palette, Sun, Moon, Monitor, Check, Store } from 'lucide-react'
 import { useTheme, BRAND_PRESETS, isValidHex, DEFAULT_BRAND, type ThemeMode } from '../../context/ThemeContext'
+import type { Establishment } from '../../types'
 import { supabase } from '../../lib/supabase'
 import { isDemo } from '../../lib/isDemo'
 
@@ -11,38 +12,35 @@ const MODES: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
 ]
 
 interface Props {
-  establishmentId: string | undefined
-  /** Cor já gravada no banco, se houver. */
-  savedBrand: string | null | undefined
+  establishment: Establishment | null
 }
 
-export default function AparenciaCard({ establishmentId, savedBrand }: Props) {
-  const { mode, resolved, brand, setMode, setBrand } = useTheme()
+export default function AparenciaCard({ establishment }: Props) {
+  const { mode, resolved, brand, setMode, applyBrand } = useTheme()
   const [custom, setCustom] = useState('')
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
 
-  // A cor gravada manda: é o que os clientes veem na página pública
-  useEffect(() => {
-    if (savedBrand && isValidHex(savedBrand)) setBrand(savedBrand)
-  }, [savedBrand, setBrand])
-
   const persist = async (hex: string) => {
-    setBrand(hex)
+    applyBrand(hex)
     setMsg(null)
-    if (!establishmentId || isDemo) return
+    if (!establishment || isDemo) return
 
     setSaving(true)
+    // O filtro por id somado ao RLS (owner_id = auth.uid()) garante que um
+    // dono só altera o próprio estabelecimento.
     const { data, error } = await supabase
       .from('establishments')
       .update({ brand_color: hex })
-      .eq('id', establishmentId)
+      .eq('id', establishment.id)
       .select()
 
     if (error) {
       setMsg({ text: `Não foi possível salvar: ${error.message}`, ok: false })
+      applyBrand(establishment.brand_color)
     } else if (!data || data.length === 0) {
       setMsg({ text: 'Nenhuma linha alterada — verifique suas permissões.', ok: false })
+      applyBrand(establishment.brand_color)
     } else {
       setMsg({ text: 'Cor salva. Sua página de agendamento já usa ela.', ok: true })
     }

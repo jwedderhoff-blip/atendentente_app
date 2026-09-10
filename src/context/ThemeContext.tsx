@@ -1,11 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { useAuth } from './AuthContext'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
 
-const THEME_KEY = 'meridio:theme'
-const BRAND_KEY = 'meridio:brand'
-
 export const DEFAULT_BRAND = '#4f46e5'
+
+/**
+ * A preferência de tema é por usuário, não por navegador: dois logins no mesmo
+ * computador (o barbeiro e a nutricionista) precisam de escolhas separadas.
+ */
+const themeKey = (userId: string | undefined) =>
+  userId ? `meridio:theme:${userId}` : null
 
 /** Presets prontos. O dono também pode escolher qualquer hex. */
 export const BRAND_PRESETS: { name: string; hex: string }[] = [
@@ -28,31 +33,43 @@ interface ThemeContextValue {
   mode: ThemeMode
   /** O que está de fato aplicado agora. */
   resolved: 'light' | 'dark'
+  /** Cor da marca em vigor na tela atual. */
   brand: string
   setMode: (m: ThemeMode) => void
-  setBrand: (hex: string) => void
+  /**
+   * Aplica a cor da marca da tela atual. Não persiste de propósito: a cor é
+   * do estabelecimento e mora no banco. Guardá-la no navegador faria a cor de
+   * um vazar para o outro quando o mesmo navegador abre dois estabelecimentos.
+   */
+  applyBrand: (hex: string | null | undefined) => void
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
-
-function readStored<T extends string>(key: string, fallback: T): T {
-  try {
-    return (localStorage.getItem(key) as T) || fallback
-  } catch {
-    // Navegador com armazenamento bloqueado: segue com o padrão.
-    return fallback
-  }
-}
 
 const systemPrefersDark = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>(() => readStored<ThemeMode>(THEME_KEY, 'light'))
-  const [brand, setBrandState] = useState<string>(() => readStored(BRAND_KEY, DEFAULT_BRAND))
+  const { user } = useAuth()
+  const [mode, setModeState] = useState<ThemeMode>('light')
+  const [brand, setBrandState] = useState<string>(DEFAULT_BRAND)
   const [systemDark, setSystemDark] = useState(systemPrefersDark)
 
-  // Acompanha a preferência do sistema enquanto o modo for "system"
+  // Recarrega a preferência ao trocar de usuário — inclusive no logout,
+  // que precisa voltar ao padrão em vez de manter o tema do anterior.
+  useEffect(() => {
+    const key = themeKey(user?.id)
+    if (!key) {
+      setModeState('light')
+      return
+    }
+    try {
+      setModeState((localStorage.getItem(key) as ThemeMode) || 'light')
+    } catch {
+      setModeState('light')
+    }
+  }, [user?.id])
+
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const onChange = (e: MediaQueryListEvent) => setSystemDark(e.matches)
@@ -72,17 +89,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setMode = useCallback((m: ThemeMode) => {
     setModeState(m)
-    try { localStorage.setItem(THEME_KEY, m) } catch { /* sem persistência */ }
-  }, [])
+    const key = themeKey(user?.id)
+    if (!key) return
+    try { localStorage.setItem(key, m) } catch { /* armazenamento bloqueado */ }
+  }, [user?.id])
 
-  const setBrand = useCallback((hex: string) => {
-    if (!isValidHex(hex)) return
-    setBrandState(hex)
-    try { localStorage.setItem(BRAND_KEY, hex) } catch { /* sem persistência */ }
+  const applyBrand = useCallback((hex: string | null | undefined) => {
+    // Sem cor definida volta ao padrão, e não à cor de quem passou antes
+    setBrandState(hex && isValidHex(hex) ? hex : DEFAULT_BRAND)
   }, [])
 
   return (
-    <ThemeContext.Provider value={{ mode, resolved, brand, setMode, setBrand }}>
+    <ThemeContext.Provider value={{ mode, resolved, brand, setMode, applyBrand }}>
       {children}
     </ThemeContext.Provider>
   )
