@@ -87,9 +87,9 @@ export function Calendar({ selected, onSelect, minDate, disabledDays = [] }: Cal
                 'mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm transition',
                 !isCurrentMonth && 'invisible',
                 isDisabled && 'opacity-30 cursor-not-allowed',
-                isSelected && 'bg-purple-600 text-white font-semibold',
-                !isSelected && !isDisabled && isToday(day) && 'border border-purple-500 text-purple-700',
-                !isSelected && !isDisabled && 'hover:bg-purple-50 text-gray-700',
+                isSelected && 'bg-brand text-white font-semibold',
+                !isSelected && !isDisabled && isToday(day) && 'border border-brand text-brand-dark',
+                !isSelected && !isDisabled && 'hover:bg-brand-soft text-gray-700',
               )}
             >
               {format(day, 'd')}

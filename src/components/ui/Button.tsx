@@ -12,16 +12,16 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-purple-600 text-white hover:bg-purple-700 disabled:bg-purple-300',
-  secondary: 'bg-white text-purple-600 border border-purple-600 hover:bg-purple-50 disabled:opacity-50',
-  ghost: 'text-gray-600 hover:bg-gray-100 disabled:opacity-50',
-  danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
+  primary: 'bg-brand text-white hover:bg-brand-dark disabled:opacity-40',
+  secondary: 'bg-white text-brand border border-brand hover:bg-brand-soft disabled:opacity-50',
+  ghost: 'text-ink-soft hover:bg-paper-2 disabled:opacity-50',
+  danger: 'bg-red-600 text-white hover:bg-red-700 disabled:opacity-40',
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-3 text-base',
+  sm: 'px-4 py-1.5 text-sm',
+  md: 'px-5 py-2 text-sm',
+  lg: 'px-7 py-3 text-base',
 }
 
 export function Button({
@@ -36,7 +36,7 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2',
+        'inline-flex items-center justify-center gap-2 rounded-full font-medium transition focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2',
         variants[variant],
         sizes[size],
         className

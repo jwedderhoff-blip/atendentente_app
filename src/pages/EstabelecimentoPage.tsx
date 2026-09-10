@@ -39,19 +39,21 @@ const CATEGORY_LABELS: Record<Establishment['category'], string> = {
   outro: 'Estabelecimento',
 }
 
-// Cores por categoria — usando hex para evitar purge do Tailwind em classes dinâmicas
+// Cada categoria tem sua cor de identidade, tirada da família de acentos do
+// produto — não de um tom novo por categoria. Hex direto porque o Tailwind
+// remove classes montadas em tempo de execução.
 type CategoryColor = { hex: string; dark: string; gradient: string }
 const CATEGORY_COLORS: Record<Establishment['category'], CategoryColor> = {
-  salao:                { hex: '#ec4899', dark: '#9d174d', gradient: 'rgba(131,24,67,0.88)' },
-  barbearia:            { hex: '#334155', dark: '#0f172a', gradient: 'rgba(15,23,42,0.92)' },
-  estetica:             { hex: '#d946ef', dark: '#701a75', gradient: 'rgba(112,26,117,0.88)' },
-  beleza:               { hex: '#f43f5e', dark: '#881337', gradient: 'rgba(136,19,55,0.88)' },
-  pilates:              { hex: '#7c3aed', dark: '#2e1065', gradient: 'rgba(46,16,101,0.88)' },
-  aulas_coletivas:      { hex: '#f97316', dark: '#7c2d12', gradient: 'rgba(124,45,18,0.88)' },
-  avaliacao_fisica:     { hex: '#2563eb', dark: '#1e3a8a', gradient: 'rgba(23,37,84,0.88)' },
-  avaliacao_nutricional:{ hex: '#16a34a', dark: '#14532d', gradient: 'rgba(20,83,45,0.88)' },
-  academia:             { hex: '#374151', dark: '#030712', gradient: 'rgba(3,7,18,0.92)' },
-  outro:                { hex: '#4f46e5', dark: '#1e1b4b', gradient: 'rgba(30,27,75,0.88)' },
+  salao:                { hex: '#b5476b', dark: '#6d2740', gradient: 'rgba(109,39,64,0.88)' },
+  barbearia:            { hex: '#a8843c', dark: '#5c4718', gradient: 'rgba(92,71,24,0.90)' },
+  estetica:             { hex: '#7e3f8f', dark: '#46204f', gradient: 'rgba(70,32,79,0.88)' },
+  beleza:               { hex: '#b5476b', dark: '#6d2740', gradient: 'rgba(109,39,64,0.88)' },
+  pilates:              { hex: '#5a7d64', dark: '#2c4234', gradient: 'rgba(44,66,52,0.88)' },
+  aulas_coletivas:      { hex: '#c26a3c', dark: '#6b3818', gradient: 'rgba(107,56,24,0.88)' },
+  avaliacao_fisica:     { hex: '#4f46e5', dark: '#241f6b', gradient: 'rgba(36,31,107,0.88)' },
+  avaliacao_nutricional:{ hex: '#5a7d64', dark: '#2c4234', gradient: 'rgba(44,66,52,0.88)' },
+  academia:             { hex: '#4f46e5', dark: '#241f6b', gradient: 'rgba(36,31,107,0.88)' },
+  outro:                { hex: '#4f46e5', dark: '#241f6b', gradient: 'rgba(36,31,107,0.88)' },
 }
 
 const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
@@ -66,108 +68,108 @@ interface ServiceVisual { icon: LucideIcon; bg: string; text: string; img: strin
 const SERVICE_RULES: { keywords: string[]; icon: LucideIcon; bg: string; text: string; img: string }[] = [
   {
     keywords: ['corte', 'cabelo', 'tesoura', 'franja', 'degrade', 'degradê'],
-    icon: Scissors, bg: 'bg-violet-100', text: 'text-violet-600',
+    icon: Scissors, bg: 'bg-accent-brass/10', text: 'text-accent-brass',
     img: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['barba', 'bigode', 'navalha', 'barbear'],
-    icon: Scissors, bg: 'bg-slate-100', text: 'text-slate-600',
+    icon: Scissors, bg: 'bg-accent-brass/10', text: 'text-accent-brass',
     img: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['escova', 'progressiva', 'alisamento', 'blow'],
-    icon: Wind, bg: 'bg-sky-100', text: 'text-sky-600',
+    icon: Wind, bg: 'bg-accent-plum/10', text: 'text-accent-plum',
     img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['hidrat', 'nutrição', 'reconstru', 'banho de creme', 'máscara'],
-    icon: Droplets, bg: 'bg-cyan-100', text: 'text-cyan-600',
+    icon: Droplets, bg: 'bg-accent-plum/10', text: 'text-accent-plum',
     img: 'https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['color', 'tintura', 'mechas', 'loiro', 'reflexo', 'tint', 'luzes'],
-    icon: Palette, bg: 'bg-pink-100', text: 'text-pink-600',
+    icon: Palette, bg: 'bg-accent-plum/10', text: 'text-accent-plum',
     img: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['manicure', 'pedicure', 'unha', 'nail', 'esmalt'],
-    icon: Star, bg: 'bg-rose-100', text: 'text-rose-600',
+    icon: Star, bg: 'bg-accent-rose/10', text: 'text-accent-rose',
     img: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['sobrancelha', 'design', 'micropigment', 'olho', 'cílio', 'cilio'],
-    icon: Eye, bg: 'bg-amber-100', text: 'text-amber-600',
+    icon: Eye, bg: 'bg-accent-rose/10', text: 'text-accent-rose',
     img: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['depilação', 'depilacao', 'laser', 'cera', 'pelo'],
-    icon: Zap, bg: 'bg-yellow-100', text: 'text-yellow-600',
+    icon: Zap, bg: 'bg-accent-clay/10', text: 'text-accent-clay',
     img: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['massagem', 'massage', 'relaxamento', 'spa', 'drenagem'],
-    icon: Heart, bg: 'bg-red-100', text: 'text-red-600',
+    icon: Heart, bg: 'bg-accent-clay/10', text: 'text-accent-clay',
     img: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['facial', 'limpeza de pele', 'peeling', 'botox', 'preench'],
-    icon: Sparkles, bg: 'bg-fuchsia-100', text: 'text-fuchsia-600',
+    icon: Sparkles, bg: 'bg-accent-rose/10', text: 'text-accent-rose',
     img: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['balé', 'bale', 'ballet', 'dança', 'dance', 'zumba', 'ritmos', 'contemporâneo', 'hip hop'],
-    icon: Star, bg: 'bg-pink-100', text: 'text-pink-600',
+    icon: Star, bg: 'bg-accent-plum/10', text: 'text-accent-plum',
     img: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['jiu', 'karate', 'muay', 'boxe', 'luta', 'arte marcial', 'judô', 'judo', 'kung', 'krav', 'aikido', 'taekwondo'],
-    icon: Zap, bg: 'bg-orange-100', text: 'text-orange-600',
+    icon: Zap, bg: 'bg-accent-rose/10', text: 'text-accent-rose',
     img: 'https://images.unsplash.com/photo-1555597408-26bc8e548a46?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['pilates', 'yoga', 'alongamento', 'stretching'],
-    icon: Dumbbell, bg: 'bg-indigo-100', text: 'text-indigo-600',
+    icon: Dumbbell, bg: 'bg-brand-soft', text: 'text-brand',
     img: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['academia', 'musculação', 'funcional', 'crossfit', 'treino', 'fitness'],
-    icon: Dumbbell, bg: 'bg-indigo-100', text: 'text-indigo-600',
+    icon: Dumbbell, bg: 'bg-brand-soft', text: 'text-brand',
     img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['avaliação física', 'avaliacao física', 'avaliação fisica', 'bioimpedância', 'medida', 'antropom'],
-    icon: Activity, bg: 'bg-blue-100', text: 'text-blue-600',
+    icon: Activity, bg: 'bg-brand-soft', text: 'text-brand',
     img: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['nutri', 'dieta', 'alimentação', 'aliment', 'cardápio'],
-    icon: Apple, bg: 'bg-green-100', text: 'text-green-600',
+    icon: Apple, bg: 'bg-accent-sage/10', text: 'text-accent-sage',
     img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['infantil', 'criança', 'baby', 'bebê'],
-    icon: Baby, bg: 'bg-orange-100', text: 'text-orange-600',
+    icon: Baby, bg: 'bg-accent-rose/10', text: 'text-accent-rose',
     img: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['bronz', 'solário', 'autobronz'],
-    icon: Sun, bg: 'bg-yellow-100', text: 'text-yellow-600',
+    icon: Sun, bg: 'bg-accent-clay/10', text: 'text-accent-clay',
     img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['consulta', 'avaliação', 'avaliacao', 'anamnese', 'check'],
-    icon: ClipboardList, bg: 'bg-teal-100', text: 'text-teal-600',
+    icon: ClipboardList, bg: 'bg-accent-sage/10', text: 'text-accent-sage',
     img: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=75',
   },
   {
     keywords: ['natural', 'orgânic', 'botânic', 'erva'],
-    icon: Leaf, bg: 'bg-lime-100', text: 'text-lime-600',
+    icon: Leaf, bg: 'bg-accent-sage/10', text: 'text-accent-sage',
     img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&auto=format&fit=crop&q=75',
   },
 ]
 
 const DEFAULT_VISUAL: ServiceVisual = {
-  icon: Sparkles, bg: 'bg-indigo-100', text: 'text-indigo-600',
+  icon: Sparkles, bg: 'bg-brand-soft', text: 'text-brand',
   img: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&auto=format&fit=crop&q=75',
 }
 
@@ -236,12 +238,12 @@ function ServiceDetailModal({ service, slug, onClose }: ServiceDetailModalProps)
                 <Icon size={20} className={text} />
               </div>
               <div>
-                <h3 className="font-bold text-gray-900 text-lg leading-tight">{service.name}</h3>
+                <h3 className="font-display text-lg tracking-tight text-ink leading-tight">{service.name}</h3>
                 <div className="flex items-center gap-3 mt-1">
                   <span className="flex items-center gap-1 text-sm text-gray-400">
                     <Clock size={13} /> {service.duration_minutes} min
                   </span>
-                  <span className="text-sm font-bold text-indigo-600">
+                  <span className="text-sm font-bold text-brand">
                     {formatCurrency(service.price)}
                   </span>
                 </div>
@@ -321,14 +323,14 @@ export default function EstabelecimentoPage() {
       <div className="min-h-screen flex items-center justify-center p-4 text-center">
         <div>
           <p className="text-gray-500 mb-2">Estabelecimento não encontrado.</p>
-          <Link to="/" className="text-sm text-indigo-600 hover:underline">Voltar ao início</Link>
+          <Link to="/" className="text-sm text-brand hover:underline">Voltar ao início</Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper">
 
       {/* ── Banner / Hero com imagem temática ── */}
       <div className="relative h-72 sm:h-96 overflow-hidden">
@@ -358,7 +360,7 @@ export default function EstabelecimentoPage() {
 
         {/* Nome + tagline no rodapé do banner */}
         <div className="absolute bottom-16 left-0 right-0 px-5 text-center">
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white leading-tight drop-shadow-lg">
+          <h1 className="font-display text-3xl sm:text-5xl tracking-tight text-white leading-[1.06] drop-shadow-lg">
             {establishment.name}
           </h1>
           {establishment.tagline && (
@@ -424,7 +426,7 @@ export default function EstabelecimentoPage() {
 
       {/* ── Lista de serviços ── */}
       <div className="max-w-lg mx-auto px-4 py-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-1">Serviços Oferecidos</h2>
+        <h2 className="font-display text-2xl tracking-tight text-ink mb-1">Serviços Oferecidos</h2>
         <p className="text-sm text-gray-400 mb-5">Toque em um serviço para ver detalhes e agendar</p>
 
         {activeServices.length === 0 ? (

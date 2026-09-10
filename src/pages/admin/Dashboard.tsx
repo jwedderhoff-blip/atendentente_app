@@ -23,7 +23,7 @@ function StatCard({ label, value, icon, color }: {
         <p className="text-sm font-medium text-gray-500">{label}</p>
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>{icon}</div>
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <p className="font-display text-3xl tracking-tight text-ink">{value}</p>
     </div>
   )
 }
@@ -72,7 +72,7 @@ export default function Dashboard() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="font-display text-3xl tracking-tight text-ink">
           Olá, {establishment?.name ?? 'Estabelecimento'} 👋
         </h1>
         <p className="text-gray-500 text-sm capitalize">
@@ -84,8 +84,8 @@ export default function Dashboard() {
         <StatCard
           label="Agendamentos hoje"
           value={appointments.length}
-          icon={<Calendar size={18} className="text-purple-600" />}
-          color="bg-purple-50"
+          icon={<Calendar size={18} className="text-brand" />}
+          color="bg-brand-soft"
         />
         <StatCard
           label="Confirmados"
@@ -128,7 +128,7 @@ export default function Dashboard() {
                   className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50 transition"
                 >
                   <div className="w-14 text-center">
-                    <p className="text-sm font-semibold text-purple-700">
+                    <p className="text-sm font-semibold text-brand-dark">
                       {format(new Date(appt.starts_at), 'HH:mm')}
                     </p>
                   </div>
@@ -204,7 +204,7 @@ export default function Dashboard() {
               {apptService?.price !== undefined && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Valor</span>
-                  <span className="font-semibold text-purple-700">{formatCurrency(apptService.price)}</span>
+                  <span className="font-semibold text-brand-dark">{formatCurrency(apptService.price)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm items-center">

@@ -33,28 +33,31 @@ const DEFAULT_prepayDiscount = 10
 
 interface ServiceVisual { icon: LucideIcon; bg: string; text: string }
 
+// O ícone diferencia o tipo de serviço; a cor vem da família de acentos do
+// produto, não de um tom novo por regra. Dezoito pastéis distintos era o que
+// dava ao app aquele ar de tela gerada.
 const SERVICE_RULES: { keywords: string[]; icon: LucideIcon; bg: string; text: string }[] = [
-  { keywords: ['corte', 'cabelo', 'hair', 'tesoura', 'franja', 'degrade', 'degradê'], icon: Scissors,      bg: 'bg-violet-100', text: 'text-violet-600' },
-  { keywords: ['barba', 'bigode', 'navalha', 'barbear'],                              icon: Scissors,      bg: 'bg-slate-100',  text: 'text-slate-600' },
-  { keywords: ['escova', 'progressiva', 'alisamento', 'blow'],                        icon: Wind,          bg: 'bg-sky-100',    text: 'text-sky-600'  },
-  { keywords: ['hidrat', 'nutrição', 'reconstru', 'banho de creme', 'máscara'],       icon: Droplets,      bg: 'bg-cyan-100',   text: 'text-cyan-600' },
-  { keywords: ['color', 'tintura', 'mechas', 'loiro', 'reflexo', 'tint', 'luzes'],   icon: Palette,       bg: 'bg-pink-100',   text: 'text-pink-600' },
-  { keywords: ['manicure', 'pedicure', 'unha', 'nail', 'esmalt'],                    icon: Star,          bg: 'bg-rose-100',   text: 'text-rose-600' },
-  { keywords: ['sobrancelha', 'design', 'micropigment', 'olho', 'cílio', 'cilio'],   icon: Eye,           bg: 'bg-amber-100',  text: 'text-amber-600'},
-  { keywords: ['depilação', 'depilacao', 'laser', 'cera', 'pelo'],                   icon: Zap,           bg: 'bg-yellow-100', text: 'text-yellow-600'},
-  { keywords: ['massagem', 'massage', 'relaxamento', 'spa', 'drenagem'],             icon: Heart,         bg: 'bg-red-100',    text: 'text-red-600'  },
-  { keywords: ['facial', 'limpeza de pele', 'peeling', 'botox', 'preench'],          icon: Sparkles,      bg: 'bg-fuchsia-100',text: 'text-fuchsia-600'},
-  { keywords: ['pilates', 'yoga', 'alongamento', 'stretching'],                      icon: Dumbbell,      bg: 'bg-purple-100', text: 'text-purple-600'},
-  { keywords: ['academia', 'musculação', 'funcional', 'crossfit', 'treino', 'fitness'], icon: Dumbbell,   bg: 'bg-indigo-100', text: 'text-indigo-600'},
-  { keywords: ['avaliação física', 'avaliacao física', 'avaliação fisica', 'bioimpedância', 'medida', 'antropom'], icon: Activity, bg: 'bg-blue-100', text: 'text-blue-600' },
-  { keywords: ['nutri', 'dieta', 'alimentação', 'aliment', 'cardápio'],              icon: Apple,         bg: 'bg-green-100',  text: 'text-green-600'},
-  { keywords: ['infantil', 'criança', 'baby', 'bebê'],                               icon: Baby,          bg: 'bg-orange-100', text: 'text-orange-600'},
-  { keywords: ['bronz', 'solário', 'autobronz'],                                     icon: Sun,           bg: 'bg-yellow-100', text: 'text-yellow-600'},
-  { keywords: ['consulta', 'avaliação', 'avaliacao', 'anamnese', 'check'],           icon: ClipboardList, bg: 'bg-teal-100',   text: 'text-teal-600' },
-  { keywords: ['natural', 'orgânic', 'botânic', 'erva'],                             icon: Leaf,          bg: 'bg-lime-100',   text: 'text-lime-600' },
+  { keywords: ['corte', 'cabelo', 'hair', 'tesoura', 'franja', 'degrade', 'degradê'], icon: Scissors,      bg: 'bg-accent-brass/10', text: 'text-accent-brass' },
+  { keywords: ['barba', 'bigode', 'navalha', 'barbear'],                              icon: Scissors,      bg: 'bg-accent-brass/10', text: 'text-accent-brass' },
+  { keywords: ['escova', 'progressiva', 'alisamento', 'blow'],                        icon: Wind,          bg: 'bg-accent-plum/10',  text: 'text-accent-plum' },
+  { keywords: ['hidrat', 'nutrição', 'reconstru', 'banho de creme', 'máscara'],       icon: Droplets,      bg: 'bg-accent-plum/10',  text: 'text-accent-plum' },
+  { keywords: ['color', 'tintura', 'mechas', 'loiro', 'reflexo', 'tint', 'luzes'],   icon: Palette,       bg: 'bg-accent-plum/10',  text: 'text-accent-plum' },
+  { keywords: ['manicure', 'pedicure', 'unha', 'nail', 'esmalt'],                    icon: Star,          bg: 'bg-accent-rose/10',  text: 'text-accent-rose' },
+  { keywords: ['sobrancelha', 'design', 'micropigment', 'olho', 'cílio', 'cilio'],   icon: Eye,           bg: 'bg-accent-rose/10',  text: 'text-accent-rose' },
+  { keywords: ['depilação', 'depilacao', 'laser', 'cera', 'pelo'],                   icon: Zap,           bg: 'bg-accent-clay/10',  text: 'text-accent-clay' },
+  { keywords: ['massagem', 'massage', 'relaxamento', 'spa', 'drenagem'],             icon: Heart,         bg: 'bg-accent-clay/10',  text: 'text-accent-clay' },
+  { keywords: ['facial', 'limpeza de pele', 'peeling', 'botox', 'preench'],          icon: Sparkles,      bg: 'bg-accent-rose/10',  text: 'text-accent-rose' },
+  { keywords: ['pilates', 'yoga', 'alongamento', 'stretching'],                      icon: Dumbbell,      bg: 'bg-accent-sage/10',  text: 'text-accent-sage' },
+  { keywords: ['academia', 'musculação', 'funcional', 'crossfit', 'treino', 'fitness'], icon: Dumbbell,   bg: 'bg-brand-soft',      text: 'text-brand' },
+  { keywords: ['avaliação física', 'avaliacao física', 'avaliação fisica', 'bioimpedância', 'medida', 'antropom'], icon: Activity, bg: 'bg-brand-soft', text: 'text-brand' },
+  { keywords: ['nutri', 'dieta', 'alimentação', 'aliment', 'cardápio'],              icon: Apple,         bg: 'bg-accent-sage/10',  text: 'text-accent-sage' },
+  { keywords: ['infantil', 'criança', 'baby', 'bebê'],                               icon: Baby,          bg: 'bg-accent-rose/10',  text: 'text-accent-rose' },
+  { keywords: ['bronz', 'solário', 'autobronz'],                                     icon: Sun,           bg: 'bg-accent-clay/10',  text: 'text-accent-clay' },
+  { keywords: ['consulta', 'avaliação', 'avaliacao', 'anamnese', 'check'],           icon: ClipboardList, bg: 'bg-accent-sage/10',  text: 'text-accent-sage' },
+  { keywords: ['natural', 'orgânic', 'botânic', 'erva'],                             icon: Leaf,          bg: 'bg-accent-sage/10',  text: 'text-accent-sage' },
 ]
 
-const DEFAULT_VISUAL: ServiceVisual = { icon: Sparkles, bg: 'bg-purple-100', text: 'text-purple-600' }
+const DEFAULT_VISUAL: ServiceVisual = { icon: Sparkles, bg: 'bg-brand-soft', text: 'text-brand' }
 
 function getServiceVisual(name: string): ServiceVisual {
   const lower = name.toLowerCase()
@@ -82,7 +85,7 @@ function StepIndicator({ current, total }: { current: Step; total: number }) {
         <div
           key={i}
           className={`flex-1 h-1.5 rounded-full transition-all ${
-            i + 1 < current ? 'bg-purple-300' : i + 1 === current ? 'bg-purple-600' : 'bg-gray-200'
+            i + 1 < current ? 'bg-brand/40' : i + 1 === current ? 'bg-brand' : 'bg-gray-200'
           }`}
         />
       ))}
@@ -302,17 +305,17 @@ export default function Booking() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper">
       <div className="bg-white border-b border-gray-100 px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <Link
             to={`/agendar/${slug}`}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-brand hover:bg-brand-soft transition"
             title="Voltar ao perfil"
           >
             <ChevronLeft size={20} />
           </Link>
-          <div className="w-8 h-8 rounded-xl bg-purple-600 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-brand flex items-center justify-center shrink-0">
             <Sparkles size={14} className="text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -328,7 +331,7 @@ export default function Booking() {
         {step > 1 && step < 5 && (
           <button
             onClick={goBack}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-700 mb-4 transition"
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-dark mb-4 transition"
           >
             <ChevronLeft size={16} /> Voltar
           </button>
@@ -336,7 +339,7 @@ export default function Booking() {
 
         {step === 1 && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">O que você precisa?</h2>
+            <h2 className="font-display text-3xl tracking-tight text-ink mb-1">O que você precisa?</h2>
             <p className="text-sm text-gray-400 mb-6">Toque no serviço desejado para agendar</p>
             {activeServices.length === 0 ? (
               <p className="text-center text-gray-400 py-10">Nenhum serviço disponível.</p>
@@ -351,12 +354,12 @@ export default function Booking() {
                       onClick={() => selectService(s)}
                       className={`relative flex flex-col items-center text-center bg-white rounded-2xl border-2 p-5 transition active:scale-95 ${
                         selected
-                          ? 'border-purple-600 shadow-lg shadow-purple-100'
-                          : 'border-gray-100 hover:border-purple-300 hover:shadow-md shadow-sm'
+                          ? 'border-brand shadow-lg shadow-brand-soft'
+                          : 'border-gray-100 hover:border-brand/40 hover:shadow-md shadow-sm'
                       }`}
                     >
                       {selected && (
-                        <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center">
+                        <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-brand flex items-center justify-center">
                           <CheckCircle size={12} className="text-white" />
                         </span>
                       )}
@@ -371,7 +374,7 @@ export default function Booking() {
                         <span className="flex items-center gap-1 text-xs text-gray-400">
                           <Clock size={11} /> {s.duration_minutes}min
                         </span>
-                        <span className="text-sm font-bold text-purple-700">
+                        <span className="text-sm font-bold text-brand-dark">
                           {formatCurrency(s.price)}
                         </span>
                       </div>
@@ -385,21 +388,21 @@ export default function Booking() {
 
         {step === 2 && (
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Escolha o profissional</h2>
+            <h2 className="font-display text-2xl tracking-tight text-ink mb-1">Escolha o profissional</h2>
             <p className="text-sm text-gray-400 mb-6">Com quem deseja ser atendido?</p>
             <div className="space-y-3">
               {eligibleProfessionals.map((p) => (
                 <button
                   key={p.id}
                   onClick={() => selectProfessional(p)}
-                  className={`w-full text-left bg-white rounded-2xl border p-4 flex items-center gap-4 transition hover:border-purple-400 hover:shadow-sm ${
+                  className={`w-full text-left bg-white rounded-2xl border p-4 flex items-center gap-4 transition hover:border-brand hover:shadow-sm ${
                     selectedProfessional?.id === p.id
-                      ? 'border-purple-600 ring-2 ring-purple-200'
+                      ? 'border-brand ring-2 ring-brand/20'
                       : 'border-gray-200'
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                    <User size={20} className="text-purple-600" />
+                  <div className="w-12 h-12 rounded-full bg-brand-soft flex items-center justify-center shrink-0">
+                    <User size={20} className="text-brand" />
                   </div>
                   <p className="font-semibold text-gray-900">{p.name}</p>
                 </button>
@@ -410,7 +413,7 @@ export default function Booking() {
 
         {step === 3 && (
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Escolha a data e horário</h2>
+            <h2 className="font-display text-2xl tracking-tight text-ink mb-1">Escolha a data e horário</h2>
             <p className="text-sm text-gray-400 mb-6">Selecione quando deseja ser atendido</p>
 
             <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
@@ -444,7 +447,7 @@ export default function Booking() {
             {selectedDate && selectedTime && selectedService?.schedule_type === 'fixed' && (
               <div className="bg-white rounded-2xl border border-gray-200 p-4 mt-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <RefreshCw size={16} className="text-purple-600" />
+                  <RefreshCw size={16} className="text-brand" />
                   <p className="text-sm font-semibold text-gray-700">Matrícula recorrente</p>
                 </div>
                 <p className="text-xs text-gray-400 mb-3">Repete toda semana no mesmo dia e horário</p>
@@ -455,8 +458,8 @@ export default function Booking() {
                       onClick={() => { setRecurrenceWeeks(w); setRecurringTermAccepted(false) }}
                       className={`py-2 rounded-xl text-sm font-semibold transition border ${
                         recurrenceWeeks === w
-                          ? 'bg-purple-600 text-white border-purple-600'
-                          : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300'
+                          ? 'bg-brand text-white border-brand'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-brand/40'
                       }`}
                     >
                       {w === 0 ? 'Só esta' : `${w} sem.`}
@@ -470,7 +473,7 @@ export default function Booking() {
                       type="checkbox"
                       checked={recurringTermAccepted}
                       onChange={(e) => setRecurringTermAccepted(e.target.checked)}
-                      className="mt-0.5 shrink-0 accent-purple-600"
+                      className="mt-0.5 shrink-0 accent-brand"
                     />
                     <span className="text-xs text-amber-800 leading-relaxed">
                       <strong>Estou ciente</strong> de que ao me matricular, os horários ficam reservados exclusivamente para mim durante {recurrenceWeeks} semanas.
@@ -496,12 +499,12 @@ export default function Booking() {
 
         {step === 4 && (
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Seus dados</h2>
+            <h2 className="font-display text-2xl tracking-tight text-ink mb-1">Seus dados</h2>
             <p className="text-sm text-gray-400 mb-6">Preencha para confirmar o agendamento</p>
 
-            <div className="bg-purple-50 rounded-2xl p-4 mb-6 text-sm">
-              <p className="font-semibold text-purple-800">{selectedService?.name}</p>
-              <p className="text-purple-600 mt-0.5">
+            <div className="bg-brand-soft rounded-2xl p-4 mb-6 text-sm">
+              <p className="font-semibold text-brand-dark">{selectedService?.name}</p>
+              <p className="text-brand mt-0.5">
                 {selectedProfessional?.name} ·{' '}
                 {selectedDate &&
                   format(selectedDate, "d 'de' MMMM", { locale: ptBR })}{' '}
@@ -549,7 +552,7 @@ export default function Booking() {
           <div className="py-4">
             <div className="text-center mb-6">
               <CheckCircle size={56} className="text-green-500 mx-auto mb-3" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">
+              <h2 className="font-display text-3xl tracking-tight text-ink mb-1">
                 {recurringCount > 1 ? 'Matrícula recebida!' : 'Reserva recebida!'}
               </h2>
               <p className="text-sm text-gray-500">
@@ -583,7 +586,7 @@ export default function Booking() {
                   </div>
                   <div className="flex justify-between border-t border-gray-100 pt-2 mt-2">
                     <span className="text-gray-500">Valor</span>
-                    <span className="font-semibold text-purple-700">
+                    <span className="font-semibold text-brand-dark">
                       {formatCurrency(selectedService.price)}
                     </span>
                   </div>
@@ -595,16 +598,16 @@ export default function Booking() {
               <div className="space-y-3 mb-4">
                 <button
                   onClick={() => setPaymentChoice('prepay')}
-                  className="w-full flex items-center justify-between px-5 py-4 bg-purple-600 rounded-2xl hover:bg-purple-700 transition"
+                  className="w-full flex items-center justify-between px-5 py-4 bg-brand rounded-2xl hover:bg-brand-dark transition"
                 >
                   <div className="text-left">
                     <p className="font-semibold text-white">Pagar agora com desconto</p>
-                    <p className="text-sm text-purple-200">
+                    <p className="text-sm text-brand/20">
                       {formatCurrency(Math.round(selectedService.price * (1 - prepayDiscount)))}
                       {' '}· {Math.round(prepayDiscount * 100)}% off via PIX antecipado
                     </p>
                   </div>
-                  <Tag size={20} className="text-purple-200 shrink-0" />
+                  <Tag size={20} className="text-brand/20 shrink-0" />
                 </button>
                 <button
                   onClick={() => setPaymentChoice('confirm')}
@@ -624,7 +627,7 @@ export default function Booking() {
                 <p className="text-sm text-green-700 font-medium">Reserva aguardando confirmação — você paga no dia do atendimento.</p>
                 <a
                   href={`/agendar/${establishment.slug}`}
-                  className="mt-3 inline-block text-sm text-purple-600 font-semibold hover:underline"
+                  className="mt-3 inline-block text-sm text-brand font-semibold hover:underline"
                 >
                   Finalizar
                 </a>

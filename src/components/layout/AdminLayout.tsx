@@ -88,7 +88,7 @@ export default function AdminLayout() {
               establishments.length > 1 && 'hover:bg-gray-50 rounded-xl px-1 py-0.5 -mx-1 transition'
             )}
           >
-            <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center shrink-0">
               <CategoryIcon size={16} className="text-white" />
             </div>
             <div className="min-w-0 flex-1">
@@ -115,8 +115,8 @@ export default function AdminLayout() {
                     window.location.reload()
                   }}
                   className={cn(
-                    'flex items-center gap-2 w-full px-3 py-2.5 text-sm text-left hover:bg-purple-50 transition',
-                    e.id === establishment?.id && 'bg-purple-50 text-purple-700 font-medium'
+                    'flex items-center gap-2 w-full px-3 py-2.5 text-sm text-left hover:bg-brand-soft transition',
+                    e.id === establishment?.id && 'bg-brand-soft text-brand-dark font-medium'
                   )}
                 >
                   <span className="truncate">{e.name}</span>
@@ -138,7 +138,7 @@ export default function AdminLayout() {
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition',
                 isActive
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-brand text-white'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               )
             }
@@ -153,7 +153,7 @@ export default function AdminLayout() {
         {establishments.length > 1 && (
           <button
             onClick={() => navigate('/selecionar')}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition w-full"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-brand-soft hover:text-brand-dark transition w-full"
           >
             <ArrowLeftRight size={18} />
             Trocar estabelecimento
@@ -171,7 +171,7 @@ export default function AdminLayout() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper">
       {/* Desktop sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:flex lg:flex-col bg-white border-r border-gray-200">
         {sidebar}

@@ -26,7 +26,7 @@ export function PixPayment({ pixData, amount, loading = false }: PixPaymentProps
     return (
       <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-brand/20 border-t-brand rounded-full animate-spin" />
           <p className="text-sm text-gray-500">Gerando PIX...</p>
         </div>
       </div>
@@ -51,7 +51,7 @@ export function PixPayment({ pixData, amount, loading = false }: PixPaymentProps
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Valor</p>
-          <p className="text-2xl font-bold text-purple-700">{formatCurrency(amount)}</p>
+          <p className="text-2xl font-bold text-brand-dark">{formatCurrency(amount)}</p>
         </div>
         {statusBadge}
       </div>
@@ -80,11 +80,11 @@ export function PixPayment({ pixData, amount, loading = false }: PixPaymentProps
             type="text"
             readOnly
             value={pixData.qr_code}
-            className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-700 truncate focus:outline-none focus:ring-2 focus:ring-purple-200"
+            className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-700 truncate focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition shrink-0 bg-purple-600 text-white hover:bg-purple-700 active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition shrink-0 bg-brand text-white hover:bg-brand-dark active:scale-95"
           >
             {copied ? (
               <>
@@ -102,9 +102,9 @@ export function PixPayment({ pixData, amount, loading = false }: PixPaymentProps
       </div>
 
       {/* Instructions */}
-      <div className="bg-purple-50 rounded-xl p-4">
-        <p className="text-sm text-purple-800 font-medium mb-1">Como pagar</p>
-        <p className="text-xs text-purple-600">
+      <div className="bg-brand-soft rounded-xl p-4">
+        <p className="text-sm text-brand-dark font-medium mb-1">Como pagar</p>
+        <p className="text-xs text-brand">
           Abra seu banco, escolha PIX → Pagar → Copia e Cola ou QR Code
         </p>
       </div>

@@ -46,15 +46,15 @@ export default function SelecionarEstabelecimento() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-purple-600 border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-paper flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Seus estabelecimentos</h1>
+        <h1 className="font-display text-3xl tracking-tight text-ink mb-1">Seus estabelecimentos</h1>
         <p className="text-sm text-gray-500 mb-6">Selecione qual deseja gerenciar agora</p>
 
         <div className="space-y-3 mb-6">
@@ -65,9 +65,9 @@ export default function SelecionarEstabelecimento() {
               <button
                 key={e.id}
                 onClick={() => select(e.id)}
-                className="flex items-center gap-4 w-full bg-gray-50 hover:bg-purple-50 hover:border-purple-300 border border-gray-200 rounded-2xl p-4 transition text-left group"
+                className="flex items-center gap-4 w-full bg-gray-50 hover:bg-brand-soft hover:border-brand/40 border border-gray-200 rounded-2xl p-4 transition text-left group"
               >
-                <div className="w-12 h-12 rounded-xl bg-purple-600 flex items-center justify-center shrink-0 group-hover:bg-purple-700 transition">
+                <div className="w-12 h-12 rounded-xl bg-brand flex items-center justify-center shrink-0 group-hover:bg-brand-dark transition">
                   <Icon size={22} className="text-white" />
                 </div>
                 <div className="min-w-0">
@@ -84,7 +84,7 @@ export default function SelecionarEstabelecimento() {
 
         <Link
           to="/register"
-          className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-purple-300 text-purple-600 rounded-2xl py-3.5 font-medium hover:bg-purple-50 transition text-sm"
+          className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-brand/40 text-brand rounded-2xl py-3.5 font-medium hover:bg-brand-soft transition text-sm"
         >
           <Plus size={18} />
           Cadastrar novo estabelecimento

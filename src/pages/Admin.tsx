@@ -8,7 +8,7 @@ export default function Admin() {
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {['Agenda', 'Clientes', 'Serviços', 'Relatórios', 'Configurações'].map(item => (
-            <a key={item} href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition text-sm">
+            <a key={item} href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-soft hover:text-brand-dark transition text-sm">
               {item}
             </a>
           ))}

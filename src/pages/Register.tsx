@@ -79,13 +79,13 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-paper flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-purple-600 flex items-center justify-center mb-4">
+          <div className="w-12 h-12 rounded-xl bg-brand flex items-center justify-center mb-4">
             <Scissors size={24} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Criar conta</h1>
+          <h1 className="font-display text-3xl tracking-tight text-ink">Criar conta</h1>
           <p className="text-sm text-gray-500 mt-1">Cadastre seu estabelecimento gratuitamente</p>
         </div>
 
@@ -101,7 +101,7 @@ export default function Register() {
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-gray-700">Categoria</label>
             <select
-              className="w-full rounded-xl border border-gray-300 bg-white py-2.5 px-4 text-sm text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition"
+              className="w-full rounded-xl border border-gray-300 bg-white py-2.5 px-4 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition"
               {...register('category')}
             >
               <optgroup label="Beleza">
@@ -171,7 +171,7 @@ export default function Register() {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Já tem conta?{' '}
-          <Link to="/login" className="text-purple-600 font-medium hover:underline">
+          <Link to="/login" className="text-brand font-medium hover:underline">
             Entrar
           </Link>
         </p>

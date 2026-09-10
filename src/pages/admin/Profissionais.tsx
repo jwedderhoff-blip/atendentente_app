@@ -65,7 +65,7 @@ export default function Profissionais() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Profissionais</h1>
+        <h1 className="font-display text-3xl tracking-tight text-ink">Profissionais</h1>
         <Button size="sm" onClick={openCreate}>
           <Plus size={16} />
           Novo profissional

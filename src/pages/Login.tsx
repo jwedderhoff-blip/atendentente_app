@@ -35,13 +35,13 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-paper flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-purple-600 flex items-center justify-center mb-4">
+          <div className="w-12 h-12 rounded-xl bg-brand flex items-center justify-center mb-4">
             <Scissors size={24} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Entrar</h1>
+          <h1 className="font-display text-3xl tracking-tight text-ink">Entrar</h1>
           <p className="text-sm text-gray-500 mt-1">Acesse o painel do seu estabelecimento</p>
         </div>
 
@@ -76,7 +76,7 @@ export default function Login() {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Não tem conta?{' '}
-          <Link to="/register" className="text-purple-600 font-medium hover:underline">
+          <Link to="/register" className="text-brand font-medium hover:underline">
             Cadastre seu estabelecimento
           </Link>
         </p>

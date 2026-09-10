@@ -1,6 +1,35 @@
 @import "tailwindcss";
 
 /* ==========================================================================
+   Tokens do produto
+   --------------------------------------------------------------------------
+   Vocabulário único para landing, demonstração e aplicativo. O que o cliente
+   vê na demo precisa ser o que ele encontra depois de contratar, então as
+   telas devem falar por papel, tinta e marca — não por cinza e roxo soltos.
+   ========================================================================== */
+@theme {
+  --color-ink: #14131c;
+  --color-ink-soft: #57535f;
+  --color-muted: #8d8893;
+
+  --color-paper: #fbfaf8;
+  --color-paper-2: #f3f1ec;
+  --color-line: #e5e1d9;
+  --color-line-soft: #eceaf5;
+
+  --color-brand: #4f46e5;
+  --color-brand-dark: #4338ca;
+  --color-brand-soft: #eef0ff;
+
+  /* Acentos: seis tons de croma parecido, lidos como família */
+  --color-accent-plum: #7e3f8f;
+  --color-accent-rose: #b5476b;
+  --color-accent-clay: #c26a3c;
+  --color-accent-brass: #a8843c;
+  --color-accent-sage: #5a7d64;
+}
+
+/* ==========================================================================
    Landing page — tipografia de display e revelação por scroll
    ========================================================================== */
 .font-display {

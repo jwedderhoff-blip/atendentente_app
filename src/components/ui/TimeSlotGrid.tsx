@@ -42,8 +42,8 @@ export function TimeSlotGrid({ slots, selected, onSelect }: TimeSlotGridProps) {
               hasSpots ? 'py-2 px-1 gap-0.5' : 'py-2.5',
               slot.available
                 ? isSelected
-                  ? 'bg-purple-600 text-white border-purple-600'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-purple-400 hover:text-purple-700'
+                  ? 'bg-brand text-white border-brand'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-brand hover:text-brand-dark'
                 : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed line-through'
             )}
           >
@@ -54,7 +54,7 @@ export function TimeSlotGrid({ slots, selected, onSelect }: TimeSlotGridProps) {
                   'text-[10px] font-normal leading-tight',
                   slot.available
                     ? isSelected
-                      ? 'text-purple-200'
+                      ? 'text-brand/20'
                       : slot.remaining_spots === 1
                       ? 'text-amber-500'
                       : 'text-gray-400'

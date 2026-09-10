@@ -176,7 +176,7 @@ export default function Configuracoes() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
+      <h1 className="font-display text-3xl tracking-tight text-ink">Configurações</h1>
 
       {/* ── Dados do Estabelecimento ── */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">

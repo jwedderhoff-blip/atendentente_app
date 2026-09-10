@@ -13,21 +13,21 @@ export function Input({ label, error, icon, className, id, ...props }: InputProp
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-sm font-medium text-gray-700">
+        <label htmlFor={inputId} className="text-sm font-medium text-ink-soft">
           {label}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+          <div className="absolute inset-y-0 left-3 flex items-center text-muted pointer-events-none">
             {icon}
           </div>
         )}
         <input
           id={inputId}
           className={cn(
-            'w-full rounded-xl border border-gray-300 bg-white py-2.5 text-sm text-gray-900 placeholder-gray-400 transition',
-            'focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20',
+            'w-full rounded-xl border border-line bg-white py-2.5 text-sm text-ink placeholder-muted transition',
+            'focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20',
             icon ? 'pl-10 pr-4' : 'px-4',
             error && 'border-red-400 focus:border-red-400 focus:ring-red-400/20',
             className

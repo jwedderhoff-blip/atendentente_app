@@ -82,8 +82,8 @@ function ClientRow({
         className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50 transition"
         onClick={() => setOpen((v) => !v)}
       >
-        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-          <User size={18} className="text-purple-600" />
+        <div className="w-10 h-10 rounded-full bg-brand-soft flex items-center justify-center shrink-0">
+          <User size={18} className="text-brand" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-900">{client.name}</p>
@@ -122,7 +122,7 @@ function ClientRow({
               type="month"
               value={month}
               onChange={(e) => setMonth(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+              className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
 
@@ -197,7 +197,7 @@ export default function Clientes() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
+        <h1 className="font-display text-3xl tracking-tight text-ink">Clientes</h1>
         <Button variant="secondary" size="sm" onClick={exportCsv}>
           <Download size={16} />
           Exportar CSV

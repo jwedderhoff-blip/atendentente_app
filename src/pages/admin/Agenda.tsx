@@ -73,11 +73,11 @@ export default function Agenda() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Agenda</h1>
+        <h1 className="font-display text-3xl tracking-tight text-ink">Agenda</h1>
 
         <div className="flex items-center gap-3">
           <select
-            className="rounded-xl border border-gray-200 text-sm px-3 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+            className="rounded-xl border border-gray-200 text-sm px-3 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
             value={selectedProfessional}
             onChange={(e) => setSelectedProfessional(e.target.value)}
           >
@@ -119,12 +119,12 @@ export default function Agenda() {
             {weekDays.map((day) => (
               <div
                 key={day.toISOString()}
-                className={`border-b border-l border-gray-100 p-3 text-center ${isSameDay(day, new Date()) ? 'bg-purple-50' : ''}`}
+                className={`border-b border-l border-gray-100 p-3 text-center ${isSameDay(day, new Date()) ? 'bg-brand-soft' : ''}`}
               >
                 <p className="text-xs font-medium text-gray-400 uppercase">
                   {format(day, 'EEE', { locale: ptBR })}
                 </p>
-                <p className={`text-sm font-semibold mt-0.5 ${isSameDay(day, new Date()) ? 'text-purple-700' : 'text-gray-800'}`}>
+                <p className={`text-sm font-semibold mt-0.5 ${isSameDay(day, new Date()) ? 'text-brand-dark' : 'text-gray-800'}`}>
                   {format(day, 'd')}
                 </p>
               </div>
@@ -152,13 +152,13 @@ export default function Agenda() {
                           <div
                             key={a.id}
                             onClick={() => setSelectedAppt(a)}
-                            className="bg-purple-100 rounded-lg p-1.5 mb-1 cursor-pointer hover:bg-purple-200 transition"
+                            className="bg-brand-soft rounded-lg p-1.5 mb-1 cursor-pointer hover:bg-brand/20 transition"
                           >
-                            <p className="text-xs font-semibold text-purple-800 truncate flex items-center gap-1">
+                            <p className="text-xs font-semibold text-brand-dark truncate flex items-center gap-1">
                               {format(new Date(a.starts_at), 'HH:mm')} {client?.name}
                               {a.recurring_group_id && <RefreshCw size={10} className="shrink-0 opacity-60" />}
                             </p>
-                            <p className="text-xs text-purple-600 truncate">{service?.name}</p>
+                            <p className="text-xs text-brand truncate">{service?.name}</p>
                             <Badge status={a.status} className="mt-1" />
                           </div>
                         )
@@ -217,7 +217,7 @@ export default function Agenda() {
               {apptService?.price !== undefined && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Valor</span>
-                  <span className="font-semibold text-purple-700">{formatCurrency(apptService.price)}</span>
+                  <span className="font-semibold text-brand-dark">{formatCurrency(apptService.price)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm items-center">
