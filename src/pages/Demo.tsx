@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowLeft, ArrowUpRight, Check, ChevronLeft, Clock, User, Users,
   Calendar as CalendarIcon, Bell, Sparkles, RotateCcw, Phone, Store, Smartphone, Settings2,
 } from 'lucide-react'
 import { formatCurrency, cn } from '../lib/utils'
+import { useTheme } from '../context/ThemeContext'
 import SetupPanel from './demo/SetupPanel'
 import {
   HUES, INK, INK_SOFT, MUTED, PAPER, LINE, SOFT_LINE, WEEKDAYS,
@@ -18,6 +19,10 @@ const ACTS = [
 ]
 
 export default function Demo() {
+  const { applyPublic } = useTheme()
+  // A demo tem paleta clara própria, igual à landing.
+  useEffect(() => { applyPublic(null) }, [applyPublic])
+
   const [modeIdx, setModeIdx] = useState(0)
   const [act, setAct] = useState<1 | 2>(1)
   const scenario = SCENARIOS[modeIdx]

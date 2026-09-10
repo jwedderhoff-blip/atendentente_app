@@ -90,7 +90,7 @@ export default function AparenciaCard({ establishment }: Props) {
         </div>
         <div>
           <h2 className="font-semibold text-gray-900 text-sm">Aparência</h2>
-          <p className="text-xs text-gray-400">Tema do seu painel e cor da sua marca</p>
+          <p className="text-xs text-gray-400">Tema e cor deste estabelecimento</p>
         </div>
       </div>
 
@@ -103,9 +103,9 @@ export default function AparenciaCard({ establishment }: Props) {
 
         {/* ── Tema ── */}
         <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1">Tema do painel</label>
+          <label className="text-sm font-medium text-gray-700 block mb-1">Tema</label>
           <p className="text-xs text-gray-400 mb-3">
-            Vale para este estabelecimento. Não muda o que seus clientes veem na página de agendamento.
+            Vale para este estabelecimento — no seu painel e na página que seus clientes usam para agendar.
           </p>
           <div className="flex gap-2 flex-wrap">
             {MODES.map(({ value, label, icon: Icon }) => {

@@ -12,6 +12,7 @@ import {
   Star,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { cn } from '../lib/utils'
 
 /* ──────────────────────────────────────────────────────────────
@@ -194,7 +195,12 @@ function SectionIntro({ eyebrow, title, italic, lead, color = HUES.indigo }: {
 
 export default function Home() {
   const { session } = useAuth()
+  const { applyPublic } = useTheme()
   const [scrolled, setScrolled] = useState(false)
+
+  // Landing tem paleta clara própria: quem chega vindo de um estabelecimento
+  // escuro não pode trazer o tema junto.
+  useEffect(() => { applyPublic(null) }, [applyPublic])
   const [activeQuote, setActiveQuote] = useState(0)
 
   useScrollReveal()

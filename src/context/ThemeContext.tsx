@@ -52,7 +52,11 @@ interface ThemeContextValue {
   setMode: (m: ThemeMode) => void
   /** Painel: adota tema e cor do estabelecimento ativo. */
   applyEstablishment: (est: Establishment | null | undefined) => void
-  /** Página pública: adota só a cor. O cliente final nunca herda o tema do dono. */
+  /**
+   * Página pública: adota tema e cor do estabelecimento, para o cliente ver a
+   * mesma identidade que roda no painel. Sem estabelecimento (landing, demo)
+   * volta ao claro com a cor padrão.
+   */
   applyPublic: (est: Establishment | null | undefined) => void
   /** Aplica cor avulsa, para a prévia enquanto o dono experimenta. */
   previewBrand: (hex: string) => void
@@ -112,9 +116,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const applyPublic = useCallback((est: Establishment | null | undefined) => {
+    // Sem escopo: o visitante não acumula cache de tema de cada negócio que
+    // abre. O tema vem do banco a cada visita.
     setScopeId(null)
     setBrandState(resolveBrand(est).hex)
-    setModeState('light')
+
+    const fromDb = est?.theme_mode
+    setModeState(
+      fromDb === 'light' || fromDb === 'dark' || fromDb === 'system' ? fromDb : 'light',
+    )
   }, [])
 
   const previewBrand = useCallback((hex: string) => {
