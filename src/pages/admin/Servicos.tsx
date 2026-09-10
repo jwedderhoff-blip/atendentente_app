@@ -48,7 +48,7 @@ export default function Servicos() {
   const { establishment } = useEstablishment(user?.id)
   const { services, loading, createService, updateService, deleteService } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
-  const { workingHours } = useWorkingHours(establishment?.id)
+  const { workingHours, loadingWorkingHours } = useWorkingHours(establishment?.id)
   const [modalOpen, setModalOpen] = useState(false)
   const [schedulesModal, setSchedulesModal] = useState<Service | null>(null)
   const [editing, setEditing] = useState<Service | null>(null)
@@ -109,7 +109,7 @@ export default function Servicos() {
     if (!schedulesModal || activeDay === null) return
     setScheduleError(null)
 
-    if (!forceException && workingHours.length > 0) {
+    if (!forceException && !loadingWorkingHours && workingHours.length > 0) {
       // Só valida contra horário de funcionamento se houver dados configurados
       const wh = workingHours.find((h) => h.day_of_week === activeDay)
       const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
