@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -54,7 +54,7 @@ export default function Servicos() {
   const [schedulesModal, setSchedulesModal] = useState<Service | null>(null)
   const [editing, setEditing] = useState<Service | null>(null)
   const [selectedProfIds, setSelectedProfIds] = useState<string[]>([])
-  const [schedules, setSchedules] = useState<ServiceSchedule[]>([])
+  const [allSchedules, setAllSchedules] = useState<ServiceSchedule[]>([])
   const [activeDay, setActiveDay] = useState<number | null>(null)
   const [dayEntry, setDayEntry] = useState<DayEntry>({ time: '08:00', spots: 1 })
   const [savingSchedule, setSavingSchedule] = useState(false)
@@ -71,6 +71,35 @@ export default function Servicos() {
   } = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { active: true, schedule_type: 'flexible' } })
 
   const scheduleType = watch('schedule_type')
+
+  // Carrega os horários fixos de todos os serviços de uma vez, para que cada
+  // card já mostre o que foi cadastrado — como no demo — sem abrir o modal.
+  useEffect(() => {
+    if (!services || services.length === 0) {
+      setAllSchedules([])
+      return
+    }
+    const ids = services.map((s) => s.id)
+    let cancelled = false
+    supabase
+      .from('service_schedules')
+      .select('*')
+      .in('service_id', ids)
+      .order('day_of_week')
+      .order('time')
+      .then(({ data }) => {
+        if (!cancelled) setAllSchedules((data ?? []) as ServiceSchedule[])
+      })
+    return () => { cancelled = true }
+  }, [services])
+
+  const schedulesByService = useMemo(() => {
+    const map: Record<string, ServiceSchedule[]> = {}
+    for (const sch of allSchedules) {
+      ;(map[sch.service_id] ??= []).push(sch)
+    }
+    return map
+  }, [allSchedules])
 
   const openCreate = () => {
     setEditing(null)
@@ -94,16 +123,10 @@ export default function Servicos() {
   const toggleProf = (id: string) =>
     setSelectedProfIds((prev) => prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id])
 
-  const openSchedules = async (s: Service) => {
+  const openSchedules = (s: Service) => {
+    // Os horários já estão carregados (allSchedules); o modal só abre a grade.
     setSchedulesModal(s)
     setActiveDay(null)
-    const { data } = await supabase
-      .from('service_schedules')
-      .select('*')
-      .eq('service_id', s.id)
-      .order('day_of_week')
-      .order('time')
-    setSchedules((data ?? []) as ServiceSchedule[])
   }
 
   const addSchedule = async (forceException = false) => {
@@ -145,7 +168,7 @@ export default function Servicos() {
     if (error) {
       setScheduleError(error.message)
     } else if (data) {
-      setSchedules((prev) =>
+      setAllSchedules((prev) =>
         [...prev, data as ServiceSchedule].sort(
           (a, b) => a.day_of_week - b.day_of_week || a.time.localeCompare(b.time)
         )
@@ -157,7 +180,7 @@ export default function Servicos() {
 
   const removeSchedule = async (id: string) => {
     await supabase.from('service_schedules').delete().eq('id', id)
-    setSchedules((prev) => prev.filter((s) => s.id !== id))
+    setAllSchedules((prev) => prev.filter((s) => s.id !== id))
   }
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
@@ -196,7 +219,8 @@ export default function Servicos() {
     }
   }
 
-  const schedulesByDay = (day: number) => schedules.filter((s) => s.day_of_week === day)
+  const schedulesByDay = (day: number) =>
+    allSchedules.filter((s) => s.service_id === schedulesModal?.id && s.day_of_week === day)
 
   return (
     <div>
@@ -248,6 +272,20 @@ export default function Servicos() {
                         </span>
                       )}
                     </div>
+                    {/* Horários fixos direto no card, como no demo */}
+                    {(schedulesByService[s.id]?.length ?? 0) > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {schedulesByService[s.id].map((sch) => (
+                          <span
+                            key={sch.id}
+                            className="inline-flex items-center gap-1 text-xs font-medium bg-brand-soft text-brand px-2 py-0.5 rounded-md"
+                          >
+                            <CalendarDays size={11} className="opacity-70" />
+                            {DAY_NAMES[sch.day_of_week]} {sch.time.slice(0, 5)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
                     <button
