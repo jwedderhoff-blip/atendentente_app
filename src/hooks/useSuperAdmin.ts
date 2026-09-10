@@ -49,6 +49,19 @@ export interface SuperProfessional {
   services: string[]
 }
 
+/**
+ * Uma escrita bloqueada por RLS não retorna erro — apenas afeta zero linhas.
+ * Sem isto a tela fecha como se tivesse salvado e a alteração se perde.
+ */
+const BLOCKED =
+  'Nenhuma linha alterada. Seu usuário provavelmente não tem permissão (RLS) para editar este registro.'
+
+function writeResult<T>(error: { message: string } | null, rows: T[] | null) {
+  if (error) return { error: error.message }
+  if (!rows || rows.length === 0) return { error: BLOCKED }
+  return { error: null }
+}
+
 export function usePlans() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
@@ -65,15 +78,17 @@ export function usePlans() {
   useEffect(() => { fetch() }, [])
 
   const updatePlan = async (id: string, updates: Partial<Plan>) => {
-    const { error } = await supabase.from('plans').update(updates).eq('id', id)
-    if (!error) await fetch()
-    return { error: error?.message ?? null }
+    const { data, error } = await supabase.from('plans').update(updates).eq('id', id).select()
+    const res = writeResult(error, data)
+    if (!res.error) await fetch()
+    return res
   }
 
-  const createPlan = async (data: Omit<Plan, 'id' | 'created_at'>) => {
-    const { error } = await supabase.from('plans').insert(data)
-    if (!error) await fetch()
-    return { error: error?.message ?? null }
+  const createPlan = async (planData: Omit<Plan, 'id' | 'created_at'>) => {
+    const { data, error } = await supabase.from('plans').insert(planData).select()
+    const res = writeResult(error, data)
+    if (!res.error) await fetch()
+    return res
   }
 
   return { plans, loading, updatePlan, createPlan, refetch: fetch }
@@ -95,15 +110,17 @@ export function useAllEstablishments() {
   useEffect(() => { fetch() }, [])
 
   const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from('establishments').update({ status }).eq('id', id)
-    if (!error) await fetch()
-    return { error: error?.message ?? null }
+    const { data, error } = await supabase.from('establishments').update({ status }).eq('id', id).select()
+    const res = writeResult(error, data)
+    if (!res.error) await fetch()
+    return res
   }
 
   const updateEstablishment = async (id: string, updates: Partial<Omit<SuperEstablishment, 'id' | 'created_at' | 'subscriptions'>>) => {
-    const { error } = await supabase.from('establishments').update(updates).eq('id', id)
-    if (!error) await fetch()
-    return { error: error?.message ?? null }
+    const { data, error } = await supabase.from('establishments').update(updates).eq('id', id).select()
+    const res = writeResult(error, data)
+    if (!res.error) await fetch()
+    return res
   }
 
   return { establishments, loading, updateStatus, updateEstablishment, refetch: fetch }
@@ -125,9 +142,10 @@ export function useAllSubscriptions() {
   useEffect(() => { fetch() }, [])
 
   const updateSubscription = async (id: string, updates: Partial<Subscription>) => {
-    const { error } = await supabase.from('subscriptions').update(updates).eq('id', id)
-    if (!error) await fetch()
-    return { error: error?.message ?? null }
+    const { data, error } = await supabase.from('subscriptions').update(updates).eq('id', id).select()
+    const res = writeResult(error, data)
+    if (!res.error) await fetch()
+    return res
   }
 
   return { subscriptions, loading, updateSubscription, refetch: fetch }
@@ -154,23 +172,27 @@ export function useProfessionalsForEstablishment(establishmentId: string | null)
   }, [establishmentId])
 
   const addProfessional = async (establishmentId: string, name: string) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('professionals')
       .insert({ establishment_id: establishmentId, name, services: [] })
-    if (!error) await fetch(establishmentId)
-    return { error: error?.message ?? null }
+      .select()
+    const res = writeResult(error, data)
+    if (!res.error) await fetch(establishmentId)
+    return res
   }
 
   const updateProfessional = async (id: string, establishmentId: string, name: string) => {
-    const { error } = await supabase.from('professionals').update({ name }).eq('id', id)
-    if (!error) await fetch(establishmentId)
-    return { error: error?.message ?? null }
+    const { data, error } = await supabase.from('professionals').update({ name }).eq('id', id).select()
+    const res = writeResult(error, data)
+    if (!res.error) await fetch(establishmentId)
+    return res
   }
 
   const deleteProfessional = async (id: string, establishmentId: string) => {
-    const { error } = await supabase.from('professionals').delete().eq('id', id)
-    if (!error) await fetch(establishmentId)
-    return { error: error?.message ?? null }
+    const { data, error } = await supabase.from('professionals').delete().eq('id', id).select()
+    const res = writeResult(error, data)
+    if (!res.error) await fetch(establishmentId)
+    return res
   }
 
   return { professionals, loading, addProfessional, updateProfessional, deleteProfessional }
