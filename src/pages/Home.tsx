@@ -10,6 +10,8 @@ import {
   ArrowRight,
   ArrowUpRight,
   Star,
+  X,
+  Check,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -44,12 +46,60 @@ const HERO_IMAGES = [
 ]
 
 const features = [
-  { icon: Calendar, title: 'Agendamento online', description: 'Clientes agendam pelo link do seu negócio, 24 horas por dia.', color: HUES.indigo },
-  { icon: Bell, title: 'Lembretes automáticos', description: 'Envio automático de lembretes por WhatsApp e e-mail antes do horário.', color: HUES.plum },
-  { icon: Briefcase, title: 'Catálogo de serviços', description: 'Cadastre serviços com duração e preço para facilitar a escolha.', color: HUES.rose },
-  { icon: Users, title: 'Gestão de clientes', description: 'Histórico completo, notas e exportação em CSV a qualquer momento.', color: HUES.sage },
-  { icon: CreditCard, title: 'Pagamento integrado', description: 'Receba online no ato do agendamento com checkout integrado.', color: HUES.clay },
-  { icon: LayoutDashboard, title: 'Painel completo', description: 'Visualize a agenda, equipe e desempenho em um só lugar.', color: HUES.brass },
+  {
+    icon: Calendar, title: 'Agendamento online', description: 'Clientes agendam pelo link do seu negócio, 24 horas por dia.', color: HUES.indigo,
+    long: 'Seu negócio ganha uma página própria de agendamento. O cliente escolhe o serviço, o profissional e o horário disponível — sem troca de mensagens, sem telefone, a qualquer hora do dia.',
+    points: [
+      'Página com link exclusivo para compartilhar no Instagram, WhatsApp e Google',
+      'Mostra só os horários realmente livres, evitando choque de agenda',
+      'Funciona para atendimento individual ou turmas com vagas',
+    ],
+  },
+  {
+    icon: Bell, title: 'Lembretes automáticos', description: 'Envio automático de lembretes por WhatsApp e e-mail antes do horário.', color: HUES.plum,
+    long: 'O sistema avisa o cliente sozinho, antes do horário marcado. Menos faltas, menos esquecimento — e você não precisa lembrar de nada manualmente.',
+    points: [
+      'Lembrete no WhatsApp e no e-mail 24h e 2h antes',
+      'Reduz faltas e horários perdidos',
+      'Totalmente automático, sem trabalho manual',
+    ],
+  },
+  {
+    icon: Briefcase, title: 'Catálogo de serviços', description: 'Cadastre serviços com duração e preço para facilitar a escolha.', color: HUES.rose,
+    long: 'Monte a lista de tudo que você oferece, com duração e preço. O sistema usa a duração para calcular os encaixes de horário automaticamente.',
+    points: [
+      'Serviços com duração, preço e profissionais responsáveis',
+      'Encaixe de horários calculado pela duração de cada serviço',
+      'Turmas com número de vagas por horário',
+    ],
+  },
+  {
+    icon: Users, title: 'Gestão de clientes', description: 'Histórico completo, notas e exportação em CSV a qualquer momento.', color: HUES.sage,
+    long: 'Cada cliente com seu histórico de atendimentos, observações e contato num só lugar. Exporte quando quiser para usar em campanhas ou na sua contabilidade.',
+    points: [
+      'Histórico de agendamentos por cliente',
+      'Notas e observações internas',
+      'Exportação em CSV a qualquer momento',
+    ],
+  },
+  {
+    icon: CreditCard, title: 'Pagamento integrado', description: 'Receba online no ato do agendamento com checkout integrado.', color: HUES.clay,
+    long: 'Receba o pagamento na hora do agendamento, direto pela página. Menos no-show e o dinheiro garantido antes do atendimento.',
+    points: [
+      'Checkout integrado no momento da reserva',
+      'Recebimento online, sem maquininha',
+      'Reduz faltas ao exigir pagamento antecipado (opcional)',
+    ],
+  },
+  {
+    icon: LayoutDashboard, title: 'Painel completo', description: 'Visualize a agenda, equipe e desempenho em um só lugar.', color: HUES.brass,
+    long: 'Um painel único com a agenda do dia, a equipe e os números do negócio. Acompanhe faturamento previsto, atendimentos e clientes sem planilha.',
+    points: [
+      'Agenda do dia e da semana em tempo real',
+      'Faturamento previsto e atendimentos por período',
+      'Gestão de equipe e desempenho',
+    ],
+  },
 ]
 
 const stats = [
@@ -197,11 +247,20 @@ export default function Home() {
   const { session } = useAuth()
   const { applyPublic } = useTheme()
   const [scrolled, setScrolled] = useState(false)
+  const [openFeature, setOpenFeature] = useState<number | null>(null)
 
   // Landing tem paleta clara própria: quem chega vindo de um estabelecimento
   // escuro não pode trazer o tema junto.
   useEffect(() => { applyPublic(null) }, [applyPublic])
   const [activeQuote, setActiveQuote] = useState(0)
+
+  // Fecha o detalhe do recurso com Esc
+  useEffect(() => {
+    if (openFeature === null) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenFeature(null) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [openFeature])
 
   useScrollReveal()
   useParallax()
@@ -248,6 +307,7 @@ export default function Home() {
           ${(slidePct + 0.01).toFixed(2)}% { transform: scaleX(0); }
           100% { transform: scaleX(0); }
         }
+        @keyframes pop-up { 0% { opacity:0; transform: translateY(16px) scale(.98); } 100% { opacity:1; transform: none; } }
         @keyframes drift { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(2%,-2%) scale(1.06); } }
         @keyframes hue-pulse { 0%,100% { opacity:.28 } 50% { opacity:.5 } }
         .link-arrow svg { transition: transform .35s cubic-bezier(.16,1,.3,1); }
@@ -501,12 +561,15 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {features.map(({ icon: Icon, title, description, color }, i) => (
-              <div
+              <button
                 key={title}
+                type="button"
+                onClick={() => setOpenFeature(i)}
+                aria-label={`Saiba mais sobre ${title}`}
                 // Filete à esquerda some no primeiro item da linha — e o
                 // "primeiro" muda entre 2 e 3 colunas, daí as duas regras.
                 className={cn(
-                  'feat group relative px-7 py-9 transition-colors duration-500 hover:bg-white border-t border-[#e5e1d9]',
+                  'feat group relative text-left w-full px-7 py-9 transition-colors duration-500 hover:bg-white border-t border-[#e5e1d9] cursor-pointer focus:outline-none focus-visible:bg-white',
                   i % 2 !== 0 && 'sm:border-l sm:border-[#e5e1d9]',
                   i % 3 === 0 ? 'lg:border-l-0' : 'lg:border-l lg:border-[#e5e1d9]',
                 )}
@@ -531,11 +594,85 @@ export default function Home() {
                 </div>
                 <h3 className="font-display text-xl mb-3 tracking-tight" style={{ color: INK }}>{title}</h3>
                 <p className="text-sm leading-relaxed font-light" style={{ color: INK_SOFT }}>{description}</p>
-              </div>
+                <span
+                  className="inline-flex items-center gap-1.5 mt-5 text-xs font-medium opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300"
+                  style={{ color }}
+                >
+                  Saiba mais <ArrowRight size={13} />
+                </span>
+              </button>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ══════════════ DETALHE DO RECURSO (modal) ══════════════ */}
+      {openFeature !== null && (() => {
+        const f = features[openFeature]
+        const Icon = f.icon
+        return (
+          <div
+            className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-label={f.title}
+          >
+            <div
+              className="absolute inset-0"
+              style={{ background: 'rgba(20,19,28,.55)', backdropFilter: 'blur(4px)' }}
+              onClick={() => setOpenFeature(null)}
+            />
+            <div
+              className="relative w-full sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-7 sm:p-8"
+              style={{ background: '#fff', boxShadow: '0 30px 80px rgba(20,19,28,.3)', animation: 'pop-up .4s cubic-bezier(.16,1,.3,1)' }}
+            >
+              <button
+                onClick={() => setOpenFeature(null)}
+                aria-label="Fechar"
+                className="absolute top-4 right-4 p-2 rounded-full transition hover:bg-black/5"
+                style={{ color: MUTED }}
+              >
+                <X size={18} />
+              </button>
+
+              <span className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5" style={{ background: `${f.color}1a` }}>
+                <Icon size={26} strokeWidth={1.6} style={{ color: f.color }} />
+              </span>
+
+              <h3 className="font-display text-2xl tracking-tight mb-3" style={{ color: INK }}>{f.title}</h3>
+              <p className="text-[15px] leading-relaxed mb-6" style={{ color: INK_SOFT }}>{f.long}</p>
+
+              <ul className="space-y-3 mb-8">
+                {f.points.map((p) => (
+                  <li key={p} className="flex items-start gap-3 text-sm" style={{ color: INK_SOFT }}>
+                    <span className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: `${f.color}1a` }}>
+                      <Check size={12} style={{ color: f.color }} />
+                    </span>
+                    {p}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  to="/demo"
+                  className="flex-1 inline-flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition hover:bg-black/5"
+                  style={{ color: INK_SOFT, border: `1px solid ${LINE}` }}
+                >
+                  Ver na demonstração
+                </Link>
+                <Link
+                  to="/register"
+                  className="flex-1 inline-flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-white transition hover:opacity-90"
+                  style={{ background: HUES.indigo }}
+                >
+                  Começar grátis <ArrowRight size={15} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ══════════════ SEGMENTOS — CARROSSEL ROLANTE ══════════════ */}
       <section className="py-24" style={{ background: PAPER }}>
