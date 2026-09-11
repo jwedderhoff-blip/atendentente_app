@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
 import {
   useAllEstablishments,
-  useProfessionalsForEstablishment,
   type SuperEstablishment,
 } from '../../hooks/useSuperAdmin'
 import {
   CheckCircle, XCircle, Clock, Search, ExternalLink,
-  Edit, X, Plus, Trash2, Check, Users, Building2,
+  Edit, X, Building2,
 } from 'lucide-react'
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
@@ -33,7 +32,6 @@ interface EditModalProps {
 }
 
 function EditModal({ establishment, onClose, onSave }: EditModalProps) {
-  const [tab, setTab] = useState<'dados' | 'profissionais'>('dados')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,14 +42,6 @@ function EditModal({ establishment, onClose, onSave }: EditModalProps) {
   const [address, setAddress] = useState(establishment.address ?? '')
   const [category, setCategory] = useState(establishment.category)
   const [slug, setSlug]       = useState(establishment.slug)
-
-  // Profissionais
-  const { professionals, loading: loadingProfs, addProfessional, updateProfessional, deleteProfessional } =
-    useProfessionalsForEstablishment(establishment.id)
-  const [newProfName, setNewProfName] = useState('')
-  const [addingProf, setAddingProf]   = useState(false)
-  const [editingProfId, setEditingProfId] = useState<string | null>(null)
-  const [editingProfName, setEditingProfName] = useState('')
 
   const handleSave = async () => {
     setSaving(true)
@@ -67,25 +57,6 @@ function EditModal({ establishment, onClose, onSave }: EditModalProps) {
     if (err) setError(err)
     else onClose()
     setSaving(false)
-  }
-
-  const handleAddProf = async () => {
-    if (!newProfName.trim()) return
-    setAddingProf(true)
-    await addProfessional(establishment.id, newProfName.trim())
-    setNewProfName('')
-    setAddingProf(false)
-  }
-
-  const handleUpdateProf = async (id: string) => {
-    if (!editingProfName.trim()) return
-    await updateProfessional(id, establishment.id, editingProfName.trim())
-    setEditingProfId(null)
-  }
-
-  const handleDeleteProf = async (id: string) => {
-    if (!confirm('Remover este profissional?')) return
-    await deleteProfessional(id, establishment.id)
   }
 
   return (
@@ -112,33 +83,11 @@ function EditModal({ establishment, onClose, onSave }: EditModalProps) {
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-gray-100 shrink-0">
-          {([
-            { key: 'dados',         label: 'Dados',          Icon: Building2 },
-            { key: 'profissionais', label: 'Profissionais',  Icon: Users },
-          ] as const).map(({ key, label, Icon }) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition ${
-                tab === key
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-400 hover:text-gray-700'
-              }`}
-            >
-              <Icon size={15} />
-              {label}
-            </button>
-          ))}
-        </div>
-
         {/* Conteúdo rolável */}
         <div className="flex-1 overflow-y-auto">
 
-          {/* ── Aba Dados ── */}
-          {tab === 'dados' && (
-            <div className="p-6 space-y-4">
+          {/* ── Dados ── */}
+          <div className="p-6 space-y-4">
               <Field label="Nome do estabelecimento">
                 <input
                   value={name}
@@ -201,116 +150,19 @@ function EditModal({ establishment, onClose, onSave }: EditModalProps) {
               {error && (
                 <p className="text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2">{error}</p>
               )}
-            </div>
-          )}
-
-          {/* ── Aba Profissionais ── */}
-          {tab === 'profissionais' && (
-            <div className="p-6 space-y-4">
-              {/* Adicionar novo */}
-              <div className="flex gap-2">
-                <input
-                  value={newProfName}
-                  onChange={(e) => setNewProfName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddProf()}
-                  className={`${inputCls} flex-1`}
-                  placeholder="Nome do profissional"
-                />
-                <button
-                  onClick={handleAddProf}
-                  disabled={!newProfName.trim() || addingProf}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 transition"
-                >
-                  <Plus size={15} />
-                  Adicionar
-                </button>
-              </div>
-
-              {/* Lista */}
-              {loadingProfs ? (
-                <div className="flex justify-center py-8">
-                  <div className="w-6 h-6 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-                </div>
-              ) : professionals.length === 0 ? (
-                <p className="text-center text-sm text-gray-400 py-8">
-                  Nenhum profissional cadastrado.
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {professionals.map((p) => (
-                    <li key={p.id} className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
-                      <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 text-sm font-bold text-indigo-600">
-                        {p.name.charAt(0).toUpperCase()}
-                      </div>
-
-                      {editingProfId === p.id ? (
-                        <input
-                          autoFocus
-                          value={editingProfName}
-                          onChange={(e) => setEditingProfName(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleUpdateProf(p.id)
-                            if (e.key === 'Escape') setEditingProfId(null)
-                          }}
-                          className="flex-1 text-sm border border-indigo-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        />
-                      ) : (
-                        <span className="flex-1 text-sm font-medium text-gray-900">{p.name}</span>
-                      )}
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        {editingProfId === p.id ? (
-                          <>
-                            <button
-                              onClick={() => handleUpdateProf(p.id)}
-                              className="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition"
-                            >
-                              <Check size={14} />
-                            </button>
-                            <button
-                              onClick={() => setEditingProfId(null)}
-                              className="p-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
-                            >
-                              <X size={14} />
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => { setEditingProfId(p.id); setEditingProfName(p.name) }}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
-                            >
-                              <Edit size={14} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteProf(p.id)}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
+          </div>
         </div>
 
-        {/* Footer com botão salvar (só na aba dados) */}
-        {tab === 'dados' && (
-          <div className="px-6 py-4 border-t border-gray-100 shrink-0">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition disabled:opacity-50"
-            >
-              {saving ? 'Salvando...' : 'Salvar alterações'}
-            </button>
-          </div>
-        )}
+        {/* Footer com botão salvar */}
+        <div className="px-6 py-4 border-t border-gray-100 shrink-0">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition disabled:opacity-50"
+          >
+            {saving ? 'Salvando...' : 'Salvar alterações'}
+          </button>
+        </div>
       </div>
     </>
   )
@@ -387,7 +239,6 @@ export default function SuperEstabelecimentos() {
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Estabelecimento</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Categoria</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-500">Cadastros</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Plano</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Cadastro</th>
@@ -399,8 +250,6 @@ export default function SuperEstabelecimentos() {
                     const st = STATUS_LABELS[e.status] ?? STATUS_LABELS.trial
                     const StatusIcon = st.icon
                     const planName = e.subscriptions?.[0]?.plans?.name ?? '—'
-                    const profCount = e.professionals?.[0]?.count ?? 0
-                    const svcCount = e.services?.[0]?.count ?? 0
                     return (
                       <tr key={e.id} className="hover:bg-gray-50 transition">
                         <td className="px-4 py-3">
@@ -409,16 +258,6 @@ export default function SuperEstabelecimentos() {
                         </td>
                         <td className="px-4 py-3 text-gray-600">
                           {CATEGORY_LABELS[e.category] ?? e.category}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3 text-xs">
-                            <span className={profCount === 0 ? 'text-gray-300' : 'text-gray-600'}>
-                              {profCount} {profCount === 1 ? 'prof.' : 'profs.'}
-                            </span>
-                            <span className={svcCount === 0 ? 'text-gray-300' : 'text-gray-600'}>
-                              {svcCount} {svcCount === 1 ? 'serviço' : 'serviços'}
-                            </span>
-                          </div>
                         </td>
                         <td className="px-4 py-3 text-gray-600">{planName}</td>
                         <td className="px-4 py-3">
