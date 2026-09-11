@@ -2,6 +2,13 @@
 
 Sistema de agendamento online para profissionais liberais (salões, barbearias, estética, pilates).
 
+## Instruções permanentes
+
+- **SQL externo**: sempre que uma mudança exigir rodar SQL no Supabase (SQL Editor) —
+  migrations, policies, funções, gatilhos — **cole o SQL completo na resposta do chat**,
+  pronto para copiar e colar, além de salvar o arquivo em `supabase/migrations/`. Não basta
+  citar o nome do arquivo: o usuário aplica o SQL manualmente e precisa dele à mão.
+
 ## Stack
 
 - **Frontend**: React 19 + TypeScript + Vite
