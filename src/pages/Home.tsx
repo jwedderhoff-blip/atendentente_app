@@ -363,13 +363,22 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-16" data-reveal style={{ transitionDelay: '200ms' }}>
               {session ? (
-                <Link
-                  to="/selecionar"
-                  className="link-arrow inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full font-medium text-[15px] text-white transition-all duration-300 hover:gap-4"
-                  style={{ background: HUES.indigo, boxShadow: '0 10px 40px rgba(79,70,229,0.45)' }}
-                >
-                  Acessar minha conta <ArrowRight size={17} />
-                </Link>
+                <>
+                  <Link
+                    to="/selecionar"
+                    className="link-arrow inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full font-medium text-[15px] text-white transition-all duration-300 hover:gap-4"
+                    style={{ background: HUES.indigo, boxShadow: '0 10px 40px rgba(79,70,229,0.45)' }}
+                  >
+                    Acessar minha conta <ArrowRight size={17} />
+                  </Link>
+                  <Link
+                    to="/demo"
+                    className="link-arrow inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full font-medium text-[15px] text-white transition-all duration-300 hover:bg-white/10 hover:gap-4"
+                    style={{ border: '1px solid rgba(255,255,255,0.3)' }}
+                  >
+                    Ver demonstração <ArrowRight size={17} />
+                  </Link>
+                </>
               ) : (
                 <>
                   <Link
