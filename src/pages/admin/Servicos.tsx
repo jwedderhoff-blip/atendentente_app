@@ -8,6 +8,7 @@ import { useEstablishment } from '../../hooks/useEstablishment'
 import { useServices } from '../../hooks/useServices'
 import { useProfessionals } from '../../hooks/useProfessionals'
 import { useWorkingHours } from '../../hooks/useWorkingHours'
+import { usePlanLimits } from '../../hooks/usePlanLimits'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -49,6 +50,11 @@ export default function Servicos() {
   const { services, loading, createService, updateService, deleteService } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
   const { workingHours, loadingWorkingHours } = useWorkingHours(establishment?.id)
+  const { limits } = usePlanLimits(establishment?.id)
+
+  // Trava do plano: bloqueia novos serviços ao atingir o limite contratado.
+  const maxServices = limits?.maxServices ?? null
+  const atLimit = maxServices !== null && services.length >= maxServices
 
   const [modalOpen, setModalOpen] = useState(false)
   const [schedulesModal, setSchedulesModal] = useState<Service | null>(null)
@@ -102,6 +108,7 @@ export default function Servicos() {
   }, [allSchedules])
 
   const openCreate = () => {
+    if (atLimit) return
     setEditing(null)
     setSelectedProfIds([])
     reset({ name: '', description: '', duration_minutes: 60, price: 0, active: true, schedule_type: 'flexible', max_spots: 1 })
@@ -225,12 +232,26 @@ export default function Servicos() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-3xl tracking-tight text-ink">Serviços</h1>
-        <Button size="sm" onClick={openCreate}>
+        <div>
+          <h1 className="font-display text-3xl tracking-tight text-ink">Serviços</h1>
+          {maxServices !== null && (
+            <p className="text-xs text-gray-400 mt-1">
+              {services.length} de {maxServices} do seu plano{limits?.planName ? ` (${limits.planName})` : ''}
+            </p>
+          )}
+        </div>
+        <Button size="sm" onClick={openCreate} disabled={atLimit}>
           <Plus size={16} />
           Novo serviço
         </Button>
       </div>
+
+      {atLimit && (
+        <div className="mb-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+          Você atingiu o limite de <strong>{maxServices}</strong> {maxServices === 1 ? 'serviço' : 'serviços'} do seu
+          plano{limits?.planName ? ` (${limits.planName})` : ''}. Para cadastrar mais, faça upgrade do plano.
+        </div>
+      )}
 
       {deleteError && (
         <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">

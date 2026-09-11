@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useProfessionals } from '../../hooks/useProfessionals'
 import { useServices } from '../../hooks/useServices'
+import { usePlanLimits } from '../../hooks/usePlanLimits'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
@@ -24,9 +25,15 @@ export default function Profissionais() {
   const { professionals, loading, createProfessional, updateProfessional, deleteProfessional } =
     useProfessionals(establishment?.id)
   const { services } = useServices(establishment?.id)
+  const { limits } = usePlanLimits(establishment?.id)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Professional | null>(null)
+
+  // Trava do plano: bloqueia novos cadastros ao atingir o limite contratado.
+  // limit null = sem limite. Enquanto os limites carregam, não bloqueia.
+  const maxPros = limits?.maxProfessionals ?? null
+  const atLimit = maxPros !== null && professionals.length >= maxPros
 
   const {
     register,
@@ -36,6 +43,7 @@ export default function Profissionais() {
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   const openCreate = () => {
+    if (atLimit) return
     setEditing(null)
     reset({ name: '' })
     setModalOpen(true)
@@ -65,12 +73,26 @@ export default function Profissionais() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-3xl tracking-tight text-ink">Profissionais</h1>
-        <Button size="sm" onClick={openCreate}>
+        <div>
+          <h1 className="font-display text-3xl tracking-tight text-ink">Profissionais</h1>
+          {maxPros !== null && (
+            <p className="text-xs text-gray-400 mt-1">
+              {professionals.length} de {maxPros} do seu plano{limits?.planName ? ` (${limits.planName})` : ''}
+            </p>
+          )}
+        </div>
+        <Button size="sm" onClick={openCreate} disabled={atLimit}>
           <Plus size={16} />
           Novo profissional
         </Button>
       </div>
+
+      {atLimit && (
+        <div className="mb-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+          Você atingiu o limite de <strong>{maxPros}</strong> {maxPros === 1 ? 'profissional' : 'profissionais'} do seu
+          plano{limits?.planName ? ` (${limits.planName})` : ''}. Para cadastrar mais, faça upgrade do plano.
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-gray-400 text-sm">Carregando...</div>
