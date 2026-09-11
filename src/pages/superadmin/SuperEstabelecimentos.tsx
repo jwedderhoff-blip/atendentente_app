@@ -171,6 +171,25 @@ function EditModal({ establishment, onClose, onSave }: EditModalProps) {
 // helpers locais
 const inputCls = 'w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400'
 
+/**
+ * Mostra "usados/limite" de um recurso do plano. Vermelho quando estoura o
+ * limite. Se a contagem não veio (função de contagem ainda não criada no
+ * banco), mostra "—" em vez de mentir com 0.
+ */
+function UsageBadge({ label, used, limit }: { label: string; used?: number; limit: number | null }) {
+  if (used === undefined) {
+    return <span className="text-gray-300">{label} —</span>
+  }
+  const limitText = limit === null ? '∞' : String(limit)
+  const over = limit !== null && used > limit
+  const atLimit = limit !== null && used === limit
+  return (
+    <span className={over ? 'text-red-600 font-semibold' : atLimit ? 'text-amber-600 font-medium' : 'text-gray-600'}>
+      {label} {used}/{limitText}
+    </span>
+  )
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
@@ -240,6 +259,7 @@ export default function SuperEstabelecimentos() {
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Estabelecimento</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Categoria</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Plano</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Uso do plano</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Cadastro</th>
                     <th className="text-right px-4 py-3 font-medium text-gray-500">Ações</th>
@@ -249,7 +269,8 @@ export default function SuperEstabelecimentos() {
                   {filtered.map((e) => {
                     const st = STATUS_LABELS[e.status] ?? STATUS_LABELS.trial
                     const StatusIcon = st.icon
-                    const planName = e.subscriptions?.[0]?.plans?.name ?? '—'
+                    const plan = e.subscriptions?.[0]?.plans
+                    const planName = plan?.name ?? '—'
                     return (
                       <tr key={e.id} className="hover:bg-gray-50 transition">
                         <td className="px-4 py-3">
@@ -260,6 +281,12 @@ export default function SuperEstabelecimentos() {
                           {CATEGORY_LABELS[e.category] ?? e.category}
                         </td>
                         <td className="px-4 py-3 text-gray-600">{planName}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col gap-0.5 text-xs">
+                            <UsageBadge label="Prof." used={e.prof_count} limit={plan?.max_professionals ?? null} />
+                            <UsageBadge label="Serv." used={e.svc_count} limit={plan?.max_services ?? null} />
+                          </div>
+                        </td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${st.color}`}>
                             <StatusIcon size={12} />

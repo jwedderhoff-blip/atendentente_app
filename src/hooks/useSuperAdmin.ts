@@ -38,7 +38,14 @@ export interface SuperEstablishment {
   slug: string
   address?: string | null
   created_at: string
-  subscriptions?: { status: string; plans?: { name: string } }[]
+  subscriptions?: {
+    status: string
+    plans?: { name: string; max_services: number | null; max_professionals: number | null }
+  }[]
+  // Preenchidos pela função admin_establishment_counts (SECURITY DEFINER).
+  // Ficam undefined se a função ainda não existir no banco — aí a tela mostra "—".
+  prof_count?: number
+  svc_count?: number
 }
 
 export interface SuperProfessional {
@@ -101,9 +108,28 @@ export function useAllEstablishments() {
   const fetch = async () => {
     const { data } = await supabase
       .from('establishments')
-      .select('id, name, category, status, email, phone, slug, address, created_at, subscriptions(status, plans(name))')
+      .select('id, name, category, status, email, phone, slug, address, created_at, subscriptions(status, plans(name, max_services, max_professionals))')
       .order('created_at', { ascending: false })
-    if (data) setEstablishments(data as unknown as SuperEstablishment[])
+
+    // Contagens de profissionais/serviços por estabelecimento. A função
+    // admin_establishment_counts roda como SECURITY DEFINER, então enxerga os
+    // cadastros de todos os donos (o RLS bloquearia uma leitura direta). Se a
+    // função ainda não existir no banco, seguimos sem as contagens.
+    const { data: counts } = await supabase.rpc('admin_establishment_counts')
+    const countMap = new Map<string, { professionals: number; services: number }>()
+    for (const c of (counts ?? []) as { establishment_id: string; professionals: number; services: number }[]) {
+      countMap.set(c.establishment_id, { professionals: Number(c.professionals), services: Number(c.services) })
+    }
+
+    if (data) {
+      setEstablishments(
+        (data as unknown as SuperEstablishment[]).map((e) => ({
+          ...e,
+          prof_count: countMap.get(e.id)?.professionals,
+          svc_count: countMap.get(e.id)?.services,
+        })),
+      )
+    }
     setLoading(false)
   }
 
