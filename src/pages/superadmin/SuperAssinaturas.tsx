@@ -35,6 +35,8 @@ function expiryInfo(expiresAt: string | null): {
 function calcExpiresAt(planId: string, plans: ReturnType<typeof usePlans>['plans']): string | null {
   const plan = plans.find((p) => p.id === planId)
   if (!plan) return null
+  // Plano por agendamento é contínuo: cobra por atendimento, não tem validade.
+  if (plan.billing_type === 'por_agendamento') return null
   const now = new Date()
   if (plan.billing_type === 'package' && plan.package_days) {
     now.setDate(now.getDate() + plan.package_days)
@@ -101,10 +103,13 @@ export default function SuperAssinaturas() {
             {noSubscription.map((e) => {
               const planId = selectedPlan[e.id] ?? ''
               const plan = plans.find((p) => p.id === planId)
+              const isPerBooking = plan?.billing_type === 'por_agendamento'
               const preview = plan
-                ? plan.billing_type === 'package' && plan.package_days
-                  ? `Pacote ${plan.package_days}d`
-                  : '30 dias'
+                ? isPerBooking
+                  ? 'Por agendamento · sem validade'
+                  : plan.billing_type === 'package' && plan.package_days
+                    ? `Expira em Pacote ${plan.package_days}d`
+                    : 'Expira em 30 dias'
                 : null
               return (
                 <div key={e.id} className="flex items-center gap-3 flex-wrap">
@@ -120,8 +125,8 @@ export default function SuperAssinaturas() {
                     ))}
                   </select>
                   {preview && (
-                    <span className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded-lg">
-                      Expira em {preview}
+                    <span className={`text-xs px-2 py-1 rounded-lg ${isPerBooking ? 'text-emerald-700 bg-emerald-100' : 'text-amber-700 bg-amber-100'}`}>
+                      {preview}
                     </span>
                   )}
                   <button
@@ -174,9 +179,11 @@ export default function SuperAssinaturas() {
                             onChange={async (e) => {
                               const newPlanId = e.target.value || undefined
                               const expiresAt = newPlanId ? calcExpiresAt(newPlanId, plans) : null
+                              // Sempre grava expires_at (null p/ por agendamento ou sem plano),
+                              // pra não manter um vencimento antigo ao trocar de tipo.
                               await updateSubscription(s.id, {
                                 plan_id: newPlanId ?? null,
-                                ...(expiresAt ? { expires_at: expiresAt } : {}),
+                                expires_at: expiresAt,
                               } as Parameters<typeof updateSubscription>[1])
                             }}
                             className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
