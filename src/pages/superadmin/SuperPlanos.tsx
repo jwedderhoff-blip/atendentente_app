@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { usePlans } from '../../hooks/useSuperAdmin'
 import type { Plan } from '../../hooks/useSuperAdmin'
-import { Pencil, Check, X, Plus, Calendar, RefreshCw } from 'lucide-react'
+import { Pencil, Check, X, Plus, Calendar, RefreshCw, Percent } from 'lucide-react'
 
 const inputCls =
   'w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400'
 
-type BillingType = 'monthly' | 'package'
+type BillingType = 'monthly' | 'package' | 'por_agendamento'
 
 interface PlanForm {
   name: string
@@ -18,6 +18,9 @@ interface PlanForm {
   max_services: number | string
   max_professionals: number | string
   max_appointments_per_month: number | string
+  booking_fee_type: 'fixo' | 'percentual'
+  booking_fee_value: number | string
+  booking_fee_charge_to: 'cliente' | 'estabelecimento'
   is_active: boolean
 }
 
@@ -32,11 +35,15 @@ function emptyForm(): PlanForm {
     max_services: '',
     max_professionals: '',
     max_appointments_per_month: '',
+    booking_fee_type: 'fixo',
+    booking_fee_value: '',
+    booking_fee_charge_to: 'estabelecimento',
     is_active: true,
   }
 }
 
 function formToPayload(form: PlanForm): Omit<Plan, 'id' | 'created_at'> {
+  const perBooking = form.billing_type === 'por_agendamento'
   return {
     name: form.name,
     description: form.description || null,
@@ -47,8 +54,107 @@ function formToPayload(form: PlanForm): Omit<Plan, 'id' | 'created_at'> {
     max_services: form.max_services === '' ? null : Number(form.max_services),
     max_professionals: form.max_professionals === '' ? null : Number(form.max_professionals),
     max_appointments_per_month: form.max_appointments_per_month === '' ? null : Number(form.max_appointments_per_month),
+    booking_fee_type: perBooking ? form.booking_fee_type : null,
+    booking_fee_value: perBooking && form.booking_fee_value !== '' ? Number(form.booking_fee_value) : null,
+    booking_fee_charge_to: perBooking ? form.booking_fee_charge_to : null,
     is_active: form.is_active,
   }
+}
+
+const BILLING_OPTIONS = [
+  { value: 'monthly', label: 'Mensal', Icon: RefreshCw },
+  { value: 'package', label: 'Pacote', Icon: Calendar },
+  { value: 'por_agendamento', label: 'Por agend.', Icon: Percent },
+] as const
+
+type SetForm = (k: keyof PlanForm, v: PlanForm[keyof PlanForm]) => void
+
+/** Seletor do tipo de cobrança (mensal / pacote / por agendamento). */
+function BillingSelector({ value, onChange }: { value: BillingType; onChange: (v: BillingType) => void }) {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {BILLING_OPTIONS.map(({ value: v, label, Icon }) => (
+        <button
+          key={v}
+          type="button"
+          onClick={() => onChange(v)}
+          className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl border text-xs font-medium transition ${
+            value === v ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+          }`}
+        >
+          <Icon size={14} />
+          {label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** Configuração da taxa por agendamento (tipo, valor e quem paga). */
+function FeeFields({ form, set }: { form: PlanForm; set: SetForm }) {
+  const isPercent = form.booking_fee_type === 'percentual'
+  return (
+    <div className="space-y-3 rounded-xl bg-indigo-50/40 border border-indigo-100 p-3">
+      <div>
+        <label className="text-xs font-medium text-gray-500 mb-2 block">Forma da taxa</label>
+        <div className="grid grid-cols-2 gap-2">
+          {([['fixo', 'Valor fixo (R$)'], ['percentual', 'Percentual (%)']] as const).map(([v, label]) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => set('booking_fee_type', v)}
+              className={`px-3 py-2 rounded-lg border text-xs font-medium transition ${
+                form.booking_fee_type === v ? 'border-indigo-500 bg-white text-indigo-700' : 'border-gray-200 text-gray-500'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className="text-xs font-medium text-gray-500 mb-1 block">
+          {isPercent ? 'Percentual sobre o preço do serviço (%)' : 'Valor por atendimento concluído (R$)'}
+        </label>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          value={form.booking_fee_value}
+          onChange={(e) => set('booking_fee_value', e.target.value)}
+          className={inputCls}
+          placeholder={isPercent ? '5' : '0.50'}
+        />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-gray-500 mb-2 block">Quem paga a taxa</label>
+        <div className="grid grid-cols-2 gap-2">
+          {([['cliente', 'Repassar ao cliente'], ['estabelecimento', 'Descontar do estab.']] as const).map(([v, label]) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => set('booking_fee_charge_to', v)}
+              className={`px-3 py-2 rounded-lg border text-xs font-medium transition ${
+                form.booking_fee_charge_to === v ? 'border-indigo-500 bg-white text-indigo-700' : 'border-gray-200 text-gray-500'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** Texto curto da taxa de um plano por agendamento, para exibição. */
+function feeSummary(plan: Plan): string {
+  if (plan.billing_type !== 'por_agendamento' || plan.booking_fee_value == null) return '—'
+  const v = plan.booking_fee_type === 'percentual'
+    ? `${plan.booking_fee_value}%`
+    : `R$ ${Number(plan.booking_fee_value).toFixed(2)}`
+  const quem = plan.booking_fee_charge_to === 'cliente' ? 'no cliente' : 'do estabelecimento'
+  return `${v} por atendimento · ${quem}`
 }
 
 // ── Card de plano existente ───────────────────────────────────────────────────
@@ -65,6 +171,9 @@ function PlanCard({ plan, onSave }: { plan: Plan; onSave: (id: string, updates: 
     max_services: plan.max_services ?? '',
     max_professionals: plan.max_professionals ?? '',
     max_appointments_per_month: plan.max_appointments_per_month ?? '',
+    booking_fee_type: plan.booking_fee_type ?? 'fixo',
+    booking_fee_value: plan.booking_fee_value ?? '',
+    booking_fee_charge_to: plan.booking_fee_charge_to ?? 'estabelecimento',
     is_active: plan.is_active,
   })
 
@@ -79,6 +188,7 @@ function PlanCard({ plan, onSave }: { plan: Plan; onSave: (id: string, updates: 
   }
 
   const isMonthly = form.billing_type === 'monthly'
+  const isPerBooking = form.billing_type === 'por_agendamento'
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
@@ -118,35 +228,20 @@ function PlanCard({ plan, onSave }: { plan: Plan; onSave: (id: string, updates: 
         <div>
           <label className="text-xs font-medium text-gray-500 mb-2 block">Tipo de cobrança</label>
           {editing ? (
-            <div className="grid grid-cols-2 gap-2">
-              {([
-                { value: 'monthly', label: 'Mensal', Icon: RefreshCw },
-                { value: 'package', label: 'Pacote',  Icon: Calendar },
-              ] as const).map(({ value, label, Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => set('billing_type', value)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition ${
-                    form.billing_type === value
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon size={14} />
-                  {label}
-                </button>
-              ))}
-            </div>
+            <BillingSelector value={form.billing_type} onChange={(v) => set('billing_type', v)} />
           ) : (
             <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${
-              (plan.billing_type ?? 'monthly') === 'monthly'
-                ? 'bg-blue-50 text-blue-700'
-                : 'bg-violet-50 text-violet-700'
+              plan.billing_type === 'por_agendamento'
+                ? 'bg-emerald-50 text-emerald-700'
+                : (plan.billing_type ?? 'monthly') === 'monthly'
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'bg-violet-50 text-violet-700'
             }`}>
-              {(plan.billing_type ?? 'monthly') === 'monthly'
-                ? <><RefreshCw size={11} /> Mensal</>
-                : <><Calendar size={11} /> Pacote {plan.package_days} dias</>
+              {plan.billing_type === 'por_agendamento'
+                ? <><Percent size={11} /> Por agendamento</>
+                : (plan.billing_type ?? 'monthly') === 'monthly'
+                  ? <><RefreshCw size={11} /> Mensal</>
+                  : <><Calendar size={11} /> Pacote {plan.package_days} dias</>
               }
             </span>
           )}
@@ -162,9 +257,11 @@ function PlanCard({ plan, onSave }: { plan: Plan; onSave: (id: string, updates: 
           )}
         </div>
 
-        {/* Preço */}
+        {/* Preço / taxa */}
         {editing ? (
-          isMonthly ? (
+          isPerBooking ? (
+            <FeeFields form={form} set={set} />
+          ) : isMonthly ? (
             <div>
               <label className="text-xs font-medium text-gray-500 mb-1 block">Preço mensal (R$)</label>
               <input type="number" min="0" step="0.01" value={form.price_monthly} onChange={(e) => set('price_monthly', e.target.value)} className={inputCls} placeholder="0.00" />
@@ -181,6 +278,16 @@ function PlanCard({ plan, onSave }: { plan: Plan; onSave: (id: string, updates: 
               </div>
             </div>
           )
+        ) : plan.billing_type === 'por_agendamento' ? (
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">Taxa por agendamento</label>
+            <p className="text-lg font-bold text-emerald-600">
+              {plan.booking_fee_type === 'percentual'
+                ? `${plan.booking_fee_value ?? 0}%`
+                : `R$ ${Number(plan.booking_fee_value ?? 0).toFixed(2)}`}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">{feeSummary(plan)}</p>
+          </div>
         ) : (
           <div>
             <label className="text-xs font-medium text-gray-500 mb-1 block">
@@ -276,6 +383,7 @@ function NewPlanCard({ onCreate }: { onCreate: (data: Omit<Plan, 'id' | 'created
   }
 
   const isMonthly = form.billing_type === 'monthly'
+  const isPerBooking = form.billing_type === 'por_agendamento'
 
   return (
     <div className="bg-white rounded-2xl border-2 border-indigo-200 shadow-md overflow-hidden flex flex-col">
@@ -301,25 +409,7 @@ function NewPlanCard({ onCreate }: { onCreate: (data: Omit<Plan, 'id' | 'created
         {/* Tipo */}
         <div>
           <label className="text-xs font-medium text-gray-500 mb-2 block">Tipo de cobrança</label>
-          <div className="grid grid-cols-2 gap-2">
-            {([
-              { value: 'monthly', label: 'Mensal', Icon: RefreshCw },
-              { value: 'package', label: 'Pacote',  Icon: Calendar },
-            ] as const).map(({ value, label, Icon }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => set('billing_type', value)}
-                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition ${
-                  form.billing_type === value
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                }`}
-              >
-                <Icon size={14} /> {label}
-              </button>
-            ))}
-          </div>
+          <BillingSelector value={form.billing_type} onChange={(v) => set('billing_type', v)} />
         </div>
 
         {/* Descrição */}
@@ -328,8 +418,10 @@ function NewPlanCard({ onCreate }: { onCreate: (data: Omit<Plan, 'id' | 'created
           <input value={form.description} onChange={(e) => set('description', e.target.value)} placeholder="Descrição (opcional)" className={inputCls} />
         </div>
 
-        {/* Preço */}
-        {isMonthly ? (
+        {/* Preço / taxa */}
+        {isPerBooking ? (
+          <FeeFields form={form} set={set} />
+        ) : isMonthly ? (
           <div>
             <label className="text-xs font-medium text-gray-500 mb-1 block">Preço mensal (R$)</label>
             <input type="number" min="0" step="0.01" value={form.price_monthly} onChange={(e) => set('price_monthly', e.target.value)} className={inputCls} placeholder="0.00" />

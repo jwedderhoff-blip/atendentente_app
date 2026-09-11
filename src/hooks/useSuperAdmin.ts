@@ -5,13 +5,17 @@ export interface Plan {
   id: string
   name: string
   description: string | null
-  billing_type: 'monthly' | 'package'
+  billing_type: 'monthly' | 'package' | 'por_agendamento'
   price_monthly: number
   price_package: number | null
   package_days: number | null
   max_services: number | null
   max_professionals: number | null
   max_appointments_per_month: number | null
+  // Plano por agendamento: taxa cobrada a cada atendimento concluído
+  booking_fee_type: 'fixo' | 'percentual' | null
+  booking_fee_value: number | null
+  booking_fee_charge_to: 'cliente' | 'estabelecimento' | null
   is_active: boolean
   created_at: string
 }
@@ -46,6 +50,48 @@ export interface SuperEstablishment {
   // Ficam undefined se a função ainda não existir no banco — aí a tela mostra "—".
   prof_count?: number
   svc_count?: number
+}
+
+export interface BookingChargeRow {
+  establishment_id: string
+  establishment_name: string
+  charges: number
+  total: number
+  charge_to: 'cliente' | 'estabelecimento' | null
+}
+
+/**
+ * Resumo mensal das taxas por agendamento, por estabelecimento. Vem da função
+ * admin_booking_charges_summary (SECURITY DEFINER, só admin). `month` é 'YYYY-MM'.
+ */
+export function useBookingChargesSummary(month: string) {
+  const [rows, setRows] = useState<BookingChargeRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [missing, setMissing] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setMissing(false)
+    supabase
+      .rpc('admin_booking_charges_summary', { p_month: `${month}-01` })
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          // Função ainda não criada no banco → sinaliza para a tela orientar.
+          setMissing(true)
+          setRows([])
+        } else {
+          setRows(
+            ((data ?? []) as BookingChargeRow[]).map((r) => ({ ...r, charges: Number(r.charges), total: Number(r.total) })),
+          )
+        }
+        setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [month])
+
+  return { rows, loading, missing }
 }
 
 export interface SuperProfessional {

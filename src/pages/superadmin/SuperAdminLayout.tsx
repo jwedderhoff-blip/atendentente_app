@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, Building2, CreditCard, Users2, Bell, LogOut, ShieldCheck,
+  LayoutDashboard, Building2, CreditCard, Users2, Bell, LogOut, ShieldCheck, Receipt,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../context/AuthContext'
@@ -10,6 +10,7 @@ const tabs = [
   { to: '/superadmin/estabelecimentos', label: 'Estabelecimentos', icon: Building2, end: false },
   { to: '/superadmin/planos', label: 'Planos', icon: CreditCard, end: false },
   { to: '/superadmin/assinaturas', label: 'Assinaturas', icon: Users2, end: false },
+  { to: '/superadmin/cobrancas', label: 'Cobranças', icon: Receipt, end: false },
   { to: '/superadmin/notificacoes', label: 'Notificações', icon: Bell, end: false },
 ]
 
