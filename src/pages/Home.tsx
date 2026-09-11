@@ -275,6 +275,9 @@ export default function Home() {
             Meridio
           </span>
           <div className="flex items-center gap-6">
+            <Link to="/planos" className="text-sm font-medium transition-colors duration-500" style={{ color: scrolled ? INK_SOFT : 'rgba(255,255,255,0.85)' }}>
+              Planos
+            </Link>
             {session ? (
               <Link to="/selecionar" className="text-sm font-medium transition-colors duration-500" style={{ color: scrolled ? INK : 'rgba(255,255,255,0.9)' }}>
                 Minha conta

@@ -8,6 +8,7 @@ import DemoBanner from './components/ui/DemoBanner'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Home from './pages/Home'
+import Planos from './pages/Planos'
 import Booking from './pages/Booking'
 import EstabelecimentoPage from './pages/EstabelecimentoPage'
 import NotFound from './pages/NotFound'
@@ -137,6 +138,7 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/planos" element={<Planos />} />
       <Route path="/demo" element={<Suspense fallback={<DemoFallback />}><Demo /></Suspense>} />
       <Route path="/agendar/:slug" element={<EstabelecimentoPage />} />
       <Route path="/agendar/:slug/agendar" element={<Booking />} />
