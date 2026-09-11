@@ -39,6 +39,10 @@ export interface SuperEstablishment {
   address?: string | null
   created_at: string
   subscriptions?: { status: string; plans?: { name: string } }[]
+  // Contagens agregadas — expõem, por exemplo, um estabelecimento duplicado
+  // com 0 profissionais ao lado do que realmente tem o cadastro.
+  professionals?: { count: number }[]
+  services?: { count: number }[]
 }
 
 export interface SuperProfessional {
@@ -101,7 +105,7 @@ export function useAllEstablishments() {
   const fetch = async () => {
     const { data } = await supabase
       .from('establishments')
-      .select('id, name, category, status, email, phone, slug, address, created_at, subscriptions(status, plans(name))')
+      .select('id, name, category, status, email, phone, slug, address, created_at, subscriptions(status, plans(name)), professionals(count), services(count)')
       .order('created_at', { ascending: false })
     if (data) setEstablishments(data as unknown as SuperEstablishment[])
     setLoading(false)

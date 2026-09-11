@@ -387,6 +387,7 @@ export default function SuperEstabelecimentos() {
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Estabelecimento</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Categoria</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Cadastros</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Plano</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Cadastro</th>
@@ -398,6 +399,8 @@ export default function SuperEstabelecimentos() {
                     const st = STATUS_LABELS[e.status] ?? STATUS_LABELS.trial
                     const StatusIcon = st.icon
                     const planName = e.subscriptions?.[0]?.plans?.name ?? '—'
+                    const profCount = e.professionals?.[0]?.count ?? 0
+                    const svcCount = e.services?.[0]?.count ?? 0
                     return (
                       <tr key={e.id} className="hover:bg-gray-50 transition">
                         <td className="px-4 py-3">
@@ -406,6 +409,16 @@ export default function SuperEstabelecimentos() {
                         </td>
                         <td className="px-4 py-3 text-gray-600">
                           {CATEGORY_LABELS[e.category] ?? e.category}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3 text-xs">
+                            <span className={profCount === 0 ? 'text-gray-300' : 'text-gray-600'}>
+                              {profCount} {profCount === 1 ? 'prof.' : 'profs.'}
+                            </span>
+                            <span className={svcCount === 0 ? 'text-gray-300' : 'text-gray-600'}>
+                              {svcCount} {svcCount === 1 ? 'serviço' : 'serviços'}
+                            </span>
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-gray-600">{planName}</td>
                         <td className="px-4 py-3">
