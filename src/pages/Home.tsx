@@ -109,16 +109,23 @@ const stats = [
   { value: 'Grátis', label: 'Para começar', color: HUES.clay },
 ]
 
-const categories = [
-  { label: 'Salão de Beleza', examples: ['Corte, escova e coloração', 'Manicure e pedicure'], img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=75', color: HUES.rose },
-  { label: 'Barbearia', examples: ['Corte masculino e barba', 'Tratamento capilar'], img: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=75', color: HUES.brass },
-  { label: 'Serviços de Beleza', examples: ['Unhas e nail design', 'Cílios, sobrancelhas e micropigmentação'], img: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&auto=format&fit=crop&q=75', color: HUES.plum },
-  { label: 'Centro de Estética', examples: ['Limpeza de pele e depilação', 'Massagem e drenagem'], img: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&auto=format&fit=crop&q=75', color: HUES.rose },
-  { label: 'Estúdio de Pilates', examples: ['Pilates individual e em grupo', 'Avaliação postural'], img: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&auto=format&fit=crop&q=75', color: HUES.sage },
-  { label: 'Aulas Coletivas', examples: ['Balé, dança e zumba', 'Jiu-jitsu, karatê e artes marciais'], img: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=600&auto=format&fit=crop&q=75', color: HUES.indigo },
-  { label: 'Avaliação Física', examples: ['Bioimpedância e antropometria', 'Prescrição de treino'], img: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&auto=format&fit=crop&q=75', color: HUES.clay },
-  { label: 'Avaliação Nutricional', examples: ['Consulta e plano alimentar', 'Acompanhamento nutricional'], img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&auto=format&fit=crop&q=75', color: HUES.sage },
-  { label: 'Academia', examples: ['Personal trainer e musculação', 'Aulas funcionais e crossfit'], img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=75', color: HUES.indigo },
+type SegLine = 'estetica' | 'saude_fitness'
+
+const categories: { label: string; examples: string[]; img: string; color: string; line: SegLine }[] = [
+  { label: 'Salão de Beleza', examples: ['Corte, escova e coloração', 'Manicure e pedicure'], img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=75', color: HUES.rose, line: 'estetica' },
+  { label: 'Barbearia', examples: ['Corte masculino e barba', 'Tratamento capilar'], img: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=75', color: HUES.brass, line: 'estetica' },
+  { label: 'Serviços de Beleza', examples: ['Unhas e nail design', 'Cílios, sobrancelhas e micropigmentação'], img: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&auto=format&fit=crop&q=75', color: HUES.plum, line: 'estetica' },
+  { label: 'Centro de Estética', examples: ['Limpeza de pele e depilação', 'Massagem e drenagem'], img: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&auto=format&fit=crop&q=75', color: HUES.rose, line: 'estetica' },
+  { label: 'Estúdio de Pilates', examples: ['Pilates individual e em grupo', 'Avaliação postural'], img: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&auto=format&fit=crop&q=75', color: HUES.sage, line: 'saude_fitness' },
+  { label: 'Aulas Coletivas', examples: ['Balé, dança e zumba', 'Jiu-jitsu, karatê e artes marciais'], img: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=600&auto=format&fit=crop&q=75', color: HUES.indigo, line: 'saude_fitness' },
+  { label: 'Personal / Treino', examples: ['Personal trainer', 'Treino funcional e musculação'], img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=75', color: HUES.indigo, line: 'saude_fitness' },
+  { label: 'Avaliação Física', examples: ['Bioimpedância e antropometria', 'Prescrição de treino'], img: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&auto=format&fit=crop&q=75', color: HUES.clay, line: 'saude_fitness' },
+  { label: 'Nutrição', examples: ['Consulta e plano alimentar', 'Acompanhamento nutricional'], img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&auto=format&fit=crop&q=75', color: HUES.sage, line: 'saude_fitness' },
+]
+
+const SEG_TABS: { value: SegLine; label: string; lead: string }[] = [
+  { value: 'estetica', label: 'Estética', lead: 'Salão, barbearia, unhas e estética — atendimento individual, sem choque de agenda.' },
+  { value: 'saude_fitness', label: 'Saúde & Fitness', lead: 'Pilates, aulas, personal e nutrição — em turmas com vagas ou atendimento individual.' },
 ]
 
 const testimonials = [
@@ -248,6 +255,7 @@ export default function Home() {
   const { applyPublic } = useTheme()
   const [scrolled, setScrolled] = useState(false)
   const [openFeature, setOpenFeature] = useState<number | null>(null)
+  const [segLine, setSegLine] = useState<SegLine>('estetica')
 
   // Landing tem paleta clara própria: quem chega vindo de um estabelecimento
   // escuro não pode trazer o tema junto.
@@ -680,14 +688,38 @@ export default function Home() {
           <SectionIntro
             eyebrow="Segmentos"
             title="Para quem é?"
-            lead="Do salão ao estúdio de pilates, o Meridio se adapta ao seu negócio. Passe o mouse para pausar."
+            lead={SEG_TABS.find((t) => t.value === segLine)!.lead}
             color={HUES.clay}
           />
+
+          {/* Abas por linha de trabalho */}
+          <div className="flex justify-center mb-10">
+            <div className="inline-flex p-1 rounded-full" style={{ background: '#efece5' }}>
+              {SEG_TABS.map((t) => {
+                const on = segLine === t.value
+                return (
+                  <button
+                    key={t.value}
+                    onClick={() => setSegLine(t.value)}
+                    className="px-5 sm:px-7 py-2.5 rounded-full text-sm font-medium transition-all duration-300"
+                    style={{
+                      background: on ? '#fff' : 'transparent',
+                      color: on ? INK : MUTED,
+                      boxShadow: on ? '0 1px 3px rgba(20,19,28,.12)' : 'none',
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Dois trilhos em direções opostas */}
         {[0, 1].map((row) => {
-          const items = row === 0 ? categories : [...categories].reverse()
+          const visible = categories.filter((c) => c.line === segLine)
+          const items = row === 0 ? visible : [...visible].reverse()
           return (
             <div key={row} className="rail overflow-hidden mb-6 last:mb-0">
               <div
