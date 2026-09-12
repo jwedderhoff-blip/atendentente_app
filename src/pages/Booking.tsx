@@ -26,6 +26,7 @@ import { Calendar } from '../components/ui/Calendar'
 import { TimeSlotGrid } from '../components/ui/TimeSlotGrid'
 import { PixPayment } from '../components/ui/PixPayment'
 import { formatCurrency, formatPhone } from '../lib/utils'
+import { supabase } from '../lib/supabase'
 import type { Service, Professional } from '../types'
 
 type Step = 1 | 2 | 3 | 4 | 5
@@ -253,6 +254,26 @@ export default function Booking() {
     if (!client) {
       setBookingError(clientError ?? 'Erro ao salvar seus dados. Tente novamente.')
       return
+    }
+
+    // Serviço com mensalidade: cria a matrícula (memberships). As cobranças
+    // mensais são geradas por gatilho no banco. Não bloqueia a reserva se falhar.
+    if (isMonthly(selectedService)) {
+      const months =
+        recurrenceWeeks >= 52 ? null
+        : recurrenceWeeks >= 26 ? 6
+        : recurrenceWeeks >= 13 ? 3
+        : 1
+      const startMonth = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-01`
+      await supabase.from('memberships').insert({
+        establishment_id: establishment.id,
+        client_id: client.id,
+        service_id: selectedService.id,
+        monthly_price: selectedService.price,
+        start_month: startMonth,
+        months,
+        status: 'ativa',
+      })
     }
 
     const [h, m] = selectedTime.split(':').map(Number)
