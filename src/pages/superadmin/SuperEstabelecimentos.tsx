@@ -7,19 +7,12 @@ import {
   CheckCircle, XCircle, Clock, Search, ExternalLink,
   Edit, X, Building2,
 } from 'lucide-react'
+import { CATEGORY_LABELS } from '../../lib/segments'
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
   active:    { label: 'Ativo',    color: 'bg-green-100 text-green-700',  icon: CheckCircle },
   trial:     { label: 'Trial',    color: 'bg-amber-100 text-amber-700',  icon: Clock },
   suspended: { label: 'Suspenso', color: 'bg-red-100 text-red-700',      icon: XCircle },
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  salao: 'Salão de Beleza', barbearia: 'Barbearia', estetica: 'Estética',
-  beleza: 'Serviços de Beleza',
-  pilates: 'Pilates', aulas_coletivas: 'Aulas Coletivas',
-  avaliacao_fisica: 'Avaliação Física',
-  avaliacao_nutricional: 'Avaliação Nutricional', academia: 'Academia', outro: 'Outro',
 }
 
 const CATEGORIES = Object.entries(CATEGORY_LABELS)
@@ -75,7 +68,7 @@ function EditModal({ establishment, onClose, onSave }: EditModalProps) {
             </div>
             <div>
               <p className="font-bold text-gray-900 text-sm leading-tight">{establishment.name}</p>
-              <p className="text-xs text-gray-400">{CATEGORY_LABELS[establishment.category]}</p>
+              <p className="text-xs text-gray-400">{CATEGORY_LABELS[establishment.category as keyof typeof CATEGORY_LABELS]}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 transition">
@@ -278,7 +271,7 @@ export default function SuperEstabelecimentos() {
                           <p className="text-xs text-gray-400">{e.email ?? '—'}</p>
                         </td>
                         <td className="px-4 py-3 text-gray-600">
-                          {CATEGORY_LABELS[e.category] ?? e.category}
+                          {CATEGORY_LABELS[e.category as keyof typeof CATEGORY_LABELS] ?? e.category}
                         </td>
                         <td className="px-4 py-3 text-gray-600">{planName}</td>
                         <td className="px-4 py-3">

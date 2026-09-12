@@ -5,28 +5,10 @@ import { useEstablishment } from '../../hooks/useEstablishment'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
 import AparenciaCard from '../../components/admin/AparenciaCard'
+import { SEGMENTS, CATEGORIES_BY_SEGMENT, CATEGORY_LABELS, segmentForCategory, type Segment, type Category } from '../../lib/segments'
 import type { WorkingHours } from '../../types'
 
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
-
-const CATEGORIES = [
-  { group: 'Beleza', items: [
-    { value: 'salao',    label: 'Salão de Beleza' },
-    { value: 'barbearia', label: 'Barbearia' },
-    { value: 'estetica', label: 'Estética' },
-    { value: 'beleza',   label: 'Serviços de Beleza (unhas, cílios, etc.)' },
-  ]},
-  { group: 'Saúde & Fitness', items: [
-    { value: 'pilates',               label: 'Pilates / Studio' },
-    { value: 'aulas_coletivas',       label: 'Aulas Coletivas (balé, jiu-jitsu, karate…)' },
-    { value: 'avaliacao_fisica',      label: 'Avaliação Física' },
-    { value: 'avaliacao_nutricional', label: 'Avaliação Nutricional' },
-    { value: 'academia',              label: 'Academia' },
-  ]},
-  { group: 'Outros', items: [
-    { value: 'outro', label: 'Outro' },
-  ]},
-]
 
 const DEFAULT_HOURS: Omit<WorkingHours, 'id' | 'establishment_id'>[] = DAY_NAMES.map((_, i) => ({
   day_of_week: i as WorkingHours['day_of_week'],
@@ -47,7 +29,8 @@ export default function Configuracoes() {
   const [email, setEmail]       = useState('')
   const [phone, setPhone]       = useState('')
   const [address, setAddress]   = useState('')
-  const [category, setCategory] = useState('')
+  const [category, setCategory] = useState<Category>('outro')
+  const [segment, setSegment]   = useState<Segment>('estetica')
   const [slug, setSlug]           = useState('')
   const [tagline, setTagline]     = useState('')
   const [prepayDiscount, setPrepayDiscount] = useState(10)
@@ -67,7 +50,8 @@ export default function Configuracoes() {
     setEmail(establishment.email ?? '')
     setPhone(establishment.phone ?? '')
     setAddress(establishment.address ?? '')
-    setCategory(establishment.category ?? 'outro')
+    setCategory((establishment.category ?? 'outro') as Category)
+    setSegment(establishment.segment ?? segmentForCategory(establishment.category))
     setSlug(establishment.slug ?? '')
     setTagline(establishment.tagline ?? '')
     setPrepayDiscount(establishment.prepay_discount ?? 10)
@@ -84,6 +68,7 @@ export default function Configuracoes() {
       phone: phone.trim() || undefined,
       address: address.trim() || undefined,
       category: category as never,
+      segment: segment as never,
       slug: slug.trim(),
       tagline: tagline.trim() || undefined,
       prepay_discount: prepayDiscount,
@@ -203,18 +188,49 @@ export default function Configuracoes() {
           </div>
 
           <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Linha do negócio</label>
+            <div className="grid grid-cols-2 gap-2">
+              {SEGMENTS.map(({ value, label, tagline, icon: Icon }) => {
+                const on = segment === value
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setSegment(value)
+                      // se a categoria atual não pertence à nova linha, ajusta
+                      if (!CATEGORIES_BY_SEGMENT[value].includes(category)) {
+                        setCategory(CATEGORIES_BY_SEGMENT[value][0])
+                      }
+                    }}
+                    className={`flex flex-col gap-0.5 text-left rounded-xl border p-3 transition ${
+                      on ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-gray-800">
+                      <Icon size={15} className={on ? 'text-indigo-600' : 'text-gray-400'} /> {label}
+                    </span>
+                    <span className="text-[11px] leading-snug text-gray-500">{tagline}</span>
+                  </button>
+                )
+              })}
+            </div>
+            {segment === 'estetica' && (
+              <p className="text-[11px] text-gray-400 mt-1">
+                Estética trabalha só com atendimento individual (sem turmas).
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Categoria</label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => setCategory(e.target.value as Category)}
               className={inputCls}
             >
-              {CATEGORIES.map(({ group, items }) => (
-                <optgroup key={group} label={group}>
-                  {items.map(({ value, label }) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </optgroup>
+              {CATEGORIES_BY_SEGMENT[segment].map((cat) => (
+                <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
               ))}
             </select>
           </div>

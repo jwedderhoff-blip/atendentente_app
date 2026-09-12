@@ -7,12 +7,12 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
-import { SEGMENTS, CATEGORIES_BY_SEGMENT, CATEGORY_LABELS } from '../lib/segments'
+import { SEGMENTS, CATEGORIES_BY_SEGMENT, CATEGORY_LABELS, ALL_CATEGORIES } from '../lib/segments'
 
 const schema = z.object({
   name: z.string().min(2, 'Nome obrigatório'),
   segment: z.enum(['estetica', 'saude_fitness'], { message: 'Escolha a linha do seu negócio' }),
-  category: z.enum(['salao', 'barbearia', 'estetica', 'beleza', 'pilates', 'aulas_coletivas', 'avaliacao_fisica', 'avaliacao_nutricional', 'academia', 'outro']),
+  category: z.enum(ALL_CATEGORIES, { message: 'Selecione a categoria' }),
   phone: z.string().min(10, 'Telefone inválido'),
   address: z.string().min(5, 'Endereço obrigatório'),
   email: z.string().min(1, 'Email obrigatório').email('Email inválido'),

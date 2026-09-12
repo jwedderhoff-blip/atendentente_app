@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { useAdminNotifications } from '../../hooks/useAdminNotifications'
 import { Mail, Send, Check, AlertTriangle, Clock, RefreshCw } from 'lucide-react'
-
-const CATEGORY_LABELS: Record<string, string> = {
-  salao: 'Salão de Beleza', barbearia: 'Barbearia', estetica: 'Estética',
-  beleza: 'Serviços de Beleza', pilates: 'Pilates', aulas_coletivas: 'Aulas Coletivas',
-  avaliacao_fisica: 'Avaliação Física', avaliacao_nutricional: 'Avaliação Nutricional',
-  academia: 'Academia', outro: 'Outro',
-}
+import { CATEGORY_LABELS } from '../../lib/segments'
 
 const STATUS_META: Record<string, { label: string; color: string; icon: typeof Check }> = {
   enviado: { label: 'Enviado', color: '#0ca30c', icon: Check },
@@ -191,7 +185,7 @@ export default function SuperNotificacoes() {
                     <tr key={n.id}>
                       <td className="py-2.5 pr-6 text-gray-900">{n.payload.name ?? '—'}</td>
                       <td className="py-2.5 pr-6 text-gray-500 whitespace-nowrap">
-                        {CATEGORY_LABELS[n.payload.category ?? ''] ?? n.payload.category ?? '—'}
+                        {CATEGORY_LABELS[n.payload.category as keyof typeof CATEGORY_LABELS] ?? n.payload.category ?? '—'}
                       </td>
                       <td className="py-2.5 pr-6 text-gray-500">
                         <div>{n.payload.email ?? '—'}</div>

@@ -11,6 +11,7 @@ import { useTheme } from '../context/ThemeContext'
 import { resolveBrand } from '../lib/brand'
 import { useServices } from '../hooks/useServices'
 import { formatCurrency } from '../lib/utils'
+import { CATEGORY_LABELS, CATEGORY_ICONS } from '../lib/segments'
 import type { Establishment } from '../types'
 import type { Service } from '../types'
 
@@ -18,33 +19,20 @@ import type { Service } from '../types'
 const CATEGORY_HERO: Record<Establishment['category'], string> = {
   salao: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&auto=format&fit=crop&q=80',
   barbearia: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&auto=format&fit=crop&q=80',
+  cabeleireiro: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&auto=format&fit=crop&q=80',
+  manicure: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200&auto=format&fit=crop&q=80',
   estetica: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1200&auto=format&fit=crop&q=80',
   beleza: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200&auto=format&fit=crop&q=80',
   pilates: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200&auto=format&fit=crop&q=80',
   aulas_coletivas: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=1200&auto=format&fit=crop&q=80',
+  danca: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=1200&auto=format&fit=crop&q=80',
+  lutas: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=1200&auto=format&fit=crop&q=80',
+  personal: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&auto=format&fit=crop&q=80',
+  academia: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&auto=format&fit=crop&q=80',
   avaliacao_fisica: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200&auto=format&fit=crop&q=80',
   avaliacao_nutricional: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1200&auto=format&fit=crop&q=80',
-  academia: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&auto=format&fit=crop&q=80',
+  nutricao: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1200&auto=format&fit=crop&q=80',
   outro: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&auto=format&fit=crop&q=80',
-}
-
-const CATEGORY_LABELS: Record<Establishment['category'], string> = {
-  salao: 'Salão de Beleza',
-  barbearia: 'Barbearia',
-  estetica: 'Estética',
-  beleza: 'Serviços de Beleza',
-  pilates: 'Pilates',
-  aulas_coletivas: 'Aulas Coletivas',
-  avaliacao_fisica: 'Avaliação Física',
-  avaliacao_nutricional: 'Avaliação Nutricional',
-  academia: 'Academia',
-  outro: 'Estabelecimento',
-}
-
-const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
-  salao: Scissors, barbearia: Scissors, estetica: Sparkles, beleza: Star,
-  pilates: Dumbbell, aulas_coletivas: Heart, avaliacao_fisica: Activity,
-  avaliacao_nutricional: Apple, academia: Dumbbell, outro: Sparkles,
 }
 
 // ── Ícone + imagem por serviço ────────────────────────────────────────────────

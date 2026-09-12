@@ -3,56 +3,23 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   CalendarDays,
   Users,
-  Scissors,
   UserCog,
   SlidersHorizontal,
   LogOut,
   Menu,
   X,
   LayoutDashboard,
-  Sparkles,
-  Dumbbell,
-  Store,
   ListChecks,
-  Apple,
-  Activity,
-  Star,
   ChevronDown,
   ArrowLeftRight,
-  type LucideIcon,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { useEstablishment, setSelectedEstablishmentId } from '../../hooks/useEstablishment'
 import { useEstablishments } from '../../hooks/useEstablishments'
-import type { Establishment } from '../../types'
+import { CATEGORY_LABELS, CATEGORY_ICONS } from '../../lib/segments'
 
-const CATEGORY_LABELS: Record<Establishment['category'], string> = {
-  salao: 'Salão de Beleza',
-  barbearia: 'Barbearia',
-  estetica: 'Estética',
-  beleza: 'Serviços de Beleza',
-  pilates: 'Pilates',
-  aulas_coletivas: 'Aulas Coletivas',
-  avaliacao_fisica: 'Avaliação Física',
-  avaliacao_nutricional: 'Avaliação Nutricional',
-  academia: 'Academia',
-  outro: 'Outro',
-}
-
-const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
-  salao: Scissors,
-  barbearia: Scissors,
-  estetica: Sparkles,
-  beleza: Star,
-  pilates: Dumbbell,
-  aulas_coletivas: Users,
-  avaliacao_fisica: Activity,
-  avaliacao_nutricional: Apple,
-  academia: Dumbbell,
-  outro: Store,
-}
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },

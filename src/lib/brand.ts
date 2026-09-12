@@ -12,13 +12,19 @@ export type CategoryColor = { hex: string; gradient: string }
 export const CATEGORY_COLORS: Record<Establishment['category'], CategoryColor> = {
   salao:                 { hex: '#b5476b', gradient: 'rgba(109,39,64,0.88)' },
   barbearia:             { hex: '#a8843c', gradient: 'rgba(92,71,24,0.90)' },
+  cabeleireiro:          { hex: '#a8843c', gradient: 'rgba(92,71,24,0.90)' },
+  manicure:              { hex: '#b5476b', gradient: 'rgba(109,39,64,0.88)' },
   estetica:              { hex: '#7e3f8f', gradient: 'rgba(70,32,79,0.88)' },
   beleza:                { hex: '#b5476b', gradient: 'rgba(109,39,64,0.88)' },
   pilates:               { hex: '#5a7d64', gradient: 'rgba(44,66,52,0.88)' },
   aulas_coletivas:       { hex: '#c26a3c', gradient: 'rgba(107,56,24,0.88)' },
+  danca:                 { hex: '#c26a3c', gradient: 'rgba(107,56,24,0.88)' },
+  lutas:                 { hex: '#7e3f8f', gradient: 'rgba(70,32,79,0.88)' },
+  personal:              { hex: '#4f46e5', gradient: 'rgba(36,31,107,0.88)' },
+  academia:              { hex: '#4f46e5', gradient: 'rgba(36,31,107,0.88)' },
   avaliacao_fisica:      { hex: '#4f46e5', gradient: 'rgba(36,31,107,0.88)' },
   avaliacao_nutricional: { hex: '#5a7d64', gradient: 'rgba(44,66,52,0.88)' },
-  academia:              { hex: '#4f46e5', gradient: 'rgba(36,31,107,0.88)' },
+  nutricao:              { hex: '#5a7d64', gradient: 'rgba(44,66,52,0.88)' },
   outro:                 { hex: '#4f46e5', gradient: 'rgba(36,31,107,0.88)' },
 }
 

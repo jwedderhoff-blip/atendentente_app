@@ -1,37 +1,9 @@
 import { useNavigate, Link } from 'react-router-dom'
-import {
-  Scissors, Sparkles, Dumbbell, Activity, Apple, Store, Plus, Star, Users, type LucideIcon,
-} from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishments } from '../../hooks/useEstablishments'
 import { setSelectedEstablishmentId } from '../../hooks/useEstablishment'
-import type { Establishment } from '../../types'
-
-const CATEGORY_ICONS: Record<Establishment['category'], LucideIcon> = {
-  salao: Scissors,
-  barbearia: Scissors,
-  estetica: Sparkles,
-  beleza: Star,
-  pilates: Dumbbell,
-  aulas_coletivas: Users,
-  avaliacao_fisica: Activity,
-  avaliacao_nutricional: Apple,
-  academia: Dumbbell,
-  outro: Store,
-}
-
-const CATEGORY_LABELS: Record<Establishment['category'], string> = {
-  salao: 'Salão de Beleza',
-  barbearia: 'Barbearia',
-  estetica: 'Estética',
-  beleza: 'Serviços de Beleza',
-  pilates: 'Pilates',
-  aulas_coletivas: 'Aulas Coletivas',
-  avaliacao_fisica: 'Avaliação Física',
-  avaliacao_nutricional: 'Avaliação Nutricional',
-  academia: 'Academia',
-  outro: 'Outro',
-}
+import { CATEGORY_LABELS, CATEGORY_ICONS } from '../../lib/segments'
 
 export default function SelecionarEstabelecimento() {
   const { user } = useAuth()
