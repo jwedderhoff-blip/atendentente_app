@@ -136,3 +136,17 @@ O usuário autoriza commit, merge e deploy sem aguardar confirmação prévia. S
 ## Gestão de contexto
 
 Usar `/compact` sempre que o contexto estiver crescendo para economizar tokens e manter a sessão eficiente.
+
+## Login visualizador (professores) — confirmação de e-mail
+
+O login compartilhado dos professores (somente leitura) é criado em
+**Configurações → Login dos professores**, via um cliente Supabase isolado
+(`persistSession: false`) para não derrubar a sessão do dono. Depende das tabelas/
+policies do arquivo `supabase/migrations/20260912_establishment_members.sql`.
+
+**Atenção:** se o projeto exigir confirmação de e-mail (Authentication → Providers
+→ Email → "Confirm email" ligado), a conta criada só faz login depois de confirmada
+uma vez. Duas saídas:
+- **Recomendado:** desligar "Confirm email" (é um login operacional compartilhado); ou
+- Criar/confirmar manualmente em Authentication → Users → Add user, marcando
+  "Auto Confirm User".
