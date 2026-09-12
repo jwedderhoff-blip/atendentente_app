@@ -59,6 +59,13 @@ export default function SuperAssinaturas() {
     (e) => !subscriptions.some((s) => s.establishment_id === e.id)
   )
 
+  // Linha de cada estabelecimento, para filtrar os planos compatíveis.
+  const segById = new Map(establishments.map((e) => [e.id, e.segment ?? null]))
+  // Um plano serve se não tem linha (vale p/ ambas) ou bate com a do estabelecimento.
+  // Se o estabelecimento não tem linha definida, não filtramos.
+  const planFits = (planSegment: string | null, estSegment: string | null | undefined) =>
+    !planSegment || !estSegment || planSegment === estSegment
+
   const assign = async (establishmentId: string) => {
     const planId = selectedPlan[establishmentId]
     if (!planId) return
@@ -120,7 +127,7 @@ export default function SuperAssinaturas() {
                     className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   >
                     <option value="">Selecionar plano</option>
-                    {plans.filter((p) => p.is_active).map((p) => (
+                    {plans.filter((p) => p.is_active && planFits(p.segment, e.segment)).map((p) => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
@@ -189,9 +196,11 @@ export default function SuperAssinaturas() {
                             className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                           >
                             <option value="">Sem plano</option>
-                            {plans.map((p) => (
-                              <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
+                            {plans
+                              .filter((p) => p.id === s.plan_id || planFits(p.segment, segById.get(s.establishment_id)))
+                              .map((p) => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                              ))}
                           </select>
                         </td>
                         <td className="px-4 py-3">

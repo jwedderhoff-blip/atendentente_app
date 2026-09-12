@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { usePlans } from '../../hooks/useSuperAdmin'
 import type { Plan } from '../../hooks/useSuperAdmin'
 import { Pencil, Check, X, Plus, Calendar, RefreshCw, Percent } from 'lucide-react'
+import { SEGMENTS, segmentLabel, type Segment } from '../../lib/segments'
 
 const inputCls =
   'w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400'
@@ -21,6 +22,7 @@ interface PlanForm {
   booking_fee_type: 'fixo' | 'percentual'
   booking_fee_value: number | string
   booking_fee_charge_to: 'cliente' | 'estabelecimento'
+  segment: '' | Segment
   is_active: boolean
 }
 
@@ -38,6 +40,7 @@ function emptyForm(): PlanForm {
     booking_fee_type: 'fixo',
     booking_fee_value: '',
     booking_fee_charge_to: 'estabelecimento',
+    segment: '',
     is_active: true,
   }
 }
@@ -57,8 +60,33 @@ function formToPayload(form: PlanForm): Omit<Plan, 'id' | 'created_at'> {
     booking_fee_type: perBooking ? form.booking_fee_type : null,
     booking_fee_value: perBooking && form.booking_fee_value !== '' ? Number(form.booking_fee_value) : null,
     booking_fee_charge_to: perBooking ? form.booking_fee_charge_to : null,
+    segment: form.segment || null,
     is_active: form.is_active,
   }
+}
+
+/** Seletor da linha do plano: Ambas / Estética / Saúde & Fitness. */
+function LineSelect({ value, onChange }: { value: '' | Segment; onChange: (v: '' | Segment) => void }) {
+  const options: { v: '' | Segment; label: string }[] = [
+    { v: '', label: 'Ambas as linhas' },
+    ...SEGMENTS.map((s) => ({ v: s.value, label: s.label })),
+  ]
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {options.map(({ v, label }) => (
+        <button
+          key={v || 'ambas'}
+          type="button"
+          onClick={() => onChange(v)}
+          className={`px-2 py-2 rounded-lg border text-xs font-medium transition ${
+            value === v ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  )
 }
 
 const BILLING_OPTIONS = [
@@ -174,6 +202,7 @@ function PlanCard({ plan, onSave }: { plan: Plan; onSave: (id: string, updates: 
     booking_fee_type: plan.booking_fee_type ?? 'fixo',
     booking_fee_value: plan.booking_fee_value ?? '',
     booking_fee_charge_to: plan.booking_fee_charge_to ?? 'estabelecimento',
+    segment: plan.segment ?? '',
     is_active: plan.is_active,
   })
 
@@ -328,6 +357,18 @@ function PlanCard({ plan, onSave }: { plan: Plan; onSave: (id: string, updates: 
           ))}
         </div>
 
+        {/* Linha do plano */}
+        <div>
+          <label className="text-xs font-medium text-gray-500 mb-2 block">Linha</label>
+          {editing ? (
+            <LineSelect value={form.segment} onChange={(v) => set('segment', v)} />
+          ) : (
+            <span className="text-sm font-medium text-gray-700">
+              {plan.segment ? segmentLabel(plan.segment) : 'Ambas as linhas'}
+            </span>
+          )}
+        </div>
+
         {/* Status */}
         <div className="flex items-center justify-between pt-1">
           <span className="text-xs text-gray-500">Status</span>
@@ -457,6 +498,12 @@ function NewPlanCard({ onCreate }: { onCreate: (data: Omit<Plan, 'id' | 'created
               />
             </div>
           ))}
+        </div>
+
+        {/* Linha do plano */}
+        <div>
+          <label className="text-xs font-medium text-gray-500 mb-2 block">Linha</label>
+          <LineSelect value={form.segment} onChange={(v) => set('segment', v)} />
         </div>
 
         {/* Status */}

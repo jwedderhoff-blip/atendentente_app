@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import type { Segment } from '../lib/segments'
 
 export interface Plan {
   id: string
@@ -16,6 +17,8 @@ export interface Plan {
   booking_fee_type: 'fixo' | 'percentual' | null
   booking_fee_value: number | null
   booking_fee_charge_to: 'cliente' | 'estabelecimento' | null
+  /** Linha a que o plano se aplica. Nulo = serve as duas linhas. */
+  segment: Segment | null
   is_active: boolean
   created_at: string
 }
@@ -41,6 +44,7 @@ export interface SuperEstablishment {
   phone: string | null
   slug: string
   address?: string | null
+  segment?: Segment | null
   created_at: string
   subscriptions?: {
     status: string
@@ -154,7 +158,7 @@ export function useAllEstablishments() {
   const fetch = async () => {
     const { data } = await supabase
       .from('establishments')
-      .select('id, name, category, status, email, phone, slug, address, created_at, subscriptions(status, plans(name, max_services, max_professionals))')
+      .select('id, name, category, segment, status, email, phone, slug, address, created_at, subscriptions(status, plans(name, max_services, max_professionals))')
       .order('created_at', { ascending: false })
 
     // Contagens de profissionais/serviços por estabelecimento. A função

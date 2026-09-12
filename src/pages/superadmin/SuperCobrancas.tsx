@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
-import { Receipt, TrendingUp, CalendarClock, Building2 } from 'lucide-react'
+import { Receipt, TrendingUp, CalendarClock, Building2, Filter } from 'lucide-react'
 import { useBookingChargesSummary, useAllEstablishments } from '../../hooks/useSuperAdmin'
 import { formatCurrency } from '../../lib/utils'
+import { SEGMENTS, type Segment } from '../../lib/segments'
 
 function currentMonth(): string {
   const d = new Date()
@@ -11,13 +12,23 @@ function currentMonth(): string {
 export default function SuperCobrancas() {
   const [month, setMonth] = useState(currentMonth())
   const [estId, setEstId] = useState('') // '' = todos os estabelecimentos
+  const [line, setLine] = useState<'' | Segment>('') // '' = todas as linhas
   const { rows, loading, missing } = useBookingChargesSummary(month)
   const { establishments } = useAllEstablishments()
 
-  // Filtra pelo estabelecimento escolhido (ou mostra todos)
+  const segById = useMemo(
+    () => new Map(establishments.map((e) => [e.id, e.segment ?? null])),
+    [establishments],
+  )
+
+  // Filtra por estabelecimento e/ou linha de trabalho.
   const visibleRows = useMemo(
-    () => (estId ? rows.filter((r) => r.establishment_id === estId) : rows),
-    [rows, estId],
+    () => rows.filter((r) => {
+      if (estId && r.establishment_id !== estId) return false
+      if (line && segById.get(r.establishment_id) !== line) return false
+      return true
+    }),
+    [rows, estId, line, segById],
   )
 
   const totals = useMemo(() => {
@@ -49,6 +60,19 @@ export default function SuperCobrancas() {
             <option value="">Todos os estabelecimentos</option>
             {establishments.map((e) => (
               <option key={e.id} value={e.id}>{e.name}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm text-gray-600">
+          <Filter size={16} className="text-gray-400 shrink-0" />
+          <select
+            value={line}
+            onChange={(e) => setLine(e.target.value as '' | Segment)}
+            className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+          >
+            <option value="">Todas as linhas</option>
+            {SEGMENTS.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
             ))}
           </select>
         </label>

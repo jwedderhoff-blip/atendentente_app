@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useTheme } from '../context/ThemeContext'
 import { formatCurrency } from '../lib/utils'
 import { HUES, INK, INK_SOFT, MUTED, PAPER, LINE, SOFT_LINE } from './demo/data'
+import { SEGMENTS, type Segment } from '../lib/segments'
 import type { Plan } from '../hooks/useSuperAdmin'
 
 /** Rótulo do preço conforme o tipo de cobrança do plano. */
@@ -34,6 +35,10 @@ export default function Planos() {
 
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
+  const [line, setLine] = useState<Segment>('estetica')
+
+  // Um plano aparece na linha se não tem linha (serve as duas) ou bate com a aba.
+  const visiblePlans = plans.filter((p) => !p.segment || p.segment === line)
 
   useEffect(() => {
     supabase
@@ -80,6 +85,29 @@ export default function Planos() {
         <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed" style={{ color: INK_SOFT }}>
           Planos mensais, por pacote de dias ou por atendimento realizado. Comece grátis e mude quando quiser.
         </p>
+
+        {/* Abas por linha de trabalho */}
+        <div className="flex justify-center mt-8">
+          <div className="inline-flex p-1 rounded-full" style={{ background: '#efece5' }}>
+            {SEGMENTS.map((s) => {
+              const on = line === s.value
+              return (
+                <button
+                  key={s.value}
+                  onClick={() => setLine(s.value)}
+                  className="px-5 sm:px-7 py-2.5 rounded-full text-sm font-medium transition-all duration-300"
+                  style={{
+                    background: on ? '#fff' : 'transparent',
+                    color: on ? INK : MUTED,
+                    boxShadow: on ? '0 1px 3px rgba(20,19,28,.12)' : 'none',
+                  }}
+                >
+                  {s.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Cards */}
@@ -88,11 +116,11 @@ export default function Planos() {
           <div className="flex justify-center py-16">
             <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: HUES.indigo, borderTopColor: 'transparent' }} />
           </div>
-        ) : plans.length === 0 ? (
-          <p className="text-center py-16 text-sm" style={{ color: MUTED }}>Nenhum plano disponível no momento.</p>
+        ) : visiblePlans.length === 0 ? (
+          <p className="text-center py-16 text-sm" style={{ color: MUTED }}>Nenhum plano disponível para esta linha no momento.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans.map((plan) => {
+            {visiblePlans.map((plan) => {
               const price = priceLabel(plan)
               const perBooking = plan.billing_type === 'por_agendamento'
               return (
