@@ -1,9 +1,13 @@
+import type { Category, Segment } from '../lib/segments'
+
 export interface Establishment {
   id: string
   owner_id: string
   name: string
   slug: string
-  category: 'salao' | 'barbearia' | 'estetica' | 'beleza' | 'pilates' | 'aulas_coletivas' | 'avaliacao_fisica' | 'avaliacao_nutricional' | 'academia' | 'outro'
+  category: Category
+  /** Linha de trabalho: estetica (individual) ou saude_fitness (permite turmas). */
+  segment?: Segment | null
   phone: string
   email: string
   address: string

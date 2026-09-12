@@ -9,6 +9,7 @@ import { useServices } from '../../hooks/useServices'
 import { useProfessionals } from '../../hooks/useProfessionals'
 import { useWorkingHours } from '../../hooks/useWorkingHours'
 import { usePlanLimits } from '../../hooks/usePlanLimits'
+import { allowsClasses, segmentForCategory } from '../../lib/segments'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -55,6 +56,9 @@ export default function Servicos() {
   // Trava do plano: bloqueia novos serviços ao atingir o limite contratado.
   const maxServices = limits?.maxServices ?? null
   const atLimit = maxServices !== null && services.length >= maxServices
+
+  // Linha do negócio: Estética só tem atendimento individual (sem turma).
+  const canTurma = allowsClasses(establishment?.segment ?? segmentForCategory(establishment?.category))
 
   const [modalOpen, setModalOpen] = useState(false)
   const [schedulesModal, setSchedulesModal] = useState<Service | null>(null)
@@ -370,28 +374,33 @@ export default function Servicos() {
               {...register('price', { valueAsNumber: true })}
             />
           </div>
-          <div>
-            <p className="text-sm text-gray-700 mb-2 font-medium">Tipo de horário</p>
-            <div className="grid grid-cols-2 gap-2">
-              {([
-                { value: 'flexible', label: 'Atendimento individual', desc: '1 cliente por horário — bloqueado após reserva' },
-                { value: 'fixed', label: 'Turma com vagas', desc: 'Múltiplos clientes por turno — você define as vagas' },
-              ] as const).map(({ value, label, desc }) => (
-                <label
-                  key={value}
-                  className={`flex flex-col gap-0.5 border rounded-xl p-3 cursor-pointer transition ${
-                    scheduleType === value
-                      ? 'border-indigo-500 bg-indigo-50'
-                      : 'border-gray-200 hover:border-indigo-300'
-                  }`}
-                >
-                  <input type="radio" value={value} {...register('schedule_type')} className="sr-only" />
-                  <span className="text-sm font-semibold text-gray-800">{label}</span>
-                  <span className="text-xs text-gray-500">{desc}</span>
-                </label>
-              ))}
+          {canTurma ? (
+            <div>
+              <p className="text-sm text-gray-700 mb-2 font-medium">Tipo de horário</p>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { value: 'flexible', label: 'Atendimento individual', desc: '1 cliente por horário — bloqueado após reserva' },
+                  { value: 'fixed', label: 'Turma com vagas', desc: 'Múltiplos clientes por turno — você define as vagas' },
+                ] as const).map(({ value, label, desc }) => (
+                  <label
+                    key={value}
+                    className={`flex flex-col gap-0.5 border rounded-xl p-3 cursor-pointer transition ${
+                      scheduleType === value
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-gray-200 hover:border-indigo-300'
+                    }`}
+                  >
+                    <input type="radio" value={value} {...register('schedule_type')} className="sr-only" />
+                    <span className="text-sm font-semibold text-gray-800">{label}</span>
+                    <span className="text-xs text-gray-500">{desc}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            // Estética: sempre individual — mantém o campo no formulário sem exibir turma.
+            <input type="hidden" defaultValue="flexible" {...register('schedule_type')} />
+          )}
           {scheduleType === 'fixed' && (
             <div>
               <p className="text-sm text-gray-700 mb-1 font-medium">Vagas por turno</p>
