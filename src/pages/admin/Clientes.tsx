@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Search, Download, User, ChevronDown, ChevronUp, MessageCircle, Calendar, GraduationCap, Wallet, Check, RotateCcw } from 'lucide-react'
+import { Search, Download, User, ChevronDown, ChevronUp, MessageCircle, Calendar, GraduationCap, Wallet, Check, RotateCcw, Trash2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useClients } from '../../hooks/useClients'
@@ -55,11 +55,25 @@ function useClientAppointments(clientId: string | null, establishmentId: string 
 function ClientRow({
   client,
   establishmentId,
+  onDelete,
 }: {
   client: Client
   establishmentId: string | undefined
+  onDelete: (id: string) => Promise<{ error: string | null }>
 }) {
   const [open, setOpen] = useState(false)
+  const [deleteErr, setDeleteErr] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!confirm(`Excluir o cadastro de ${client.name}? Esta ação não pode ser desfeita.`)) return
+    setDeleting(true)
+    setDeleteErr(null)
+    const { error } = await onDelete(client.id)
+    if (error) setDeleteErr(error)
+    setDeleting(false)
+  }
   const [month, setMonth] = useState(() => format(new Date(), 'yyyy-MM'))
   const { appointments, loading } = useClientAppointments(open ? client.id : null, establishmentId, month)
   const { memberships, charges, markPaid, markPending } = useClientFinance(establishmentId, open ? client.id : null)
@@ -115,9 +129,23 @@ function ClientRow({
           <p className="text-xs text-gray-400 hidden sm:block">
             desde {format(new Date(client.created_at), "d 'de' MMM yyyy", { locale: ptBR })}
           </p>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            title="Excluir cliente"
+            className="p-1.5 rounded-lg text-gray-300 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-40"
+          >
+            <Trash2 size={15} />
+          </button>
           {open ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
         </div>
       </div>
+
+      {deleteErr && (
+        <div className="px-4 pb-3 -mt-1">
+          <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{deleteErr}</p>
+        </div>
+      )}
 
       {open && (
         <div className="bg-gray-50 px-4 pb-4 pt-3">
@@ -255,7 +283,7 @@ function ClientRow({
 export default function Clientes() {
   const { user } = useAuth()
   const { establishment } = useEstablishment(user?.id)
-  const { clients, loading, exportCsv } = useClients(establishment?.id)
+  const { clients, loading, exportCsv, deleteClient } = useClients(establishment?.id)
   const [search, setSearch] = useState('')
 
   const filtered = clients.filter(
@@ -299,6 +327,7 @@ export default function Clientes() {
                   key={client.id}
                   client={client}
                   establishmentId={establishment?.id}
+                  onDelete={deleteClient}
                 />
               ))}
             </ul>
