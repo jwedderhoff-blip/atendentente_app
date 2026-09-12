@@ -28,7 +28,6 @@ const SuperEstabelecimentos = lazy(() => import('./pages/superadmin/SuperEstabel
 const SuperPlanos = lazy(() => import('./pages/superadmin/SuperPlanos'))
 const SuperAssinaturas = lazy(() => import('./pages/superadmin/SuperAssinaturas'))
 const SuperCobrancas = lazy(() => import('./pages/superadmin/SuperCobrancas'))
-const SuperMensalidades = lazy(() => import('./pages/superadmin/SuperMensalidades'))
 const SuperNotificacoes = lazy(() => import('./pages/superadmin/SuperNotificacoes'))
 const Demo = lazy(() => import('./pages/Demo'))
 
@@ -163,7 +162,6 @@ function AppRoutes() {
           <Route path="planos" element={<SuperPlanos />} />
           <Route path="assinaturas" element={<SuperAssinaturas />} />
           <Route path="cobrancas" element={<SuperCobrancas />} />
-          <Route path="mensalidades" element={<SuperMensalidades />} />
           <Route path="notificacoes" element={<SuperNotificacoes />} />
         </Route>
       </Route>

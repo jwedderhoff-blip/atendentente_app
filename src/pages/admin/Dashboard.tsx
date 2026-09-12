@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Calendar, Users, DollarSign, TrendingUp } from 'lucide-react'
+import { Calendar, Users, DollarSign, TrendingUp, Wallet, ArrowUpRight, Clock3 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useAppointments } from '../../hooks/useAppointments'
+import { useMembershipCharges } from '../../hooks/useMemberships'
 import ShareCard from '../../components/admin/ShareCard'
 import AgendaBlock from '../../components/admin/AgendaBlock'
 import { formatCurrency } from '../../lib/utils'
@@ -42,7 +43,13 @@ export default function Dashboard() {
   const { establishment } = useEstablishment(user?.id)
   const today = format(new Date(), 'yyyy-MM-dd')
   const { appointments } = useAppointments(establishment?.id, today)
+  const monthStr = format(new Date(), 'yyyy-MM')
+  const { charges: mensalidades } = useMembershipCharges(establishment?.id, monthStr)
   const [newClients, setNewClients] = useState(0)
+
+  const mensalPendentes = mensalidades.filter((c) => c.status === 'pendente')
+  const mensalAReceber = mensalPendentes.reduce((s, c) => s + Number(c.amount), 0)
+  const mensalRecebido = mensalidades.filter((c) => c.status === 'pago').reduce((s, c) => s + Number(c.amount), 0)
 
   useEffect(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd')
@@ -102,6 +109,41 @@ export default function Dashboard() {
           to="/admin/financeiro"
         />
       </div>
+
+      {mensalidades.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-8">
+          <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+                <Wallet size={15} className="text-emerald-600" />
+              </span>
+              <div>
+                <h2 className="font-semibold text-gray-900 text-sm capitalize">
+                  Mensalidades — {format(new Date(), 'MMMM', { locale: ptBR })}
+                </h2>
+                <p className="text-xs text-gray-400">Controle de recebimentos das turmas</p>
+              </div>
+            </div>
+            <Link to="/admin/financeiro" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition">
+              Gerenciar no Financeiro <ArrowUpRight size={14} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-xs text-gray-400">Em aberto</p>
+              <p className="font-display text-2xl tracking-tight text-ink">{mensalPendentes.length}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 flex items-center gap-1"><Clock3 size={11} /> A receber</p>
+              <p className="font-display text-2xl tracking-tight text-amber-600">{formatCurrency(mensalAReceber)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400">Recebido</p>
+              <p className="font-display text-2xl tracking-tight text-emerald-600">{formatCurrency(mensalRecebido)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {establishment && (
         <div className="mb-8">
