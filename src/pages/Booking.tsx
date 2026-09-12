@@ -148,6 +148,28 @@ export default function Booking() {
     maxSpots: selectedService?.max_spots ?? 1,
   })
 
+  // Horários fixos da turma (dias/horários já definidos), para destacar no
+  // calendário só os dias de aula e mostrar um resumo.
+  const [classSchedules, setClassSchedules] = useState<{ day_of_week: number; time: string; max_spots: number }[]>([])
+  useEffect(() => {
+    if (!selectedService || selectedService.schedule_type !== 'fixed') { setClassSchedules([]); return }
+    let cancelled = false
+    supabase
+      .from('service_schedules')
+      .select('day_of_week, time, max_spots')
+      .eq('service_id', selectedService.id)
+      .order('day_of_week')
+      .order('time')
+      .then(({ data }) => { if (!cancelled) setClassSchedules((data ?? []) as typeof classSchedules) })
+    return () => { cancelled = true }
+  }, [selectedService])
+
+  const classDays = Array.from(new Set(classSchedules.map((s) => s.day_of_week)))
+  // Para turmas com dias definidos: só os dias de aula ficam habilitados.
+  const bookingDisabledDays = classDays.length > 0
+    ? [0, 1, 2, 3, 4, 5, 6].filter((d) => !classDays.includes(d))
+    : closedDays
+
   const { createClient } = useClients(establishment?.id)
   const { createAppointment, createRecurringAppointments } = useAppointments(establishment?.id)
   const { pixData, loading: pixLoading, generatePix } = usePixPayment()
@@ -459,9 +481,21 @@ export default function Booking() {
             <h2 className="font-display text-2xl tracking-tight text-ink mb-1">Escolha a data e horário</h2>
             <p className="text-sm text-gray-400 mb-6">Selecione quando deseja ser atendido</p>
 
-            {selectedService?.schedule_type === 'fixed' && (selectedService.sessions_per_week ?? 1) > 1 && (
+            {selectedService?.schedule_type === 'fixed' && classSchedules.length > 0 && (
               <div className="bg-brand-soft border border-brand/10 rounded-2xl px-4 py-3 mb-4 text-sm text-brand-dark">
-                Esta turma tem <strong>{selectedService.sessions_per_week} aulas por semana</strong>. Ao se matricular, sua vaga fica garantida nas aulas da semana.
+                {(selectedService.sessions_per_week ?? 1) > 1 && (
+                  <p className="mb-2">
+                    Esta turma tem <strong>{selectedService.sessions_per_week} aulas por semana</strong>. Escolha um dia de aula (marcados no calendário).
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-1.5">
+                  {classSchedules.map((s, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 bg-white/70 rounded-lg px-2 py-1 text-xs font-medium">
+                      {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][s.day_of_week]} {s.time.slice(0, 5)}
+                      {s.max_spots > 1 && <span className="text-brand/70">· {s.max_spots} vagas</span>}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -472,7 +506,8 @@ export default function Booking() {
                   setSelectedDate(d)
                   setSelectedTime(null)
                 }}
-                disabledDays={closedDays}
+                disabledDays={bookingDisabledDays}
+                highlightDays={classDays}
               />
             </div>
 

@@ -23,9 +23,11 @@ interface CalendarProps {
   onSelect: (date: Date) => void
   minDate?: Date
   disabledDays?: number[]
+  /** Dias da semana (0-6) com aula/atividade — marcados com um ponto. */
+  highlightDays?: number[]
 }
 
-export function Calendar({ selected, onSelect, minDate, disabledDays = [] }: CalendarProps) {
+export function Calendar({ selected, onSelect, minDate, disabledDays = [], highlightDays = [] }: CalendarProps) {
   const [current, setCurrent] = useState(selected ?? new Date())
 
   const monthStart = startOfMonth(current)
@@ -76,6 +78,7 @@ export function Calendar({ selected, onSelect, minDate, disabledDays = [] }: Cal
           const isPast = isBefore(startOfDay(day), min)
           const dayOfWeek = day.getDay()
           const isDisabled = isPast || disabledDays.includes(dayOfWeek) || !isCurrentMonth
+          const isHighlight = highlightDays.includes(dayOfWeek) && !isDisabled && isCurrentMonth
 
           return (
             <button
@@ -84,15 +87,19 @@ export function Calendar({ selected, onSelect, minDate, disabledDays = [] }: Cal
               disabled={isDisabled}
               onClick={() => !isDisabled && onSelect(day)}
               className={cn(
-                'mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm transition',
+                'relative mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm transition',
                 !isCurrentMonth && 'invisible',
                 isDisabled && 'opacity-30 cursor-not-allowed',
                 isSelected && 'bg-brand text-white font-semibold',
-                !isSelected && !isDisabled && isToday(day) && 'border border-brand text-brand-dark',
+                !isSelected && !isDisabled && isHighlight && 'bg-brand-soft text-brand-dark font-semibold',
+                !isSelected && !isDisabled && !isHighlight && isToday(day) && 'border border-brand text-brand-dark',
                 !isSelected && !isDisabled && 'hover:bg-brand-soft text-gray-700',
               )}
             >
               {format(day, 'd')}
+              {isHighlight && !isSelected && (
+                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand" />
+              )}
             </button>
           )
         })}
