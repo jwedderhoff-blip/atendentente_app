@@ -38,6 +38,8 @@ export interface Service {
   active: boolean
   schedule_type: 'fixed' | 'flexible'
   max_spots: number
+  /** Quantas aulas por semana a turma tem (turmas com horário fixo). */
+  sessions_per_week?: number
 }
 
 export interface Professional {

@@ -459,6 +459,12 @@ export default function Booking() {
             <h2 className="font-display text-2xl tracking-tight text-ink mb-1">Escolha a data e horário</h2>
             <p className="text-sm text-gray-400 mb-6">Selecione quando deseja ser atendido</p>
 
+            {selectedService?.schedule_type === 'fixed' && (selectedService.sessions_per_week ?? 1) > 1 && (
+              <div className="bg-brand-soft border border-brand/10 rounded-2xl px-4 py-3 mb-4 text-sm text-brand-dark">
+                Esta turma tem <strong>{selectedService.sessions_per_week} aulas por semana</strong>. Ao se matricular, sua vaga fica garantida nas aulas da semana.
+              </div>
+            )}
+
             <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
               <Calendar
                 selected={selectedDate}

@@ -42,6 +42,7 @@ const schema = z.object({
   active: z.boolean(),
   schedule_type: z.enum(['fixed', 'flexible']),
   max_spots: z.number().min(1, 'Mínimo 1 vaga'),
+  sessions_per_week: z.number().min(1, 'Mínimo 1 aula/semana'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -79,7 +80,7 @@ export default function Servicos() {
     reset,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { active: true, schedule_type: 'flexible', price_mode: 'sessao' } })
+  } = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { active: true, schedule_type: 'flexible', price_mode: 'sessao', sessions_per_week: 1 } })
 
   const scheduleType = watch('schedule_type')
   const priceMode = watch('price_mode')
@@ -117,13 +118,13 @@ export default function Servicos() {
     if (atLimit) return
     setEditing(null)
     setSelectedProfIds([])
-    reset({ name: '', description: '', duration_minutes: 60, price: 0, price_mode: 'sessao', active: true, schedule_type: 'flexible', max_spots: 1 })
+    reset({ name: '', description: '', duration_minutes: 60, price: 0, price_mode: 'sessao', active: true, schedule_type: 'flexible', max_spots: 1, sessions_per_week: 1 })
     setModalOpen(true)
   }
 
   const openEdit = async (s: Service) => {
     setEditing(s)
-    reset({ ...s, schedule_type: s.schedule_type ?? 'flexible', max_spots: s.max_spots ?? 1, price_mode: s.price_mode ?? 'sessao' })
+    reset({ ...s, schedule_type: s.schedule_type ?? 'flexible', max_spots: s.max_spots ?? 1, price_mode: s.price_mode ?? 'sessao', sessions_per_week: s.sessions_per_week ?? 1 })
     // Carrega profissionais já associados ao serviço
     const { data } = await supabase
       .from('professional_services')
@@ -424,15 +425,27 @@ export default function Servicos() {
             <input type="hidden" defaultValue="flexible" {...register('schedule_type')} />
           )}
           {scheduleType === 'fixed' && (
-            <div>
-              <p className="text-sm text-gray-700 mb-1 font-medium">Vagas por turno</p>
-              <p className="text-xs text-gray-400 mb-2">Quantos clientes podem reservar o mesmo horário. Quando todas as vagas forem preenchidas, o horário é bloqueado automaticamente.</p>
-              <Input
-                type="number"
-                placeholder="10"
-                error={errors.max_spots?.message}
-                {...register('max_spots', { valueAsNumber: true })}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-sm text-gray-700 mb-1 font-medium">Vagas por turno</p>
+                <p className="text-xs text-gray-400 mb-2">Quantos clientes por horário. Ao lotar, o horário é bloqueado.</p>
+                <Input
+                  type="number"
+                  placeholder="10"
+                  error={errors.max_spots?.message}
+                  {...register('max_spots', { valueAsNumber: true })}
+                />
+              </div>
+              <div>
+                <p className="text-sm text-gray-700 mb-1 font-medium">Aulas por semana</p>
+                <p className="text-xs text-gray-400 mb-2">Ex.: jiu-jitsu 2x/semana. Usado para conferir os horários.</p>
+                <Input
+                  type="number"
+                  placeholder="2"
+                  error={errors.sessions_per_week?.message}
+                  {...register('sessions_per_week', { valueAsNumber: true })}
+                />
+              </div>
             </div>
           )}
           {professionals.length > 0 && (
@@ -482,6 +495,22 @@ export default function Servicos() {
               ? ` Cada turma pode ter vários horários por semana (${schedulesModal.max_spots} vagas por horário).`
               : ' Serviço individual: 1 vaga por horário.'}
           </p>
+
+          {schedulesModal && (schedulesModal.sessions_per_week ?? 1) > 1 && (() => {
+            const days = new Set(allSchedules.filter((s) => s.service_id === schedulesModal.id).map((s) => s.day_of_week))
+            const target = schedulesModal.sessions_per_week ?? 1
+            const ok = days.size === target
+            return (
+              <div className={`text-sm rounded-xl px-4 py-3 ${ok ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-800 border border-amber-200'}`}>
+                Esta turma tem <strong>{target} aulas por semana</strong>. Você cadastrou horários em <strong>{days.size}</strong> {days.size === 1 ? 'dia' : 'dias'}.
+                {ok
+                  ? ' ✓ Dias completos.'
+                  : days.size < target
+                    ? ` Faltam ${target - days.size} ${target - days.size === 1 ? 'dia' : 'dias'}.`
+                    : ' Há mais dias do que o previsto — ajuste as aulas por semana ou os horários.'}
+              </div>
+            )
+          })()}
 
           {scheduleError && (
             <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{scheduleError}</p>
