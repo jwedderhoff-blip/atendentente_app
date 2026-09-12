@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Outlet, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { useEstablishment } from './hooks/useEstablishment'
 import { ThemeProvider } from './context/ThemeContext'
 import { supabase } from './lib/supabase'
 import AdminLayout from './components/layout/AdminLayout'
@@ -57,6 +58,25 @@ function PrivateRoute() {
     )
   }
   if (!session) return <Navigate to="/login" replace />
+  return <Outlet />
+}
+
+/**
+ * Rotas exclusivas do dono. O login visualizador (professor) não acessa
+ * Clientes, Profissionais, Financeiro nem Configurações — se tentar pela URL,
+ * volta para o Dashboard.
+ */
+function OwnerRoute() {
+  const { user } = useAuth()
+  const { role, loading } = useEstablishment(user?.id)
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
+      </div>
+    )
+  }
+  if (role === 'viewer') return <Navigate to="/admin" replace />
   return <Outlet />
 }
 
@@ -148,11 +168,13 @@ function AppRoutes() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="agenda" element={<Agenda />} />
-          <Route path="clientes" element={<Clientes />} />
           <Route path="servicos" element={<Servicos />} />
-          <Route path="profissionais" element={<Profissionais />} />
-          <Route path="financeiro" element={<Financeiro />} />
-          <Route path="configuracoes" element={<Configuracoes />} />
+          <Route element={<OwnerRoute />}>
+            <Route path="clientes" element={<Clientes />} />
+            <Route path="profissionais" element={<Profissionais />} />
+            <Route path="financeiro" element={<Financeiro />} />
+            <Route path="configuracoes" element={<Configuracoes />} />
+          </Route>
         </Route>
       </Route>
       <Route element={<SuperAdminRoute />}>
