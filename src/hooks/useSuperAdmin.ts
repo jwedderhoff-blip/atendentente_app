@@ -98,6 +98,54 @@ export function useBookingChargesSummary(month: string) {
   return { rows, loading, missing }
 }
 
+export interface MembershipSummaryRow {
+  establishment_id: string
+  establishment_name: string
+  cobrancas: number
+  pagas: number
+  total: number
+  recebido: number
+}
+
+/**
+ * Resumo mensal de mensalidades por estabelecimento (cobradas x recebidas).
+ * Vem da função admin_membership_summary (SECURITY DEFINER, só admin).
+ */
+export function useMembershipSummary(month: string) {
+  const [rows, setRows] = useState<MembershipSummaryRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [missing, setMissing] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setMissing(false)
+    supabase
+      .rpc('admin_membership_summary', { p_month: `${month}-01` })
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          setMissing(true)
+          setRows([])
+        } else {
+          setRows(
+            ((data ?? []) as MembershipSummaryRow[]).map((r) => ({
+              ...r,
+              cobrancas: Number(r.cobrancas),
+              pagas: Number(r.pagas),
+              total: Number(r.total),
+              recebido: Number(r.recebido),
+            })),
+          )
+        }
+        setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [month])
+
+  return { rows, loading, missing }
+}
+
 export interface SuperProfessional {
   id: string
   establishment_id: string
