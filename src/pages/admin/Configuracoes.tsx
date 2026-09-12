@@ -5,7 +5,7 @@ import { useEstablishment } from '../../hooks/useEstablishment'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
 import AparenciaCard from '../../components/admin/AparenciaCard'
-import { SEGMENTS, CATEGORIES_BY_SEGMENT, CATEGORY_LABELS, segmentForCategory, type Segment, type Category } from '../../lib/segments'
+import { CATEGORIES_BY_SEGMENT, CATEGORY_LABELS, segmentForCategory, type Segment, type Category } from '../../lib/segments'
 import type { WorkingHours } from '../../types'
 
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
@@ -185,41 +185,6 @@ export default function Configuracoes() {
               className={inputCls}
               placeholder="Nome do estabelecimento"
             />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Linha do negócio</label>
-            <div className="grid grid-cols-2 gap-2">
-              {SEGMENTS.map(({ value, label, tagline, icon: Icon }) => {
-                const on = segment === value
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => {
-                      setSegment(value)
-                      // se a categoria atual não pertence à nova linha, ajusta
-                      if (!CATEGORIES_BY_SEGMENT[value].includes(category)) {
-                        setCategory(CATEGORIES_BY_SEGMENT[value][0])
-                      }
-                    }}
-                    className={`flex flex-col gap-0.5 text-left rounded-xl border p-3 transition ${
-                      on ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'
-                    }`}
-                  >
-                    <span className="flex items-center gap-1.5 text-sm font-semibold text-gray-800">
-                      <Icon size={15} className={on ? 'text-indigo-600' : 'text-gray-400'} /> {label}
-                    </span>
-                    <span className="text-[11px] leading-snug text-gray-500">{tagline}</span>
-                  </button>
-                )
-              })}
-            </div>
-            {segment === 'estetica' && (
-              <p className="text-[11px] text-gray-400 mt-1">
-                Estética trabalha só com atendimento individual (sem turmas).
-              </p>
-            )}
           </div>
 
           <div className="flex flex-col gap-1">
