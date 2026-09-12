@@ -23,18 +23,20 @@ import { CATEGORY_LABELS, CATEGORY_ICONS } from '../../lib/segments'
 
 
 const navItems = [
-  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/admin/agenda', label: 'Agenda', icon: CalendarDays, end: false },
-  { to: '/admin/clientes', label: 'Clientes', icon: Users, end: false },
-  { to: '/admin/servicos', label: 'Serviços', icon: ListChecks, end: false },
-  { to: '/admin/profissionais', label: 'Profissionais', icon: UserCog, end: false },
-  { to: '/admin/financeiro', label: 'Financeiro', icon: Wallet, end: false },
-  { to: '/admin/configuracoes', label: 'Configurações', icon: SlidersHorizontal, end: false },
+  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true, viewer: true },
+  { to: '/admin/agenda', label: 'Agenda', icon: CalendarDays, end: false, viewer: true },
+  { to: '/admin/clientes', label: 'Clientes', icon: Users, end: false, viewer: false },
+  { to: '/admin/servicos', label: 'Serviços', icon: ListChecks, end: false, viewer: true },
+  { to: '/admin/profissionais', label: 'Profissionais', icon: UserCog, end: false, viewer: false },
+  { to: '/admin/financeiro', label: 'Financeiro', icon: Wallet, end: false, viewer: false },
+  { to: '/admin/configuracoes', label: 'Configurações', icon: SlidersHorizontal, end: false, viewer: false },
 ]
 
 export default function AdminLayout() {
   const { user, signOut } = useAuth()
-  const { establishment } = useEstablishment(user?.id)
+  const { establishment, role } = useEstablishment(user?.id)
+  const isViewer = role === 'viewer'
+  const visibleNav = isViewer ? navItems.filter((i) => i.viewer) : navItems
   const { establishments } = useEstablishments(user?.id)
   const { applyEstablishment } = useTheme()
   const navigate = useNavigate()
@@ -115,7 +117,7 @@ export default function AdminLayout() {
       </div>
 
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-        {navItems.map(({ to, label, icon: Icon, end }) => (
+        {visibleNav.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}

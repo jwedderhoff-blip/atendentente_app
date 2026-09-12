@@ -14,14 +14,18 @@ export function setSelectedEstablishmentId(id: string) {
   localStorage.setItem(STORAGE_KEY, id)
 }
 
+export type EstablishmentRole = 'owner' | 'viewer'
+
 export function useEstablishment(userId: string | undefined) {
   const [establishment, setEstablishment] = useState<Establishment | null>(null)
+  const [role, setRole] = useState<EstablishmentRole>('owner')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isDemo) {
       setEstablishment(mockEstablishment)
+      setRole('owner')
       setLoading(false)
       return
     }
@@ -31,22 +35,47 @@ export function useEstablishment(userId: string | undefined) {
       return
     }
 
+    let cancelled = false
     setLoading(true)
-    supabase
-      .from('establishments')
-      .select('*')
-      .eq('owner_id', userId)
-      .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (error) {
-          setError(error.message)
-        } else if (data && data.length > 0) {
-          const savedId = getSelectedEstablishmentId()
-          const selected = data.find((e) => e.id === savedId) ?? data[0]
-          setEstablishment(selected as Establishment)
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      const email = user?.email?.toLowerCase()
+
+      // 1) Estabelecimentos que o usuário é dono
+      const owned = await supabase
+        .from('establishments')
+        .select('*')
+        .eq('owner_id', userId)
+        .order('created_at', { ascending: false })
+
+      let list: { est: Establishment; role: EstablishmentRole }[] =
+        (owned.data ?? []).map((e) => ({ est: e as Establishment, role: 'owner' as const }))
+
+      // 2) Se não é dono de nenhum, procura acessos de visualizador pelo e-mail
+      if (list.length === 0 && email) {
+        const mem = await supabase
+          .from('establishment_members')
+          .select('establishment_id')
+          .eq('email', email)
+        const ids = (mem.data ?? []).map((m: { establishment_id: string }) => m.establishment_id)
+        if (ids.length > 0) {
+          const ests = await supabase.from('establishments').select('*').in('id', ids)
+          list = (ests.data ?? []).map((e) => ({ est: e as Establishment, role: 'viewer' as const }))
         }
-        setLoading(false)
-      })
+      }
+
+      if (cancelled) return
+      if (owned.error) setError(owned.error.message)
+      if (list.length > 0) {
+        const savedId = getSelectedEstablishmentId()
+        const selected = list.find((x) => x.est.id === savedId) ?? list[0]
+        setEstablishment(selected.est)
+        setRole(selected.role)
+      }
+      setLoading(false)
+    })()
+
+    return () => { cancelled = true }
   }, [userId])
 
   const switchEstablishment = (id: string) => {
@@ -71,7 +100,7 @@ export function useEstablishment(userId: string | undefined) {
     return { error: error?.message ?? null }
   }
 
-  return { establishment, loading, error, updateEstablishment, switchEstablishment }
+  return { establishment, role, loading, error, updateEstablishment, switchEstablishment }
 }
 
 export function useEstablishmentBySlug(slug: string | undefined) {

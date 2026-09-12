@@ -49,7 +49,8 @@ type FormData = z.infer<typeof schema>
 
 export default function Servicos() {
   const { user } = useAuth()
-  const { establishment } = useEstablishment(user?.id)
+  const { establishment, role } = useEstablishment(user?.id)
+  const isViewer = role === 'viewer'
   const { services, loading, createService, updateService, deleteService } = useServices(establishment?.id)
   const { professionals } = useProfessionals(establishment?.id)
   const { workingHours, loadingWorkingHours } = useWorkingHours(establishment?.id)
@@ -247,10 +248,12 @@ export default function Servicos() {
             </p>
           )}
         </div>
-        <Button size="sm" onClick={openCreate} disabled={atLimit}>
-          <Plus size={16} />
-          Novo serviço
-        </Button>
+        {!isViewer && (
+          <Button size="sm" onClick={openCreate} disabled={atLimit}>
+            <Plus size={16} />
+            Novo serviço
+          </Button>
+        )}
       </div>
 
       {atLimit && (
@@ -315,27 +318,29 @@ export default function Servicos() {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openSchedules(s)}
-                      title="Horários fixos"
-                      className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                    >
-                      <CalendarDays size={16} />
-                    </button>
-                    <button
-                      onClick={() => openEdit(s)}
-                      className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(s.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  {!isViewer && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openSchedules(s)}
+                        title="Horários fixos"
+                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                      >
+                        <CalendarDays size={16} />
+                      </button>
+                      <button
+                        onClick={() => openEdit(s)}
+                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(s.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
                 </li>
                 )
               })}

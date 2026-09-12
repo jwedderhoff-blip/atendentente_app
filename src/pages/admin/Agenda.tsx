@@ -14,7 +14,8 @@ import type { Appointment } from '../../types'
 
 export default function Agenda() {
   const { user } = useAuth()
-  const { establishment } = useEstablishment(user?.id)
+  const { establishment, role } = useEstablishment(user?.id)
+  const isViewer = role === 'viewer'
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }))
   const [selectedProfessional, setSelectedProfessional] = useState<string>('all')
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null)
@@ -238,8 +239,14 @@ export default function Agenda() {
               </div>
             </div>
 
+            {isViewer && (
+              <p className="text-xs text-gray-400 text-center">
+                Acesso somente leitura. Cancelamentos e alterações são feitos pelo dono.
+              </p>
+            )}
+
             {/* Pagamento */}
-            {selectedAppt.payment_status !== 'pago' && (
+            {!isViewer && selectedAppt.payment_status !== 'pago' && (
               <Button
                 onClick={() => handlePaymentStatus('pago')}
                 loading={updating}
@@ -248,7 +255,7 @@ export default function Agenda() {
                 Marcar como pago
               </Button>
             )}
-            {selectedAppt.payment_status === 'pago' && (
+            {!isViewer && selectedAppt.payment_status === 'pago' && (
               <Button
                 variant="ghost"
                 onClick={() => handlePaymentStatus('reembolsado')}
@@ -260,6 +267,7 @@ export default function Agenda() {
             )}
 
             {/* Ações */}
+            {!isViewer && (
             <div className="flex flex-col gap-2">
               {selectedAppt.status === 'pendente' && (
                 <Button
@@ -315,6 +323,7 @@ export default function Agenda() {
                 </Button>
               )}
             </div>
+            )}
           </div>
         )}
       </Modal>

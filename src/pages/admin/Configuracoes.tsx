@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
 import AparenciaCard from '../../components/admin/AparenciaCard'
 import ShareCard from '../../components/admin/ShareCard'
+import ViewerAccessCard from '../../components/admin/ViewerAccessCard'
 import { CATEGORIES_BY_SEGMENT, CATEGORY_LABELS, segmentForCategory, type Segment, type Category } from '../../lib/segments'
 import type { WorkingHours } from '../../types'
 
@@ -23,7 +24,7 @@ const inputCls =
 
 export default function Configuracoes() {
   const { user } = useAuth()
-  const { establishment, updateEstablishment } = useEstablishment(user?.id)
+  const { establishment, role, updateEstablishment } = useEstablishment(user?.id)
 
   // ── Dados do estabelecimento ──
   const [name, setName]         = useState('')
@@ -495,6 +496,11 @@ export default function Configuracoes() {
           ))}
         </div>
       </div>
+
+      {/* ── Login dos professores (somente leitura) ── */}
+      {role === 'owner' && establishment && (
+        <ViewerAccessCard establishmentId={establishment.id} />
+      )}
     </div>
   )
 }
