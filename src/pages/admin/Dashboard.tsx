@@ -8,6 +8,7 @@ import { useAppointments } from '../../hooks/useAppointments'
 import { Badge } from '../../components/ui/Badge'
 import { Modal } from '../../components/ui/Modal'
 import { Button } from '../../components/ui/Button'
+import ShareCard from '../../components/admin/ShareCard'
 import { formatCurrency } from '../../lib/utils'
 import type { Appointment } from '../../types'
 
@@ -106,6 +107,15 @@ export default function Dashboard() {
           color="bg-emerald-50"
         />
       </div>
+
+      {establishment && (
+        <div className="mb-8">
+          <ShareCard
+            url={`${window.location.origin}/agendar/${establishment.slug}`}
+            name={establishment.name}
+          />
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl border border-gray-100">
         <div className="p-5 border-b border-gray-100">

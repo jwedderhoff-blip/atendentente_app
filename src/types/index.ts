@@ -13,6 +13,8 @@ export interface Establishment {
   address: string
   logo_url?: string
   tagline?: string
+  /** @ ou link do Instagram do estabelecimento. */
+  instagram?: string | null
   prepay_discount?: number
   /** Cor da marca escolhida pelo dono. Nulo = usa a cor padrão da categoria. */
   brand_color?: string | null

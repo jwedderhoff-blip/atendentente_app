@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from 'react'
-import { Save, Copy, Check, ExternalLink, CalendarDays, Building2, AlertCircle, Tag, ImageIcon, Upload, X } from 'lucide-react'
+import { Save, Copy, Check, CalendarDays, Building2, AlertCircle, Tag, ImageIcon, Upload, X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../components/ui/Button'
 import AparenciaCard from '../../components/admin/AparenciaCard'
+import ShareCard from '../../components/admin/ShareCard'
 import { CATEGORIES_BY_SEGMENT, CATEGORY_LABELS, segmentForCategory, type Segment, type Category } from '../../lib/segments'
 import type { WorkingHours } from '../../types'
 
@@ -33,6 +34,7 @@ export default function Configuracoes() {
   const [segment, setSegment]   = useState<Segment>('estetica')
   const [slug, setSlug]           = useState('')
   const [tagline, setTagline]     = useState('')
+  const [instagram, setInstagram] = useState('')
   const [prepayDiscount, setPrepayDiscount] = useState(10)
   const [savingData, setSavingData] = useState(false)
   const [savedData, setSavedData]   = useState(false)
@@ -54,6 +56,7 @@ export default function Configuracoes() {
     setSegment(establishment.segment ?? segmentForCategory(establishment.category))
     setSlug(establishment.slug ?? '')
     setTagline(establishment.tagline ?? '')
+    setInstagram(establishment.instagram ?? '')
     setPrepayDiscount(establishment.prepay_discount ?? 10)
     setCoverUrl(establishment.logo_url ?? null)
   }, [establishment])
@@ -71,6 +74,7 @@ export default function Configuracoes() {
       segment: segment as never,
       slug: slug.trim(),
       tagline: tagline.trim() || undefined,
+      instagram: instagram.trim() || null,
       prepay_discount: prepayDiscount,
     })
     if (error) setDataError(error)
@@ -103,7 +107,6 @@ export default function Configuracoes() {
   }
 
   // ── Link de agendamento ──
-  const [copied, setCopied]       = useState(false)
   const [copiedCal, setCopiedCal] = useState(false)
 
   const bookingUrl = establishment
@@ -113,11 +116,6 @@ export default function Configuracoes() {
     ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ical/${establishment.slug}`
     : ''
 
-  const copyLink = () => {
-    void navigator.clipboard.writeText(bookingUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
   const copyIcal = () => {
     void navigator.clipboard.writeText(icalUrl)
     setCopiedCal(true)
@@ -249,6 +247,16 @@ export default function Configuracoes() {
             />
           </div>
 
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Instagram</label>
+            <input
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              className={inputCls}
+              placeholder="@suaacademia"
+            />
+          </div>
+
           <div className="sm:col-span-2 flex flex-col gap-1">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
               Subtítulo do painel (tagline)
@@ -348,33 +356,7 @@ export default function Configuracoes() {
       </div>
 
       {/* ── Link de agendamento ── */}
-      {establishment && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <h2 className="font-semibold text-gray-900 mb-1">Link de agendamento</h2>
-          <p className="text-sm text-gray-500 mb-3">Compartilhe este link com seus clientes</p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-indigo-700 font-mono truncate">
-              {bookingUrl}
-            </div>
-            <button
-              onClick={copyLink}
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:border-indigo-400 hover:text-indigo-700 transition"
-            >
-              {copied ? <Check size={15} className="text-green-500" /> : <Copy size={15} />}
-              {copied ? 'Copiado!' : 'Copiar'}
-            </button>
-            <a
-              href={bookingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:border-indigo-400 hover:text-indigo-700 transition"
-            >
-              <ExternalLink size={15} />
-              Abrir
-            </a>
-          </div>
-        </div>
-      )}
+      {establishment && <ShareCard url={bookingUrl} name={establishment.name} />}
 
       {/* ── Pagamento antecipado ── */}
       <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">

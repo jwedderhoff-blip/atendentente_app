@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
-  MapPin, Phone, Clock, ChevronRight, MessageCircle, X,
+  MapPin, Phone, Clock, ChevronRight, MessageCircle, X, Mail, AtSign,
   Scissors, Droplets, Palette, Sparkles, Dumbbell, Activity,
   Apple, Heart, Star, Eye, Zap, Leaf, ClipboardList, Wind,
   Baby, Sun, CalendarCheck, type LucideIcon,
@@ -366,7 +366,7 @@ export default function EstabelecimentoPage() {
 
         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-5">
           {/* Infos de contato */}
-          {(establishment.address || establishment.phone) && (
+          {(establishment.address || establishment.phone || establishment.email || establishment.instagram) && (
             <div className="space-y-2 mb-5">
               {establishment.address && (
                 <div className="flex items-start gap-3 text-sm text-gray-600">
@@ -383,6 +383,27 @@ export default function EstabelecimentoPage() {
                   </div>
                   <span>{establishment.phone}</span>
                 </div>
+              )}
+              {establishment.email && (
+                <a href={`mailto:${establishment.email}`} className="flex items-center gap-3 text-sm text-gray-600 hover:text-gray-900 transition">
+                  <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                    <Mail size={14} className="text-gray-400" />
+                  </div>
+                  <span className="truncate">{establishment.email}</span>
+                </a>
+              )}
+              {establishment.instagram && (
+                <a
+                  href={`https://instagram.com/${establishment.instagram.replace(/^@/, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-sm text-gray-600 hover:text-gray-900 transition"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                    <AtSign size={14} className="text-gray-400" />
+                  </div>
+                  <span>{establishment.instagram.startsWith('@') ? establishment.instagram : `@${establishment.instagram}`}</span>
+                </a>
               )}
             </div>
           )}
