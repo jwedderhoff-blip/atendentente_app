@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
@@ -7,7 +8,7 @@ import { CATEGORY_LABELS, CATEGORY_ICONS } from '../../lib/segments'
 
 export default function SelecionarEstabelecimento() {
   const { user } = useAuth()
-  const { establishments, loading } = useEstablishments(user?.id)
+  const { establishments, hasOwned, loading } = useEstablishments(user?.id)
   const navigate = useNavigate()
 
   const select = (id: string) => {
@@ -15,7 +16,16 @@ export default function SelecionarEstabelecimento() {
     navigate('/admin')
   }
 
-  if (loading) {
+  // Com um único estabelecimento (dono de um só, ou professor visualizador),
+  // não faz sentido a tela de escolha: vai direto para o painel.
+  useEffect(() => {
+    if (!loading && establishments.length === 1) {
+      setSelectedEstablishmentId(establishments[0].id)
+      navigate('/admin', { replace: true })
+    }
+  }, [loading, establishments, navigate])
+
+  if (loading || establishments.length === 1) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
@@ -54,13 +64,23 @@ export default function SelecionarEstabelecimento() {
           })}
         </div>
 
-        <Link
-          to="/register"
-          className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-brand/40 text-brand rounded-2xl py-3.5 font-medium hover:bg-brand-soft transition text-sm"
-        >
-          <Plus size={18} />
-          Cadastrar novo estabelecimento
-        </Link>
+        {/* Só o dono cadastra novos estabelecimentos. Visualizador (professor) não. */}
+        {hasOwned && (
+          <Link
+            to="/register"
+            className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-brand/40 text-brand rounded-2xl py-3.5 font-medium hover:bg-brand-soft transition text-sm"
+          >
+            <Plus size={18} />
+            Cadastrar novo estabelecimento
+          </Link>
+        )}
+
+        {!hasOwned && establishments.length === 0 && (
+          <p className="text-sm text-gray-400 text-center">
+            Nenhum acesso encontrado para este login. Peça ao dono para liberar seu e-mail em
+            Configurações → Login dos professores.
+          </p>
+        )}
       </div>
     </div>
   )
