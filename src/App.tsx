@@ -19,6 +19,7 @@ import Clientes from './pages/admin/Clientes'
 import Servicos from './pages/admin/Servicos'
 import Profissionais from './pages/admin/Profissionais'
 import Financeiro from './pages/admin/Financeiro'
+import Caixa from './pages/admin/Caixa'
 import Configuracoes from './pages/admin/Configuracoes'
 import SelecionarEstabelecimento from './pages/admin/SelecionarEstabelecimento'
 import './index.css'
@@ -170,6 +171,7 @@ function AppRoutes() {
           <Route path="agenda" element={<Agenda />} />
           <Route path="servicos" element={<Servicos />} />
           <Route path="clientes" element={<Clientes />} />
+          <Route path="caixa" element={<Caixa />} />
           <Route element={<OwnerRoute />}>
             <Route path="profissionais" element={<Profissionais />} />
             <Route path="financeiro" element={<Financeiro />} />

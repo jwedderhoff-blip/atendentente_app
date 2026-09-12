@@ -122,6 +122,8 @@ Hooks disponíveis:
 | `appointments` | id, establishment_id, client_id, professional_id, service_id, starts_at, ends_at, status, payment_status |
 | `working_hours` | id, establishment_id, day_of_week (0-6), open_time, close_time, is_open |
 | `notifications` | id, appointment_id, channel, sent_at, status |
+| `establishment_members` | id, establishment_id, email, role ('viewer'), created_at — acessos de login por e-mail |
+| `cash_movements` | id, establishment_id, client_id, membership_charge_id, kind, description, amount, method, operator_email, created_at — frente de caixa |
 
 RLS ativado em todas as tabelas; dono do estabelecimento acessa tudo via `owner_id = auth.uid()`.
 
