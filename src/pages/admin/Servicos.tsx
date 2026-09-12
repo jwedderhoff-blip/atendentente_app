@@ -80,6 +80,7 @@ export default function Servicos() {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { active: true, schedule_type: 'flexible', price_mode: 'sessao', sessions_per_week: 1 } })
 
@@ -382,54 +383,49 @@ export default function Servicos() {
               {...register('price', { valueAsNumber: true })}
             />
           </div>
-          <div>
-            <p className="text-sm text-gray-700 mb-2 font-medium">Forma de cobrança</p>
-            <div className="grid grid-cols-2 gap-2">
-              {([
-                { value: 'sessao', label: 'Por sessão', desc: 'Valor cobrado a cada atendimento' },
-                { value: 'mensal', label: 'Mensalidade', desc: 'Valor mensal — ideal para turmas/aulas' },
-              ] as const).map(({ value, label, desc }) => (
-                <label
-                  key={value}
-                  className={`flex flex-col gap-0.5 border rounded-xl p-3 cursor-pointer transition ${
-                    priceMode === value ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'
-                  }`}
-                >
-                  <input type="radio" value={value} {...register('price_mode')} className="sr-only" />
-                  <span className="text-sm font-semibold text-gray-800">{label}</span>
-                  <span className="text-xs text-gray-500">{desc}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          {canTurma ? (
+          {/* schedule_type e price_mode ficam registrados; o seletor abaixo os
+              define de uma vez. Em Estética não há turma: sempre individual/sessão. */}
+          <input type="hidden" {...register('schedule_type')} />
+          <input type="hidden" {...register('price_mode')} />
+
+          {canTurma && (
             <div>
-              <p className="text-sm text-gray-700 mb-2 font-medium">Tipo de horário</p>
+              <p className="text-sm text-gray-700 mb-2 font-medium">Este serviço é individual ou em turma?</p>
               <div className="grid grid-cols-2 gap-2">
                 {([
-                  { value: 'flexible', label: 'Atendimento individual', desc: '1 cliente por horário — bloqueado após reserva' },
-                  { value: 'fixed', label: 'Turma com vagas', desc: 'Múltiplos clientes por turno — você define as vagas' },
-                ] as const).map(({ value, label, desc }) => (
-                  <label
-                    key={value}
-                    className={`flex flex-col gap-0.5 border rounded-xl p-3 cursor-pointer transition ${
-                      scheduleType === value
-                        ? 'border-indigo-500 bg-indigo-50'
-                        : 'border-gray-200 hover:border-indigo-300'
-                    }`}
-                  >
-                    <input type="radio" value={value} {...register('schedule_type')} className="sr-only" />
-                    <span className="text-sm font-semibold text-gray-800">{label}</span>
-                    <span className="text-xs text-gray-500">{desc}</span>
-                  </label>
-                ))}
+                  {
+                    kind: 'individual', st: 'flexible', pm: 'sessao',
+                    label: 'Atendimento individual',
+                    desc: '1 cliente por horário · cobrança por sessão',
+                  },
+                  {
+                    kind: 'turma', st: 'fixed', pm: 'mensal',
+                    label: 'Turma / aula coletiva',
+                    desc: 'Várias vagas por horário · mensalidade',
+                  },
+                ] as const).map(({ kind, st, pm, label, desc }) => {
+                  const selected = (scheduleType === 'fixed') === (kind === 'turma')
+                  return (
+                    <button
+                      type="button"
+                      key={kind}
+                      onClick={() => {
+                        setValue('schedule_type', st)
+                        setValue('price_mode', pm)
+                      }}
+                      className={`flex flex-col gap-0.5 border rounded-xl p-3 text-left transition ${
+                        selected ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'
+                      }`}
+                    >
+                      <span className="text-sm font-semibold text-gray-800">{label}</span>
+                      <span className="text-xs text-gray-500">{desc}</span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
-          ) : (
-            // Estética: sempre individual — mantém o campo no formulário sem exibir turma.
-            <input type="hidden" defaultValue="flexible" {...register('schedule_type')} />
           )}
-          {scheduleType === 'fixed' && (
+          {canTurma && scheduleType === 'fixed' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="text-sm text-gray-700 mb-1 font-medium">Vagas por turno</p>
