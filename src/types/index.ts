@@ -31,6 +31,8 @@ export interface Service {
   description?: string
   duration_minutes: number
   price: number
+  /** 'sessao' = valor por atendimento; 'mensal' = mensalidade. */
+  price_mode?: 'sessao' | 'mensal'
   active: boolean
   schedule_type: 'fixed' | 'flexible'
   max_spots: number

@@ -38,6 +38,7 @@ const schema = z.object({
   description: z.string().optional(),
   duration_minutes: z.number().min(15, 'Mínimo 15 minutos'),
   price: z.number().min(0, 'Preço inválido'),
+  price_mode: z.enum(['sessao', 'mensal']),
   active: z.boolean(),
   schedule_type: z.enum(['fixed', 'flexible']),
   max_spots: z.number().min(1, 'Mínimo 1 vaga'),
@@ -78,9 +79,10 @@ export default function Servicos() {
     reset,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { active: true, schedule_type: 'flexible' } })
+  } = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { active: true, schedule_type: 'flexible', price_mode: 'sessao' } })
 
   const scheduleType = watch('schedule_type')
+  const priceMode = watch('price_mode')
 
   // Carrega os horários fixos de todos os serviços de uma vez, para que cada
   // card já mostre o que foi cadastrado — como no demo — sem abrir o modal.
@@ -115,13 +117,13 @@ export default function Servicos() {
     if (atLimit) return
     setEditing(null)
     setSelectedProfIds([])
-    reset({ name: '', description: '', duration_minutes: 60, price: 0, active: true, schedule_type: 'flexible', max_spots: 1 })
+    reset({ name: '', description: '', duration_minutes: 60, price: 0, price_mode: 'sessao', active: true, schedule_type: 'flexible', max_spots: 1 })
     setModalOpen(true)
   }
 
   const openEdit = async (s: Service) => {
     setEditing(s)
-    reset({ ...s, schedule_type: s.schedule_type ?? 'flexible', max_spots: s.max_spots ?? 1 })
+    reset({ ...s, schedule_type: s.schedule_type ?? 'flexible', max_spots: s.max_spots ?? 1, price_mode: s.price_mode ?? 'sessao' })
     // Carrega profissionais já associados ao serviço
     const { data } = await supabase
       .from('professional_services')
@@ -289,7 +291,7 @@ export default function Servicos() {
                         <Clock size={12} /> {s.duration_minutes}min
                       </span>
                       <span className="flex items-center gap-1 text-xs text-gray-500">
-                        <DollarSign size={12} /> {formatCurrency(s.price)}
+                        <DollarSign size={12} /> {formatCurrency(s.price)}{s.price_mode === 'mensal' ? '/mês' : ''}
                       </span>
                       {linkedPros.length > 0 && (
                         <span className="flex items-center gap-1 text-xs text-indigo-600">
@@ -366,13 +368,33 @@ export default function Servicos() {
               {...register('duration_minutes', { valueAsNumber: true })}
             />
             <Input
-              label="Preço (R$)"
+              label={priceMode === 'mensal' ? 'Mensalidade (R$)' : 'Preço (R$)'}
               type="number"
               step="0.01"
               placeholder="0.00"
               error={errors.price?.message}
               {...register('price', { valueAsNumber: true })}
             />
+          </div>
+          <div>
+            <p className="text-sm text-gray-700 mb-2 font-medium">Forma de cobrança</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { value: 'sessao', label: 'Por sessão', desc: 'Valor cobrado a cada atendimento' },
+                { value: 'mensal', label: 'Mensalidade', desc: 'Valor mensal — ideal para turmas/aulas' },
+              ] as const).map(({ value, label, desc }) => (
+                <label
+                  key={value}
+                  className={`flex flex-col gap-0.5 border rounded-xl p-3 cursor-pointer transition ${
+                    priceMode === value ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'
+                  }`}
+                >
+                  <input type="radio" value={value} {...register('price_mode')} className="sr-only" />
+                  <span className="text-sm font-semibold text-gray-800">{label}</span>
+                  <span className="text-xs text-gray-500">{desc}</span>
+                </label>
+              ))}
+            </div>
           </div>
           {canTurma ? (
             <div>

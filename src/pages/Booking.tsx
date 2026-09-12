@@ -189,6 +189,13 @@ export default function Booking() {
   const skipsProfessional = (s: Service) =>
     s.schedule_type === 'fixed' || (s.schedule_type === 'flexible' && (s.max_spots ?? 1) > 1)
 
+  // Mensalidade e matrícula (turma): mudam o rótulo de preço e exigem e-mail.
+  const isMonthly = (s?: Service | null) => s?.price_mode === 'mensal'
+  const priceText = (s: Service) => `${formatCurrency(s.price)}${isMonthly(s) ? '/mês' : ''}`
+  const isMatricula = (s?: Service | null) =>
+    !!s && (s.schedule_type === 'fixed' || (s.max_spots ?? 1) > 1)
+  const requiresEmail = isMatricula(selectedService) || isMonthly(selectedService)
+
   const goBack = () => {
     if (step === 2) setStep(1)
     else if (step === 3) {
@@ -228,6 +235,12 @@ export default function Booking() {
   const submitBooking = async (clientData: ClientData) => {
     if (!establishment || !selectedService || !selectedDate || !selectedTime) return
     setBookingError(null)
+
+    // Matrícula/mensalidade exige e-mail além do WhatsApp.
+    if (requiresEmail && !clientData.email?.trim()) {
+      setBookingError('Informe seu e-mail para concluir a matrícula.')
+      return
+    }
 
     const { client, error: clientError } = await createClient({
       establishment_id: establishment.id,
@@ -384,7 +397,7 @@ export default function Booking() {
                           <Clock size={11} /> {s.duration_minutes}min
                         </span>
                         <span className="text-sm font-bold text-brand-dark">
-                          {formatCurrency(s.price)}
+                          {priceText(s)}
                         </span>
                       </div>
                     </button>
@@ -535,12 +548,17 @@ export default function Booking() {
                 {...register('phone')}
               />
               <Input
-                label="Email (opcional)"
+                label={requiresEmail ? 'Email *' : 'Email (opcional)'}
                 type="email"
                 placeholder="seu@email.com"
                 error={errors.email?.message}
                 {...register('email')}
               />
+              {requiresEmail && (
+                <p className="-mt-2 text-xs text-gray-400">
+                  Confirme seu e-mail e WhatsApp: usamos os dois para a matrícula e os lembretes.
+                </p>
+              )}
               <label className="flex items-start gap-2 text-sm text-gray-600 cursor-pointer">
                 <input type="checkbox" {...register('marketing_opt_in')} className="mt-0.5 rounded" />
                 Quero receber promoções e novidades por WhatsApp
@@ -594,16 +612,34 @@ export default function Booking() {
                     <span className="font-medium">{selectedTime}</span>
                   </div>
                   <div className="flex justify-between border-t border-gray-100 pt-2 mt-2">
-                    <span className="text-gray-500">Valor</span>
+                    <span className="text-gray-500">{isMonthly(selectedService) ? 'Mensalidade' : 'Valor'}</span>
                     <span className="font-semibold text-brand-dark">
-                      {formatCurrency(selectedService.price)}
+                      {priceText(selectedService)}
                     </span>
                   </div>
                 </div>
               </div>
             )}
 
-            {selectedService && selectedService.price > 0 && paymentChoice === 'none' && (
+            {selectedService && isMonthly(selectedService) && (
+              <div className="bg-brand-soft border border-brand/10 rounded-2xl p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Mensalidade</span>
+                  <span className="font-semibold text-brand-dark">{priceText(selectedService)}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Matrícula registrada. O pagamento da mensalidade será combinado com o estabelecimento — em breve você poderá pagar por aqui.
+                </p>
+                <a
+                  href={`/agendar/${establishment.slug}`}
+                  className="mt-3 inline-block text-sm text-brand font-semibold hover:underline"
+                >
+                  Finalizar
+                </a>
+              </div>
+            )}
+
+            {selectedService && !isMonthly(selectedService) && selectedService.price > 0 && paymentChoice === 'none' && (
               <div className="space-y-3 mb-4">
                 <button
                   onClick={() => setPaymentChoice('prepay')}
@@ -631,7 +667,7 @@ export default function Booking() {
               </div>
             )}
 
-            {selectedService && selectedService.price > 0 && paymentChoice === 'confirm' && (
+            {selectedService && !isMonthly(selectedService) && selectedService.price > 0 && paymentChoice === 'confirm' && (
               <div className="bg-green-50 border border-green-100 rounded-2xl p-4 mb-4 text-center">
                 <p className="text-sm text-green-700 font-medium">Reserva aguardando confirmação — você paga no dia do atendimento.</p>
                 <a
@@ -643,7 +679,7 @@ export default function Booking() {
               </div>
             )}
 
-            {selectedService && selectedService.price > 0 && paymentChoice === 'prepay' && (
+            {selectedService && !isMonthly(selectedService) && selectedService.price > 0 && paymentChoice === 'prepay' && (
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-semibold text-gray-900">Pagamento via PIX</p>
