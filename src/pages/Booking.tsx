@@ -307,14 +307,37 @@ export default function Booking() {
     }
 
     if (recurrenceWeeks > 0 && selectedService.schedule_type === 'fixed') {
-      // Gera ocorrências semanais (mesmo dia da semana) pelas próximas N semanas
-      const occurrences = Array.from({ length: recurrenceWeeks }, (_, i) => {
-        const d = new Date(selectedDate)
-        d.setDate(d.getDate() + i * 7)
-        d.setHours(h, m, 0, 0)
-        const endsAt = addMinutes(d, selectedService.duration_minutes)
-        return { starts_at: d.toISOString(), ends_at: endsAt.toISOString() }
-      })
+      // Quantas semanas gerar (limite prático para não criar aulas demais).
+      const weeks = Math.min(recurrenceWeeks, 26)
+      // Turma com vários dias na semana (ex.: seg e qua): reserva TODOS os dias
+      // da turma. Turma de um dia só: repete o dia/horário escolhido.
+      const multiDay = classDays.length > 1
+      const daySlots = multiDay
+        ? classSchedules.map((s) => ({ day: s.day_of_week, time: s.time.slice(0, 5) }))
+        : [{ day: selectedDate.getDay(), time: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}` }]
+
+      // Âncora: início (segunda) da semana da data escolhida.
+      const weekStart = new Date(selectedDate)
+      weekStart.setHours(0, 0, 0, 0)
+      weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7)) // segunda-feira
+      const now = new Date()
+
+      const occurrences: { starts_at: string; ends_at: string }[] = []
+      for (const slot of daySlots) {
+        const [sh, sm] = slot.time.split(':').map(Number)
+        // primeiro dia desse slot na semana âncora
+        const firstDay = new Date(weekStart)
+        firstDay.setDate(weekStart.getDate() + ((slot.day + 6) % 7)) // offset a partir de segunda
+        for (let w = 0; w < weeks; w++) {
+          const d = new Date(firstDay)
+          d.setDate(firstDay.getDate() + w * 7)
+          d.setHours(sh, sm, 0, 0)
+          if (d.getTime() <= now.getTime()) continue // não cria aulas no passado
+          const endsAt = addMinutes(d, selectedService.duration_minutes)
+          occurrences.push({ starts_at: d.toISOString(), ends_at: endsAt.toISOString() })
+        }
+      }
+      occurrences.sort((a, b) => a.starts_at.localeCompare(b.starts_at))
 
       const { appointments: created, error: apptError } = await createRecurringAppointments(base, occurrences)
       if (!created.length) {
@@ -663,7 +686,9 @@ export default function Booking() {
               </h2>
               <p className="text-sm text-gray-500">
                 {recurringCount > 1
-                  ? `${recurringCount} aulas criadas, toda ${selectedDate ? format(selectedDate, 'EEEE', { locale: ptBR }) : ''} às ${selectedTime}. Aguardando confirmação do estabelecimento.`
+                  ? classDays.length > 1
+                    ? `${recurringCount} aulas criadas nos dias da turma (${classDays.map((d) => ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d]).join(', ')}). Aguardando confirmação do estabelecimento.`
+                    : `${recurringCount} aulas criadas, toda ${selectedDate ? format(selectedDate, 'EEEE', { locale: ptBR }) : ''} às ${selectedTime}. Aguardando confirmação do estabelecimento.`
                   : 'Sua reserva está aguardando confirmação do estabelecimento. Você receberá um lembrete por WhatsApp.'}
               </p>
             </div>
