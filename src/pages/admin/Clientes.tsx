@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Search, Download, User, ChevronDown, ChevronUp, MessageCircle, Calendar } from 'lucide-react'
+import { Search, Download, User, ChevronDown, ChevronUp, MessageCircle, Calendar, GraduationCap, Wallet, Check, RotateCcw } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useClients } from '../../hooks/useClients'
+import { useClientFinance } from '../../hooks/useMemberships'
 import { supabase } from '../../lib/supabase'
 import { isDemo } from '../../lib/isDemo'
 import { mockAppointments } from '../../lib/mockData'
@@ -61,6 +62,13 @@ function ClientRow({
   const [open, setOpen] = useState(false)
   const [month, setMonth] = useState(() => format(new Date(), 'yyyy-MM'))
   const { appointments, loading } = useClientAppointments(open ? client.id : null, establishmentId, month)
+  const { memberships, charges, markPaid, markPending } = useClientFinance(establishmentId, open ? client.id : null)
+
+  const emAberto = charges.filter((c) => c.status === 'pendente').reduce((s, c) => s + Number(c.amount), 0)
+  const refFmt = (iso: string) => {
+    const [y, mo] = iso.split('-')
+    return `${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][Number(mo) - 1]}/${y.slice(2)}`
+  }
 
   const totalPago = appointments
     .filter((a) => a.payment_status === 'pago')
@@ -174,6 +182,69 @@ function ClientRow({
                 </span>
               </div>
             </>
+          )}
+
+          {/* Aulas em que o aluno está matriculado (turmas mensais) */}
+          {memberships.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div className="flex items-center gap-2 mb-2">
+                <GraduationCap size={14} className="text-gray-400" />
+                <span className="text-xs font-medium text-gray-600">Aulas matriculadas</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {memberships.map((mms) => (
+                  <span
+                    key={mms.id}
+                    className={`text-xs px-2.5 py-1 rounded-lg ${mms.status === 'ativa' ? 'bg-brand-soft text-brand' : 'bg-gray-100 text-gray-400 line-through'}`}
+                  >
+                    {mms.services?.name ?? 'Turma'} · {formatCurrency(Number(mms.monthly_price))}/mês · {mms.months ? `${mms.months} ${mms.months === 1 ? 'mês' : 'meses'}` : 'indeterminado'}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Situação financeira: mensalidades */}
+          {charges.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Wallet size={14} className="text-gray-400" />
+                  <span className="text-xs font-medium text-gray-600">Mensalidades</span>
+                </div>
+                {emAberto > 0 && (
+                  <span className="text-xs text-amber-700">Em aberto: <strong>{formatCurrency(emAberto)}</strong></span>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                {charges.map((c) => (
+                  <div key={c.id} className="bg-white rounded-lg border border-gray-100 px-3 py-2 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xs font-medium text-gray-700">{refFmt(c.reference_month)}</span>
+                      <span className="text-xs text-gray-400 truncate">{c.services?.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs font-semibold text-gray-800">{formatCurrency(Number(c.amount))}</span>
+                      {c.status === 'pago' ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-green-700">
+                          <Check size={12} /> Pago
+                          <button onClick={() => markPending(c.id)} title="Reabrir" className="ml-0.5 text-gray-300 hover:text-gray-500">
+                            <RotateCcw size={11} />
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => markPaid(c.id)}
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-green-700 bg-green-50 hover:bg-green-100 px-2 py-1 rounded-md transition"
+                        >
+                          <Check size={11} /> Marcar pago
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}

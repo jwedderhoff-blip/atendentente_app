@@ -55,3 +55,64 @@ export function useMembershipCharges(establishmentId?: string, month?: string) {
 
   return { charges, loading, markPaid, markPending, refetch: fetchCharges }
 }
+
+export interface Membership {
+  id: string
+  service_id: string | null
+  monthly_price: number
+  start_month: string
+  months: number | null
+  status: 'ativa' | 'cancelada'
+  services?: { name: string } | null
+}
+
+/**
+ * Matrículas (turmas mensais) e mensalidades de um único aluno — usado no card
+ * do cliente. Carrega só quando `clientId` é passado (card aberto).
+ */
+export function useClientFinance(establishmentId?: string, clientId?: string | null) {
+  const [memberships, setMemberships] = useState<Membership[]>([])
+  const [charges, setCharges] = useState<MembershipCharge[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const fetchAll = useCallback(async () => {
+    if (!establishmentId || !clientId) { setMemberships([]); setCharges([]); return }
+    setLoading(true)
+    const [{ data: ms }, { data: cs }] = await Promise.all([
+      supabase
+        .from('memberships')
+        .select('id, service_id, monthly_price, start_month, months, status, services(name)')
+        .eq('establishment_id', establishmentId)
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('membership_charges')
+        .select('*, services(name)')
+        .eq('establishment_id', establishmentId)
+        .eq('client_id', clientId)
+        .neq('status', 'cancelada')
+        .order('reference_month', { ascending: false }),
+    ])
+    setMemberships((ms ?? []) as unknown as Membership[])
+    setCharges((cs ?? []) as MembershipCharge[])
+    setLoading(false)
+  }, [establishmentId, clientId])
+
+  useEffect(() => { void fetchAll() }, [fetchAll])
+
+  const setStatus = async (id: string, status: MembershipCharge['status']) => {
+    setCharges((prev) => prev.map((c) => (c.id === id ? { ...c, status, paid_at: status === 'pago' ? new Date().toISOString() : null } : c)))
+    await supabase
+      .from('membership_charges')
+      .update({ status, paid_at: status === 'pago' ? new Date().toISOString() : null })
+      .eq('id', id)
+  }
+
+  return {
+    memberships,
+    charges,
+    loading,
+    markPaid: (id: string) => setStatus(id, 'pago'),
+    markPending: (id: string) => setStatus(id, 'pendente'),
+  }
+}
