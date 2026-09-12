@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Search, Download, User, ChevronDown, ChevronUp, MessageCircle, Calendar, GraduationCap, Wallet, Check, RotateCcw, Trash2 } from 'lucide-react'
+import { Search, Download, User, ChevronDown, ChevronUp, MessageCircle, Calendar, GraduationCap, Wallet, Check, RotateCcw, Trash2, UserPlus, Merge } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useClients } from '../../hooks/useClients'
@@ -13,6 +13,8 @@ import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
 import { formatPhone, formatCurrency } from '../../lib/utils'
+import NewClientModal from '../../components/admin/NewClientModal'
+import MergeClientsModal from '../../components/admin/MergeClientsModal'
 import type { Appointment, Client } from '../../types'
 
 function useClientAppointments(clientId: string | null, establishmentId: string | undefined, month: string) {
@@ -293,8 +295,10 @@ export default function Clientes() {
   const { user } = useAuth()
   const { establishment, role } = useEstablishment(user?.id)
   const canDelete = role === 'owner'
-  const { clients, loading, exportCsv, deleteClient } = useClients(establishment?.id)
+  const { clients, loading, exportCsv, deleteClient, createClient, refetch } = useClients(establishment?.id)
   const [search, setSearch] = useState('')
+  const [newOpen, setNewOpen] = useState(false)
+  const [mergeOpen, setMergeOpen] = useState(false)
 
   const filtered = clients.filter(
     (c) =>
@@ -307,11 +311,37 @@ export default function Clientes() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="font-display text-3xl tracking-tight text-ink">Clientes</h1>
-        <Button variant="secondary" size="sm" onClick={exportCsv}>
-          <Download size={16} />
-          Exportar CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => setNewOpen(true)}>
+            <UserPlus size={16} />
+            Novo cliente
+          </Button>
+          {role === 'owner' && (
+            <Button variant="secondary" size="sm" onClick={() => setMergeOpen(true)}>
+              <Merge size={16} />
+              Mesclar
+            </Button>
+          )}
+          <Button variant="secondary" size="sm" onClick={exportCsv}>
+            <Download size={16} />
+            Exportar CSV
+          </Button>
+        </div>
       </div>
+
+      <NewClientModal
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        establishmentId={establishment?.id}
+        createClient={createClient}
+        onCreated={() => refetch()}
+      />
+      <MergeClientsModal
+        open={mergeOpen}
+        onClose={() => setMergeOpen(false)}
+        clients={clients}
+        onMerged={() => refetch()}
+      />
 
       <div className="mb-4">
         <Input

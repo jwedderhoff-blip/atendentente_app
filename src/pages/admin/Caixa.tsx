@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Wallet, CheckCircle2, Receipt } from 'lucide-react'
+import { Wallet, CheckCircle2, Receipt, UserPlus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useEstablishment } from '../../hooks/useEstablishment'
 import { useClients } from '../../hooks/useClients'
@@ -16,6 +16,7 @@ import {
 } from '../../hooks/useCaixa'
 import { Button } from '../../components/ui/Button'
 import { formatCurrency } from '../../lib/utils'
+import NewClientModal from '../../components/admin/NewClientModal'
 
 const inputCls =
   'rounded-xl border border-gray-200 text-sm px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand w-full'
@@ -25,8 +26,9 @@ export default function Caixa() {
   const { establishment } = useEstablishment(user?.id)
   const [day, setDay] = useState(() => new Date().toISOString().slice(0, 10))
   const { movements, total, loading, registerPayment } = useCaixa(establishment?.id, day)
-  const { clients } = useClients(establishment?.id)
+  const { clients, createClient, refetch: refetchClients } = useClients(establishment?.id)
   const { services } = useServices(establishment?.id)
+  const [newClientOpen, setNewClientOpen] = useState(false)
 
   const [kind, setKind] = useState<CashKind>('mensalidade')
   const [clientId, setClientId] = useState<string>('')
@@ -148,9 +150,18 @@ export default function Caixa() {
 
           {/* Cliente (obrigatório na mensalidade, opcional nos demais) */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-              Cliente {kind === 'mensalidade' ? '' : '(opcional)'}
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                Cliente {kind === 'mensalidade' ? '' : '(opcional)'}
+              </label>
+              <button
+                type="button"
+                onClick={() => setNewClientOpen(true)}
+                className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+              >
+                <UserPlus size={13} /> Cadastrar
+              </button>
+            </div>
             <select value={clientId} onChange={(e) => { setClientId(e.target.value); setChargeId('') }} className={inputCls}>
               <option value="">Selecione…</option>
               {clients.map((c) => (
@@ -276,6 +287,14 @@ export default function Caixa() {
           )}
         </div>
       </div>
+
+      <NewClientModal
+        open={newClientOpen}
+        onClose={() => setNewClientOpen(false)}
+        establishmentId={establishment?.id}
+        createClient={createClient}
+        onCreated={(c) => { void refetchClients(); setClientId(c.id) }}
+      />
     </div>
   )
 }
