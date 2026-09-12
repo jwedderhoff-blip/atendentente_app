@@ -169,8 +169,8 @@ function AppRoutes() {
           <Route index element={<Dashboard />} />
           <Route path="agenda" element={<Agenda />} />
           <Route path="servicos" element={<Servicos />} />
+          <Route path="clientes" element={<Clientes />} />
           <Route element={<OwnerRoute />}>
-            <Route path="clientes" element={<Clientes />} />
             <Route path="profissionais" element={<Profissionais />} />
             <Route path="financeiro" element={<Financeiro />} />
             <Route path="configuracoes" element={<Configuracoes />} />

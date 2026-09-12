@@ -25,7 +25,7 @@ import { CATEGORY_LABELS, CATEGORY_ICONS } from '../../lib/segments'
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true, viewer: true },
   { to: '/admin/agenda', label: 'Agenda', icon: CalendarDays, end: false, viewer: true },
-  { to: '/admin/clientes', label: 'Clientes', icon: Users, end: false, viewer: false },
+  { to: '/admin/clientes', label: 'Clientes', icon: Users, end: false, viewer: true },
   { to: '/admin/servicos', label: 'Serviços', icon: ListChecks, end: false, viewer: true },
   { to: '/admin/profissionais', label: 'Profissionais', icon: UserCog, end: false, viewer: false },
   { to: '/admin/financeiro', label: 'Financeiro', icon: Wallet, end: false, viewer: false },

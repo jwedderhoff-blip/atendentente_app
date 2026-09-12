@@ -59,7 +59,7 @@ function ClientRow({
 }: {
   client: Client
   establishmentId: string | undefined
-  onDelete: (id: string) => Promise<{ error: string | null }>
+  onDelete?: (id: string) => Promise<{ error: string | null }>
 }) {
   const [open, setOpen] = useState(false)
   const [deleteErr, setDeleteErr] = useState<string | null>(null)
@@ -67,6 +67,7 @@ function ClientRow({
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!onDelete) return
     if (!confirm(`Excluir o cadastro de ${client.name}? Esta ação não pode ser desfeita.`)) return
     setDeleting(true)
     setDeleteErr(null)
@@ -129,14 +130,16 @@ function ClientRow({
           <p className="text-xs text-gray-400 hidden sm:block">
             desde {format(new Date(client.created_at), "d 'de' MMM yyyy", { locale: ptBR })}
           </p>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            title="Excluir cliente"
-            className="p-1.5 rounded-lg text-gray-300 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-40"
-          >
-            <Trash2 size={15} />
-          </button>
+          {onDelete && (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              title="Excluir cliente"
+              className="p-1.5 rounded-lg text-gray-300 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-40"
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
           {open ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
         </div>
       </div>
@@ -256,17 +259,23 @@ function ClientRow({
                       {c.status === 'pago' ? (
                         <span className="inline-flex items-center gap-1 text-[11px] text-green-700">
                           <Check size={12} /> Pago
-                          <button onClick={() => markPending(c.id)} title="Reabrir" className="ml-0.5 text-gray-300 hover:text-gray-500">
-                            <RotateCcw size={11} />
-                          </button>
+                          {onDelete && (
+                            <button onClick={() => markPending(c.id)} title="Reabrir" className="ml-0.5 text-gray-300 hover:text-gray-500">
+                              <RotateCcw size={11} />
+                            </button>
+                          )}
                         </span>
-                      ) : (
+                      ) : onDelete ? (
                         <button
                           onClick={() => markPaid(c.id)}
                           className="inline-flex items-center gap-1 text-[11px] font-medium text-green-700 bg-green-50 hover:bg-green-100 px-2 py-1 rounded-md transition"
                         >
                           <Check size={11} /> Marcar pago
                         </button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700">
+                          Em aberto
+                        </span>
                       )}
                     </div>
                   </div>
@@ -282,7 +291,8 @@ function ClientRow({
 
 export default function Clientes() {
   const { user } = useAuth()
-  const { establishment } = useEstablishment(user?.id)
+  const { establishment, role } = useEstablishment(user?.id)
+  const canDelete = role === 'owner'
   const { clients, loading, exportCsv, deleteClient } = useClients(establishment?.id)
   const [search, setSearch] = useState('')
 
@@ -327,7 +337,7 @@ export default function Clientes() {
                   key={client.id}
                   client={client}
                   establishmentId={establishment?.id}
-                  onDelete={deleteClient}
+                  onDelete={canDelete ? deleteClient : undefined}
                 />
               ))}
             </ul>
