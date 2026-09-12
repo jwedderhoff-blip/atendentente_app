@@ -10,6 +10,7 @@ import {
   X,
   LayoutDashboard,
   ListChecks,
+  Wallet,
   ChevronDown,
   ArrowLeftRight,
 } from 'lucide-react'
@@ -27,6 +28,7 @@ const navItems = [
   { to: '/admin/clientes', label: 'Clientes', icon: Users, end: false },
   { to: '/admin/servicos', label: 'Serviços', icon: ListChecks, end: false },
   { to: '/admin/profissionais', label: 'Profissionais', icon: UserCog, end: false },
+  { to: '/admin/financeiro', label: 'Financeiro', icon: Wallet, end: false },
   { to: '/admin/configuracoes', label: 'Configurações', icon: SlidersHorizontal, end: false },
 ]
 

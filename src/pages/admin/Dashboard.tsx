@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Calendar, Users, DollarSign, TrendingUp } from 'lucide-react'
@@ -10,21 +11,30 @@ import AgendaBlock from '../../components/admin/AgendaBlock'
 import { formatCurrency } from '../../lib/utils'
 import type { Appointment } from '../../types'
 
-function StatCard({ label, value, icon, color }: {
+function StatCard({ label, value, icon, color, to }: {
   label: string
   value: string | number
   icon: React.ReactNode
   color: string
+  to?: string
 }) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5">
+  const inner = (
+    <>
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-medium text-gray-500">{label}</p>
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>{icon}</div>
       </div>
       <p className="font-display text-3xl tracking-tight text-ink">{value}</p>
-    </div>
+    </>
   )
+  if (to) {
+    return (
+      <Link to={to} className="block bg-white rounded-2xl border border-gray-100 p-5 transition hover:border-brand/40 hover:shadow-sm">
+        {inner}
+      </Link>
+    )
+  }
+  return <div className="bg-white rounded-2xl border border-gray-100 p-5">{inner}</div>
 }
 
 export default function Dashboard() {
@@ -68,24 +78,28 @@ export default function Dashboard() {
           value={appointments.length}
           icon={<Calendar size={18} className="text-brand" />}
           color="bg-brand-soft"
+          to="/admin/agenda"
         />
         <StatCard
           label="Confirmados"
           value={confirmed}
           icon={<TrendingUp size={18} className="text-green-600" />}
           color="bg-green-50"
+          to="/admin/agenda"
         />
         <StatCard
           label="Clientes novos"
           value={newClients}
           icon={<Users size={18} className="text-blue-600" />}
           color="bg-blue-50"
+          to="/admin/clientes"
         />
         <StatCard
-          label="Receita do dia"
+          label="Financeiro"
           value={formatCurrency(revenue)}
           icon={<DollarSign size={18} className="text-emerald-600" />}
           color="bg-emerald-50"
+          to="/admin/financeiro"
         />
       </div>
 

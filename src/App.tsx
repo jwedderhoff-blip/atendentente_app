@@ -17,6 +17,7 @@ import Agenda from './pages/admin/Agenda'
 import Clientes from './pages/admin/Clientes'
 import Servicos from './pages/admin/Servicos'
 import Profissionais from './pages/admin/Profissionais'
+import Financeiro from './pages/admin/Financeiro'
 import Configuracoes from './pages/admin/Configuracoes'
 import SelecionarEstabelecimento from './pages/admin/SelecionarEstabelecimento'
 import './index.css'
@@ -150,6 +151,7 @@ function AppRoutes() {
           <Route path="clientes" element={<Clientes />} />
           <Route path="servicos" element={<Servicos />} />
           <Route path="profissionais" element={<Profissionais />} />
+          <Route path="financeiro" element={<Financeiro />} />
           <Route path="configuracoes" element={<Configuracoes />} />
         </Route>
       </Route>
