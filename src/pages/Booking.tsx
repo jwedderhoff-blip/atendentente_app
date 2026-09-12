@@ -116,7 +116,7 @@ export default function Booking() {
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
-  const [recurrenceWeeks, setRecurrenceWeeks] = useState<0 | 4 | 8 | 12>(0)
+  const [recurrenceWeeks, setRecurrenceWeeks] = useState<number>(0)
   const [recurringTermAccepted, setRecurringTermAccepted] = useState(false)
   const [appointmentId, setAppointmentId] = useState<string | null>(null)
   const [recurringCount, setRecurringCount] = useState<number>(1)
@@ -472,19 +472,26 @@ export default function Booking() {
                   <RefreshCw size={16} className="text-brand" />
                   <p className="text-sm font-semibold text-gray-700">Matrícula recorrente</p>
                 </div>
-                <p className="text-xs text-gray-400 mb-3">Repete toda semana no mesmo dia e horário</p>
+                <p className="text-xs text-gray-400 mb-3">
+                  {isMonthly(selectedService)
+                    ? 'Escolha a duração da mensalidade — as aulas se repetem toda semana no mesmo dia e horário'
+                    : 'Repete toda semana no mesmo dia e horário'}
+                </p>
                 <div className="grid grid-cols-4 gap-2">
-                  {([0, 4, 8, 12] as const).map((w) => (
+                  {(isMonthly(selectedService)
+                    ? [{ label: '1 mês', weeks: 4 }, { label: '3 meses', weeks: 13 }, { label: '6 meses', weeks: 26 }, { label: 'Indeterminado', weeks: 52 }]
+                    : [{ label: 'Só esta', weeks: 0 }, { label: '4 sem.', weeks: 4 }, { label: '8 sem.', weeks: 8 }, { label: '12 sem.', weeks: 12 }]
+                  ).map(({ label, weeks }) => (
                     <button
-                      key={w}
-                      onClick={() => { setRecurrenceWeeks(w); setRecurringTermAccepted(false) }}
-                      className={`py-2 rounded-xl text-sm font-semibold transition border ${
-                        recurrenceWeeks === w
+                      key={label}
+                      onClick={() => { setRecurrenceWeeks(weeks); setRecurringTermAccepted(false) }}
+                      className={`py-2 rounded-xl text-xs sm:text-sm font-semibold transition border ${
+                        recurrenceWeeks === weeks
                           ? 'bg-brand text-white border-brand'
                           : 'bg-white text-gray-600 border-gray-200 hover:border-brand/40'
                       }`}
                     >
-                      {w === 0 ? 'Só esta' : `${w} sem.`}
+                      {label}
                     </button>
                   ))}
                 </div>
@@ -498,8 +505,18 @@ export default function Booking() {
                       className="mt-0.5 shrink-0 accent-brand"
                     />
                     <span className="text-xs text-amber-800 leading-relaxed">
-                      <strong>Estou ciente</strong> de que ao me matricular, os horários ficam reservados exclusivamente para mim durante {recurrenceWeeks} semanas.
-                      A ausência a uma aula não implica reembolso nem reposição, pois o horário foi bloqueado para meu atendimento.
+                      {isMonthly(selectedService) ? (
+                        <>
+                          <strong>Estou ciente</strong> de que a mensalidade reserva minha vaga na turma
+                          {recurrenceWeeks >= 52 ? ' por tempo indeterminado' : recurrenceWeeks >= 26 ? ' por 6 meses' : recurrenceWeeks >= 13 ? ' por 3 meses' : ' por 1 mês'}.
+                          A ausência a uma aula não gera reembolso nem reposição, pois o horário fica bloqueado para mim.
+                        </>
+                      ) : (
+                        <>
+                          <strong>Estou ciente</strong> de que ao me matricular, os horários ficam reservados exclusivamente para mim durante {recurrenceWeeks} semanas.
+                          A ausência a uma aula não implica reembolso nem reposição, pois o horário foi bloqueado para meu atendimento.
+                        </>
+                      )}
                     </span>
                   </label>
                 )}
